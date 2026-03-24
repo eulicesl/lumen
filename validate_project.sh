@@ -170,6 +170,23 @@ echo "▶ Views — Agent Config (Phase 5)"
 check_file "$LUMEN/Views/Shared/Agent/AgentConfigView.swift"
 echo ""
 
+echo "▶ Utilities (Phase 6)"
+check_file "$LUMEN/Utilities/HapticEngine.swift"
+check_file "$LUMEN/Utilities/ReviewRequestManager.swift"
+echo ""
+
+echo "▶ Views — Onboarding (Phase 6)"
+check_file "$LUMEN/Views/Shared/Onboarding/OnboardingView.swift"
+echo ""
+
+echo "▶ Views — Privacy (Phase 6)"
+check_file "$LUMEN/Views/Shared/Settings/PrivacyView.swift"
+echo ""
+
+echo "▶ Design System — Components (Phase 6)"
+check_file "$LUMEN/DesignSystem/Components/EmptyStateView.swift"
+echo ""
+
 echo "▶ Views — Platform Shells"
 check_file "$LUMEN/Views/iOS/MainTabView.swift"
 check_file "$LUMEN/Views/iOS/iPadContentView.swift"

@@ -249,6 +249,8 @@ final class ChatStore {
         let finalMessage = messages[assistantIndex]
         try? await dataService.addMessage(finalMessage, to: conversation.id)
         conversationState = .idle
+        HapticEngine.notification(.success)
+        ReviewRequestManager.shared.recordSuccessfulResponse()
 
         if conversation.title == "New Conversation" && !promptText.isEmpty {
             try? await dataService.updateConversationTitle(

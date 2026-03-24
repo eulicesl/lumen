@@ -15,6 +15,8 @@ struct LumenApp: App {
     @State private var libraryStore = LibraryStore.shared
     @State private var memoryStore = MemoryStore.shared
 
+    @AppStorage("lumen.onboarding.completed") private var hasSeenOnboarding = false
+
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -24,6 +26,15 @@ struct LumenApp: App {
                 .environment(libraryStore)
                 .environment(memoryStore)
                 .preferredColorScheme(appStore.resolvedColorScheme)
+                .fullScreenCover(isPresented: Binding(
+                    get: { !hasSeenOnboarding },
+                    set: { if !$0 { hasSeenOnboarding = true } }
+                )) {
+                    OnboardingView(hasSeenOnboarding: Binding(
+                        get: { hasSeenOnboarding },
+                        set: { hasSeenOnboarding = $0 }
+                    ))
+                }
                 .alert(item: Binding(
                     get: { appStore.activeAlert },
                     set: { appStore.activeAlert = $0 }

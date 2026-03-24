@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var showingResetAlert = false
     @State private var showingMemory = false
     @State private var showingAgentConfig = false
+    @State private var showingPrivacy = false
 
     var body: some View {
         @Bindable var bindableApp = appStore
@@ -48,6 +49,9 @@ struct SettingsView: View {
             .sheet(isPresented: $showingAgentConfig) {
                 AgentConfigView()
                     .environment(chatStore)
+            }
+            .sheet(isPresented: $showingPrivacy) {
+                PrivacyView()
             }
         }
     }
@@ -198,6 +202,18 @@ struct SettingsView: View {
             LabeledContent("Build", value: Bundle.main.buildNumber)
             Link(destination: URL(string: "https://github.com/lumen-ai/lumen")!) {
                 Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
+            }
+            Button {
+                showingPrivacy = true
+            } label: {
+                Label("Privacy", systemImage: "lock.shield")
+                    .foregroundStyle(.primary)
+            }
+            Button {
+                ReviewRequestManager.shared.requestReviewNow()
+            } label: {
+                Label("Rate Lumen", systemImage: "star.fill")
+                    .foregroundStyle(.primary)
             }
         }
     }

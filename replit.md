@@ -161,7 +161,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 3 | Intelligence: search, prompt library, model comparison | ✅ Complete |
 | 4 | Platform: widgets, Siri, Spotlight, Shortcuts, deep links | ✅ Complete |
 | 5 | Advanced: agents, memory, branching | ✅ Complete |
-| 6 | Polish: performance, accessibility, App Store | 🔲 Planned |
+| 6 | Polish: onboarding, haptics, review prompts, privacy, empty states | ✅ Complete |
 
 ## Privacy
 

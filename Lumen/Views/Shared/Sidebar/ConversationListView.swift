@@ -28,6 +28,7 @@ struct ConversationListView: View {
                             .tag(conversation.id)
                             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                 Button {
+                                    HapticEngine.impact(.light)
                                     Task { await chatStore.togglePin(conversation) }
                                 } label: {
                                     Label(
@@ -39,6 +40,7 @@ struct ConversationListView: View {
                             }
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 Button(role: .destructive) {
+                                    HapticEngine.notification(.warning)
                                     Task { await chatStore.deleteConversation(conversation) }
                                 } label: {
                                     Label("Delete", systemImage: LumenIcon.trash)
@@ -84,10 +86,12 @@ struct ConversationListView: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
+                    HapticEngine.impact(.medium)
                     Task { await chatStore.createNewConversation() }
                 } label: {
                     Image(systemName: LumenIcon.newChat)
                 }
+                .accessibilityLabel("New Conversation")
             }
         }
         .alert("Rename", isPresented: Binding(

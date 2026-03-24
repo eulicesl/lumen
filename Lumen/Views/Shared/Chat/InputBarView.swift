@@ -169,6 +169,7 @@ struct InputBarView: View {
 
     private func sendMessage() {
         guard canSend else { return }
+        HapticEngine.impact(.medium)
         #if os(iOS)
         selectedImages = []
         #endif
