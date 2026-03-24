@@ -2,7 +2,9 @@ import SwiftUI
 
 struct MessageBubbleView: View {
     let message: ChatMessage
+    @Environment(ChatStore.self) private var chatStore
     @State private var thinkingExpanded = false
+    @State private var showingBranchConfirm = false
 
     var body: some View {
         HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
@@ -20,6 +22,7 @@ struct MessageBubbleView: View {
                 if !message.content.isEmpty || message.isStreaming {
                     bubbleContent
                         .bubbleBackground(isUser: message.isUser, isError: message.isError)
+                        .contextMenu { contextMenuItems }
                 }
 
                 if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
@@ -33,6 +36,61 @@ struct MessageBubbleView: View {
             if !message.isUser { Spacer(minLength: 60) }
         }
         .id(message.id)
+        .confirmationDialog(
+            "Branch from this message?",
+            isPresented: $showingBranchConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Create Branch") {
+                Task { await chatStore.branchFrom(message: message) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("A new conversation will be created with all messages up to and including this one.")
+        }
+    }
+
+    // MARK: - Context menu
+
+    @ViewBuilder
+    private var contextMenuItems: some View {
+        Button {
+            UIPasteboard.general.string = message.content
+        } label: {
+            Label("Copy", systemImage: "doc.on.doc")
+        }
+
+        if message.isComplete && !message.isError {
+            Button {
+                showingBranchConfirm = true
+            } label: {
+                Label("Branch from Here", systemImage: "arrow.branch")
+            }
+        }
+
+        if message.isAssistant, !message.content.isEmpty {
+            Button {
+                speakMessage()
+            } label: {
+                Label("Speak", systemImage: "speaker.wave.2")
+            }
+        }
+
+        if message.isUser && !message.content.isEmpty {
+            Button {
+                chatStore.inputText = message.content
+            } label: {
+                Label("Edit & Resend", systemImage: "pencil")
+            }
+        }
+
+        Divider()
+
+        Button {
+            saveToMemory()
+        } label: {
+            Label("Save to Memory", systemImage: "brain.head.profile")
+        }
     }
 
     // MARK: - Bubble content
@@ -119,8 +177,27 @@ struct MessageBubbleView: View {
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md))
     }
 
+    // MARK: - Actions
+
+    private func speakMessage() {
+        let utterance = AVSpeechUtterance(string: mainContent.isEmpty ? message.content : mainContent)
+        utterance.voice = AVSpeechSynthesisVoice(language: Locale.current.language.languageCode?.identifier)
+        utterance.rate = 0.52
+        AVSpeechSynthesizer().speak(utterance)
+    }
+
+    private func saveToMemory() {
+        let text = message.isUser ? message.content : mainContent
+        let shortened = String(text.prefix(200))
+        MemoryStore.shared.add(content: shortened, category: message.isUser ? .preference : .fact)
+    }
+
     private var maxBubbleWidth: CGFloat { 600 }
 }
+
+// MARK: - AVFoundation imports
+
+import AVFoundation
 
 // MARK: - Bubble background modifier
 
@@ -162,5 +239,6 @@ private extension View {
         }
         .padding()
     }
+    .environment(ChatStore.shared)
     .environment(AppStore.shared)
 }

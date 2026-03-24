@@ -149,6 +149,27 @@ check_file "LumenWidget/QuickAskWidget.swift"
 check_file "LumenWidget/RecentConversationWidget.swift"
 echo ""
 
+echo "▶ Models — Advanced / Agents (Phase 5)"
+check_file "$LUMEN/Models/MemoryItem.swift"
+check_file "$LUMEN/Models/AgentTool.swift"
+echo ""
+
+echo "▶ Stores — Memory (Phase 5)"
+check_file "$LUMEN/Stores/MemoryStore.swift"
+echo ""
+
+echo "▶ Services — Agent (Phase 5)"
+check_file "$LUMEN/Services/AgentService.swift"
+echo ""
+
+echo "▶ Views — Memory (Phase 5)"
+check_file "$LUMEN/Views/Shared/Memory/MemoryView.swift"
+echo ""
+
+echo "▶ Views — Agent Config (Phase 5)"
+check_file "$LUMEN/Views/Shared/Agent/AgentConfigView.swift"
+echo ""
+
 echo "▶ Views — Platform Shells"
 check_file "$LUMEN/Views/iOS/MainTabView.swift"
 check_file "$LUMEN/Views/iOS/iPadContentView.swift"

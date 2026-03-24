@@ -160,7 +160,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 2 | Enhanced I/O: voice, camera, images, OCR | ✅ Complete |
 | 3 | Intelligence: search, prompt library, model comparison | ✅ Complete |
 | 4 | Platform: widgets, Siri, Spotlight, Shortcuts, deep links | ✅ Complete |
-| 5 | Advanced: agents, memory, branching | 🔲 Planned |
+| 5 | Advanced: agents, memory, branching | ✅ Complete |
 | 6 | Polish: performance, accessibility, App Store | 🔲 Planned |
 
 ## Privacy

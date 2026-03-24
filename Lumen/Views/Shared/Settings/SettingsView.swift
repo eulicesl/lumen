@@ -3,9 +3,13 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(AppStore.self) private var appStore
     @Environment(ModelStore.self) private var modelStore
+    @Environment(ChatStore.self) private var chatStore
+    @Environment(MemoryStore.self) private var memoryStore
     @Environment(\.dismiss) private var dismiss
     @State private var ollamaURLDraft = ""
     @State private var showingResetAlert = false
+    @State private var showingMemory = false
+    @State private var showingAgentConfig = false
 
     var body: some View {
         @Bindable var bindableApp = appStore
@@ -13,6 +17,8 @@ struct SettingsView: View {
             Form {
                 ollamaSection(bindableApp: bindableApp)
                 appleIntelligenceSection
+                memorySection
+                agentSection
                 appearanceSection(bindableApp: bindableApp)
                 aboutSection
                 dangerSection
@@ -34,6 +40,14 @@ struct SettingsView: View {
                 Button("Reset All", role: .destructive) {}
             } message: {
                 Text("This will permanently delete all conversations. This action cannot be undone.")
+            }
+            .sheet(isPresented: $showingMemory) {
+                MemoryView()
+                    .environment(memoryStore)
+            }
+            .sheet(isPresented: $showingAgentConfig) {
+                AgentConfigView()
+                    .environment(chatStore)
             }
         }
     }
@@ -105,6 +119,66 @@ struct SettingsView: View {
         }
     }
 
+    private var memorySection: some View {
+        Section {
+            Button {
+                showingMemory = true
+            } label: {
+                HStack {
+                    Image(systemName: "brain.head.profile")
+                        .foregroundStyle(memoryStore.isEnabled ? .accentColor : .secondary)
+                        .frame(width: 24)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Memory")
+                            .foregroundStyle(.primary)
+                        Text(memoryStore.isEnabled
+                             ? "\(memoryStore.activeMemories.count) active memor\(memoryStore.activeMemories.count == 1 ? "y" : "ies")"
+                             : "Disabled")
+                            .font(LumenType.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        } header: {
+            Label("Intelligence", systemImage: "sparkles")
+        } footer: {
+            Text("Lumen remembers facts and preferences across all conversations.")
+        }
+    }
+
+    private var agentSection: some View {
+        Section {
+            Button {
+                showingAgentConfig = true
+            } label: {
+                HStack {
+                    Image(systemName: "cpu.fill")
+                        .foregroundStyle(chatStore.agentModeEnabled ? .accentColor : .secondary)
+                        .frame(width: 24)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Agent Mode")
+                            .foregroundStyle(.primary)
+                        Text(chatStore.agentModeEnabled
+                             ? "Active — \(AgentToolRegistry.all.count) tools available"
+                             : "Disabled")
+                            .font(LumenType.caption)
+                            .foregroundStyle(chatStore.agentModeEnabled ? .accentColor : .secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        } footer: {
+            Text("When enabled, Lumen can call tools (calculator, date/time, encoders) mid-conversation.")
+        }
+    }
+
     private func appearanceSection(bindableApp: Bindable<AppStore>) -> some View {
         Section {
             Picker("Appearance", selection: bindableApp.colorSchemePreference) {
@@ -150,4 +224,6 @@ private extension Bundle {
     SettingsView()
         .environment(AppStore.shared)
         .environment(ModelStore.shared)
+        .environment(ChatStore.shared)
+        .environment(MemoryStore.shared)
 }

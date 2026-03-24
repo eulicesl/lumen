@@ -14,12 +14,16 @@ final class ChatStore {
     var currentModel: AIModel?
     var timeToFirstToken: TimeInterval?
     var pendingImageData: [Data] = []
+    var agentModeEnabled: Bool = false
+    var agentEvents: [AgentEvent] = []
 
     private let aiService = AIService.shared
     private let dataService = DataService.shared
     private var streamTask: Task<Void, Never>?
 
     private init() {}
+
+    // MARK: - Conversations
 
     func loadConversations() async {
         do {
@@ -71,6 +75,33 @@ final class ChatStore {
         }
     }
 
+    // MARK: - Conversation branching
+
+    func branchFrom(message: ChatMessage) async {
+        guard let conversation = selectedConversation else { return }
+        guard let idx = messages.firstIndex(of: message) else { return }
+
+        let messagesToKeep = Array(messages[...idx])
+        let branchTitle = "Branch: \(String(conversation.title.prefix(35)))"
+
+        do {
+            let newID = try await dataService.createConversation(title: branchTitle)
+            for msg in messagesToKeep {
+                try await dataService.addMessage(msg, to: newID)
+            }
+            guard let newConv = try await dataService.fetchConversation(id: newID) else { return }
+            conversations.insert(newConv, at: 0)
+            await selectConversation(newConv)
+        } catch {
+            AppStore.shared.activeAlert = AppAlert(
+                title: "Branch Failed",
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    // MARK: - Send message
+
     func send() async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingImageData
@@ -80,6 +111,7 @@ final class ChatStore {
 
         inputText = ""
         pendingImageData = []
+        agentEvents = []
 
         let userMessage = ChatMessage.userMessage(text, imageData: images.isEmpty ? nil : images)
         messages.append(userMessage)
@@ -91,48 +123,143 @@ final class ChatStore {
         conversationState = .generating
         timeToFirstToken = nil
         let startTime = Date()
-        var assistantContent = ""
         let assistantIndex = messages.count - 1
 
-        streamTask = Task { @MainActor in
-            let options = ChatOptions(systemPrompt: conversation.systemPrompt)
-            let context = Array(messages.dropLast())
-            let stream = await aiService.chat(messages: context, model: model, options: options)
+        // Build options with memory injection
+        let memoryContext = MemoryStore.shared.contextString
+        let basePrompt = conversation.systemPrompt ?? ""
+        let fullPrompt = [memoryContext, basePrompt].filter { !$0.isEmpty }.joined(separator: "\n\n")
+        let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
+        let context = Array(messages.dropLast())
 
-            do {
-                for try await token in stream {
-                    if Task.isCancelled { break }
-                    if timeToFirstToken == nil {
-                        timeToFirstToken = Date().timeIntervalSince(startTime)
-                    }
-                    assistantContent += token.text
-                    messages[assistantIndex].content = assistantContent
-                    if token.isComplete {
-                        messages[assistantIndex].isComplete = true
-                        messages[assistantIndex].tokenCount = token.tokenCount
-                    }
-                }
-
-                let finalMessage = messages[assistantIndex]
-                try? await dataService.addMessage(finalMessage, to: conversation.id)
-                conversationState = .idle
-
-                if conversation.title == "New Conversation" && !text.isEmpty {
-                    try? await dataService.updateConversationTitle(
-                        id: conversation.id,
-                        title: String(text.prefix(50))
-                    )
-                    await loadConversations()
-                }
-            } catch is CancellationError {
-                messages[assistantIndex].isComplete = true
-                conversationState = .idle
-            } catch {
-                messages[assistantIndex] = ChatMessage.errorMessage(error.localizedDescription)
-                conversationState = .error(error.localizedDescription)
+        if agentModeEnabled {
+            streamTask = Task { @MainActor in
+                await self.runAgentStream(
+                    context: context,
+                    model: model,
+                    options: options,
+                    assistantIndex: assistantIndex,
+                    startTime: startTime,
+                    conversation: conversation,
+                    promptText: text
+                )
+            }
+        } else {
+            streamTask = Task { @MainActor in
+                await self.runDirectStream(
+                    context: context,
+                    model: model,
+                    options: options,
+                    assistantIndex: assistantIndex,
+                    startTime: startTime,
+                    conversation: conversation,
+                    promptText: text
+                )
             }
         }
     }
+
+    // MARK: - Direct streaming
+
+    private func runDirectStream(
+        context: [ChatMessage],
+        model: AIModel,
+        options: ChatOptions,
+        assistantIndex: Int,
+        startTime: Date,
+        conversation: Conversation,
+        promptText: String
+    ) async {
+        var assistantContent = ""
+        let stream = await aiService.chat(messages: context, model: model, options: options)
+
+        do {
+            for try await token in stream {
+                if Task.isCancelled { break }
+                if timeToFirstToken == nil {
+                    timeToFirstToken = Date().timeIntervalSince(startTime)
+                }
+                assistantContent += token.text
+                messages[assistantIndex].content = assistantContent
+                if token.isComplete {
+                    messages[assistantIndex].isComplete = true
+                    messages[assistantIndex].tokenCount = token.tokenCount
+                }
+            }
+            await finalize(assistantIndex: assistantIndex, conversation: conversation, promptText: promptText)
+        } catch is CancellationError {
+            messages[assistantIndex].isComplete = true
+            conversationState = .idle
+        } catch {
+            messages[assistantIndex] = ChatMessage.errorMessage(error.localizedDescription)
+            conversationState = .error(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Agent streaming
+
+    private func runAgentStream(
+        context: [ChatMessage],
+        model: AIModel,
+        options: ChatOptions,
+        assistantIndex: Int,
+        startTime: Date,
+        conversation: Conversation,
+        promptText: String
+    ) async {
+        var assistantContent = ""
+        let agentStream = await AgentService.shared.run(
+            messages: context,
+            model: model,
+            options: options
+        )
+
+        for await event in agentStream {
+            if Task.isCancelled { break }
+            switch event {
+            case .token(let text):
+                if timeToFirstToken == nil {
+                    timeToFirstToken = Date().timeIntervalSince(startTime)
+                }
+                assistantContent += text
+                messages[assistantIndex].content = assistantContent
+            case .complete(let tokenCount):
+                messages[assistantIndex].isComplete = true
+                messages[assistantIndex].tokenCount = tokenCount
+            case .error(let desc):
+                messages[assistantIndex] = ChatMessage.errorMessage(desc)
+                conversationState = .error(desc)
+                return
+            case .toolCall, .toolResult:
+                agentEvents.append(event)
+            }
+        }
+
+        if !Task.isCancelled {
+            await finalize(assistantIndex: assistantIndex, conversation: conversation, promptText: promptText)
+        } else {
+            messages[assistantIndex].isComplete = true
+            conversationState = .idle
+        }
+    }
+
+    // MARK: - Post-stream cleanup
+
+    private func finalize(assistantIndex: Int, conversation: Conversation, promptText: String) async {
+        let finalMessage = messages[assistantIndex]
+        try? await dataService.addMessage(finalMessage, to: conversation.id)
+        conversationState = .idle
+
+        if conversation.title == "New Conversation" && !promptText.isEmpty {
+            try? await dataService.updateConversationTitle(
+                id: conversation.id,
+                title: String(promptText.prefix(50))
+            )
+            await loadConversations()
+        }
+    }
+
+    // MARK: - Stop
 
     func stopGeneration() {
         streamTask?.cancel()
@@ -142,6 +269,8 @@ final class ChatStore {
             messages[lastIndex].isComplete = true
         }
     }
+
+    // MARK: - Delete
 
     func deleteConversation(_ conversation: Conversation) async {
         do {
