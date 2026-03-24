@@ -173,8 +173,8 @@ struct OnboardingView: View {
     private var backgroundGradient: some View {
         LinearGradient(
             colors: [
-                onboardingPages[currentPage].symbolColor.opacity(0.04),
-                Color(uiColor: .systemBackground),
+                onboardingPages[currentPage].symbolColor.opacity(0.06),
+                Color.clear,
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -189,12 +189,6 @@ struct OnboardingView: View {
         }
     }
 }
-
-#if os(iOS)
-private extension Color {
-    init(uiColor: UIColor) { self.init(uiColor) }
-}
-#endif
 
 #Preview {
     OnboardingView(hasSeenOnboarding: .constant(false))

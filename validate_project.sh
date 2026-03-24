@@ -201,6 +201,8 @@ echo ""
 echo "▶ Tests"
 check_file "$TESTS/DataServiceTests.swift"
 check_file "$TESTS/AIProviderMock.swift"
+check_file "$TESTS/MemoryStoreTests.swift"
+check_file "$TESTS/AgentToolTests.swift"
 echo ""
 
 total=$((pass + fail))

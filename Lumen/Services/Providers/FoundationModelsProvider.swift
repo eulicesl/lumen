@@ -10,7 +10,7 @@ actor FoundationModelsProvider: AIProvider {
 
     func checkAvailability() async -> Bool {
         if #available(iOS 26.0, macOS 26.0, *) {
-            return LanguageModelSession.isAvailable
+            return SystemLanguageModel.default.isAvailable
         }
         return false
     }
@@ -54,6 +54,14 @@ actor FoundationModelsProvider: AIProvider {
         }
     }
 
+    // MARK: - iOS 26 Foundation Models streaming
+    //
+    // API reference (iOS 26 / WWDC 2025):
+    //   LanguageModelSession(instructions:)            – session with optional system instructions
+    //   session.streamResponse(to: String) -> ...     – streams LanguageModelStreamedResponse
+    //   response.text                                 – the partial accumulated text per fragment
+    //   SystemLanguageModel.default.isAvailable       – availability gate
+
     @available(iOS 26.0, macOS 26.0, *)
     private func streamWithFoundationModels(
         messages: [ChatMessage],
@@ -61,33 +69,30 @@ actor FoundationModelsProvider: AIProvider {
         continuation: AsyncThrowingStream<ChatToken, Error>.Continuation
     ) async {
         do {
-            var sessionInstructions = ""
-            if let systemPrompt = options.systemPrompt, !systemPrompt.isEmpty {
-                sessionInstructions = systemPrompt
-            } else {
-                sessionInstructions = """
-                You are Lumen, a helpful, private, and knowledgeable AI assistant. \
-                You run entirely on the user's device with no data leaving it. \
-                Be concise, accurate, and friendly.
-                """
-            }
+            let instructions = options.systemPrompt?.isEmpty == false
+                ? options.systemPrompt!
+                : """
+                  You are Lumen, a helpful, private, and knowledgeable AI assistant. \
+                  You run entirely on the user's device with no data leaving it. \
+                  Be concise, accurate, and friendly.
+                  """
 
-            let session = LanguageModelSession(instructions: sessionInstructions)
+            let session = LanguageModelSession(instructions: instructions)
 
-            let userMessages = messages.filter { $0.isUser || $0.isAssistant }
-            guard let lastUserMessage = userMessages.last(where: { $0.isUser }) else {
+            guard let lastUserMessage = messages.last(where: { $0.isUser }) else {
                 continuation.finish(throwing: AIProviderError.invalidResponse("No user message found"))
                 return
             }
 
-            let response = session.streamResponse(to: lastUserMessage.content)
             var fullText = ""
-            for try await partial in response {
-                fullText = partial
-                continuation.yield(ChatToken(text: partial, isComplete: false))
+            let responseStream = session.streamResponse(to: lastUserMessage.content)
+            for try await partialResult in responseStream {
+                fullText = partialResult.text
+                continuation.yield(ChatToken(text: partialResult.text, isComplete: false))
             }
             continuation.yield(ChatToken(text: fullText, isComplete: true, finishReason: .stop))
             continuation.finish()
+
         } catch is CancellationError {
             continuation.finish(throwing: AIProviderError.cancelled)
         } catch {
@@ -95,40 +100,3 @@ actor FoundationModelsProvider: AIProvider {
         }
     }
 }
-
-#if !os(watchOS)
-@available(iOS 26.0, macOS 26.0, *)
-private extension LanguageModelSession {
-    static var isAvailable: Bool {
-        SystemLanguageModel.default.isAvailable
-    }
-}
-
-@available(iOS 26.0, macOS 26.0, *)
-private extension LanguageModelSession {
-    convenience init(instructions: String) {
-        self.init(
-            model: .default,
-            instructions: instructions
-        )
-    }
-
-    func streamResponse(to prompt: String) -> AsyncThrowingStream<String, Error> {
-        AsyncThrowingStream { continuation in
-            Task {
-                do {
-                    let stream = self.streamResponse(to: Prompt(prompt))
-                    var accumulated = ""
-                    for try await fragment in stream {
-                        accumulated += fragment.text
-                        continuation.yield(accumulated)
-                    }
-                    continuation.finish()
-                } catch {
-                    continuation.finish(throwing: error)
-                }
-            }
-        }
-    }
-}
-#endif

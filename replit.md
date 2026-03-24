@@ -88,8 +88,10 @@ Lumen/
     └── Info.plist
 
 LumenTests/
-├── DataServiceTests.swift
-└── AIProviderMock.swift
+├── DataServiceTests.swift      # DataService CRUD + MockAIProvider streaming tests
+├── AIProviderMock.swift        # MockAIProvider and UnavailableProvider actors
+├── MemoryStoreTests.swift      # MemoryStore CRUD, context string, persistence isolation
+└── AgentToolTests.swift        # DateTime, Calculator, WordCount, Base64, URLEncoder + registry
 ```
 
 ## Architecture
@@ -162,6 +164,19 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 4 | Platform: widgets, Siri, Spotlight, Shortcuts, deep links | ✅ Complete |
 | 5 | Advanced: agents, memory, branching | ✅ Complete |
 | 6 | Polish: onboarding, haptics, review prompts, privacy, empty states | ✅ Complete |
+| Audit | Bug fixes, API alignment, test coverage | ✅ Complete |
+
+## Audit Fixes (final pass)
+
+| # | Issue | Fix |
+|---|-------|-----|
+| 1 | `MacContentView` settings sheet missing `memoryStore` environment | Added `@Environment(MemoryStore.self)` and `.environment(memoryStore)` to sheet |
+| 2 | `AppStore` had dead duplicate onboarding state (`showingOnboarding`, `hasLaunchedBefore`) conflicting with LumenApp `@AppStorage("lumen.onboarding.completed")` | Removed `showingOnboarding` property; `LumenApp` is the sole onboarding authority |
+| 3 | `OnboardingView.backgroundGradient` used `Color(uiColor: .systemBackground)` — UIKit-only, macOS compile failure | Replaced with `Color.clear` in the gradient — pure SwiftUI, cross-platform |
+| 4 | `FoundationModelsProvider` used wrong iOS 26 API: `LanguageModelSession(model:instructions:)` and `Prompt(...)` type | Updated to `LanguageModelSession(instructions:)` and plain `String` for `streamResponse(to:)` |
+| 5 | `AppStore.ollamaBearerToken` never persisted — lost on relaunch | Added `UserDefaults` read in `init()` and `saveOllamaBearerToken(_:)` function |
+| 6 | Zero test coverage for `MemoryStore` | Added `MemoryStoreTests.swift` with 10 isolated tests using `MemoryStore.forTesting()` |
+| 7 | Zero test coverage for `AgentTool` built-ins | Added `AgentToolTests.swift` with 16 tests covering all 5 tools + registry |
 
 ## Privacy
 

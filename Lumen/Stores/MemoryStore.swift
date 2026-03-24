@@ -10,10 +10,23 @@ final class MemoryStore {
     var isEnabled: Bool = true
     private let storageKey = "lumen.memories"
     private let enabledKey = "lumen.memories.enabled"
+    private let isTesting: Bool
 
     private init() {
+        isTesting = false
         loadFromDisk()
         isEnabled = UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true
+    }
+
+    /// Creates an isolated, ephemeral instance backed by an in-memory array.
+    /// Only for use in unit tests.
+    static func forTesting() -> MemoryStore {
+        MemoryStore(testing: true)
+    }
+
+    private init(testing: Bool) {
+        isTesting = testing
+        // Intentionally skips disk load — memories stay in-memory only
     }
 
     // MARK: - Computed
@@ -89,6 +102,7 @@ final class MemoryStore {
     }
 
     private func saveToDisk() {
+        guard !isTesting else { return }
         guard let data = try? JSONEncoder().encode(memories) else { return }
         UserDefaults.standard.set(data, forKey: storageKey)
     }

@@ -6,6 +6,7 @@ struct MacContentView: View {
     @Environment(AppStore.self) private var appStore
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    @Environment(MemoryStore.self) private var memoryStore
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
 
     var body: some View {
@@ -47,6 +48,7 @@ struct MacContentView: View {
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)
+                .environment(memoryStore)
         }
     }
 }

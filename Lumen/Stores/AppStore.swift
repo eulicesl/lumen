@@ -13,7 +13,6 @@ final class AppStore {
     var defaultModelID: String?
     var isFirstLaunch: Bool = false
 
-    var showingOnboarding: Bool = false
     var showingSettings: Bool = false
     var activeAlert: AppAlert? = nil
 
@@ -21,9 +20,9 @@ final class AppStore {
         isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
         if isFirstLaunch {
             UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
-            showingOnboarding = true
         }
         ollamaServerURL = UserDefaults.standard.string(forKey: "ollamaServerURL") ?? "http://localhost:11434"
+        ollamaBearerToken = UserDefaults.standard.string(forKey: "ollamaBearerToken") ?? ""
         defaultModelID = UserDefaults.standard.string(forKey: "defaultModelID")
         if let raw = UserDefaults.standard.string(forKey: "colorSchemePreference"),
            let scheme = AppColorScheme(rawValue: raw) {
@@ -42,6 +41,12 @@ final class AppStore {
     func saveOllamaURL(_ urlString: String) {
         ollamaServerURL = urlString
         UserDefaults.standard.set(urlString, forKey: "ollamaServerURL")
+        Task { await syncOllamaConfiguration() }
+    }
+
+    func saveOllamaBearerToken(_ token: String) {
+        ollamaBearerToken = token
+        UserDefaults.standard.set(token, forKey: "ollamaBearerToken")
         Task { await syncOllamaConfiguration() }
     }
 
