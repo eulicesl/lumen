@@ -45,7 +45,9 @@ Lumen/
 │   │   ├── AIProvider.swift       # Protocol: AIProvider: Actor
 │   │   ├── OllamaProvider.swift   # Full Ollama NDJSON streaming
 │   │   └── FoundationModelsProvider.swift  # Apple Foundation Models (#if canImport)
-│   └── AIService.swift            # Provider router + availability check
+│   ├── AIService.swift            # Provider router + availability check
+│   ├── VoiceService.swift         # SFSpeechRecognizer + AVAudioEngine, AsyncStream<VoiceTranscript> (#if os(iOS))
+│   └── ImageService.swift         # UIImage resize, Vision OCR, thumbnail generation
 ├── Stores/
 │   ├── AppStore.swift             # selectedTab, colorSchemePreference, ollamaServerURL
 │   ├── ChatStore.swift            # messages, streaming Task { @MainActor in }
@@ -54,8 +56,13 @@ Lumen/
 │   ├── Shared/
 │   │   ├── Chat/
 │   │   │   ├── ChatView.swift            # ScrollView + LazyVStack, auto-scroll, empty states
-│   │   │   ├── MessageBubbleView.swift   # User/assistant/streaming/error bubbles + think-blocks
-│   │   │   └── InputBarView.swift        # Multiline TextField, model chip, send/stop button
+│   │   │   ├── MessageBubbleView.swift   # User/assistant/streaming/error bubbles + think-blocks + image grid
+│   │   │   ├── InputBarView.swift        # Multiline TextField, model chip, photo/camera/voice, send/stop
+│   │   │   ├── ImageAttachmentRow.swift  # Horizontal thumbnail strip with remove/OCR actions
+│   │   │   └── MessageImageGrid.swift    # 2-col grid with fullscreen viewer
+│   │   ├── Voice/
+│   │   │   ├── VoiceInputView.swift      # Full-screen voice tab: transcript history, send to chat
+│   │   │   └── VoiceWaveformView.swift   # Animated bar waveform + circular pulse indicator
 │   │   ├── Sidebar/
 │   │   │   ├── ConversationListView.swift # Grouped list, search, swipe, context menu
 │   │   │   └── ConversationRowView.swift  # Title + preview + timestamp + pin indicator
@@ -144,7 +151,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 |-------|---------|--------|
 | 0 | Foundation: scaffold, design system, SwiftData | ✅ Complete |
 | 1 | Core Chat: streaming UI, sidebar, model picker, settings | ✅ Complete |
-| 2 | Enhanced I/O: voice, camera, images, OCR | 🔲 Planned |
+| 2 | Enhanced I/O: voice, camera, images, OCR | ✅ Complete |
 | 3 | Intelligence: search, tags, prompt library, comparison | 🔲 Planned |
 | 4 | Platform: widgets, Siri, Spotlight, Shortcuts | 🔲 Planned |
 | 5 | Advanced: agents, memory, branching | 🔲 Planned |

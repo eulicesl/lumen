@@ -17,11 +17,7 @@ struct MainTabView: View {
             }
 
             Tab("Voice", systemImage: LumenIcon.voice, value: LumenTab.voice) {
-                PlaceholderView(
-                    title: "Voice",
-                    subtitle: "Voice conversation coming in Phase 2",
-                    icon: LumenIcon.voice
-                )
+                VoiceInputView()
             }
 
             Tab("Library", systemImage: LumenIcon.library, value: LumenTab.library) {

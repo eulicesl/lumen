@@ -12,8 +12,15 @@ struct MessageBubbleView: View {
                 if message.isAssistant, !thinkBlocks.isEmpty {
                     thinkingDisclosure
                 }
-                bubbleContent
-                    .bubbleBackground(isUser: message.isUser, isError: message.isError)
+
+                if let images = message.imageData, !images.isEmpty {
+                    MessageImageGrid(imageData: images)
+                }
+
+                if !message.content.isEmpty || message.isStreaming {
+                    bubbleContent
+                        .bubbleBackground(isUser: message.isUser, isError: message.isError)
+                }
 
                 if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
                     Text("\(count) tokens")
@@ -49,7 +56,7 @@ struct MessageBubbleView: View {
             .textSelection(.enabled)
             .padding(.horizontal, LumenSpacing.md)
             .padding(.vertical, LumenSpacing.sm)
-            .frame(maxWidth: LumenLayout.maxBubbleWidth, alignment: message.isUser ? .trailing : .leading)
+            .frame(maxWidth: maxBubbleWidth, alignment: message.isUser ? .trailing : .leading)
     }
 
     private var streamingContent: some View {
@@ -65,7 +72,7 @@ struct MessageBubbleView: View {
                     .textSelection(.enabled)
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.sm)
-                    .frame(maxWidth: LumenLayout.maxBubbleWidth, alignment: .leading)
+                    .frame(maxWidth: maxBubbleWidth, alignment: .leading)
                 StreamingPulse()
                     .padding(.trailing, LumenSpacing.sm)
             }
@@ -82,7 +89,7 @@ struct MessageBubbleView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.sm)
-        .frame(maxWidth: LumenLayout.maxBubbleWidth, alignment: .leading)
+        .frame(maxWidth: maxBubbleWidth, alignment: .leading)
     }
 
     // MARK: - Think blocks
@@ -109,9 +116,10 @@ struct MessageBubbleView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.xs)
-        .glassBackground()
-        .clipShape(RoundedRectangle(cornerRadius: LumenRadius.md))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md))
     }
+
+    private var maxBubbleWidth: CGFloat { 600 }
 }
 
 // MARK: - Bubble background modifier
@@ -133,8 +141,7 @@ private struct BubbleBackground: ViewModifier {
                 )
         } else {
             content
-                .glassBackground()
-                .clipShape(RoundedRectangle(cornerRadius: LumenRadius.bubble))
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
         }
     }
 }
@@ -143,16 +150,6 @@ private extension View {
     func bubbleBackground(isUser: Bool, isError: Bool) -> some View {
         modifier(BubbleBackground(isUser: isUser, isError: isError))
     }
-
-    func glassBackground() -> some View {
-        self.background(.regularMaterial)
-    }
-}
-
-// MARK: - Layout constant
-
-private extension LumenLayout {
-    static var maxBubbleWidth: CGFloat { 600 }
 }
 
 #Preview {

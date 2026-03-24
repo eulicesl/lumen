@@ -93,6 +93,21 @@ check_file "$LUMEN/Views/Shared/Models/ModelPickerView.swift"
 check_file "$LUMEN/Views/Shared/Settings/SettingsView.swift"
 echo ""
 
+echo "▶ Services — Enhanced I/O (Phase 2)"
+check_file "$LUMEN/Services/VoiceService.swift"
+check_file "$LUMEN/Services/ImageService.swift"
+echo ""
+
+echo "▶ Views — Voice (Phase 2)"
+check_file "$LUMEN/Views/Shared/Voice/VoiceInputView.swift"
+check_file "$LUMEN/Views/Shared/Voice/VoiceWaveformView.swift"
+echo ""
+
+echo "▶ Views — Image I/O (Phase 2)"
+check_file "$LUMEN/Views/Shared/Chat/ImageAttachmentRow.swift"
+check_file "$LUMEN/Views/Shared/Chat/MessageImageGrid.swift"
+echo ""
+
 echo "▶ Views — Platform Shells"
 check_file "$LUMEN/Views/iOS/MainTabView.swift"
 check_file "$LUMEN/Views/iOS/iPadContentView.swift"

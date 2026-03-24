@@ -13,6 +13,7 @@ final class ChatStore {
     var inputText: String = ""
     var currentModel: AIModel?
     var timeToFirstToken: TimeInterval?
+    var pendingImageData: [Data] = []
 
     private let aiService = AIService.shared
     private let dataService = DataService.shared
@@ -59,14 +60,16 @@ final class ChatStore {
     }
 
     func send() async {
-        guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let images = pendingImageData
+        guard !text.isEmpty || !images.isEmpty else { return }
         guard let conversation = selectedConversation else { return }
         guard let model = currentModel else { return }
 
-        let text = inputText
         inputText = ""
+        pendingImageData = []
 
-        let userMessage = ChatMessage.userMessage(text)
+        let userMessage = ChatMessage.userMessage(text, imageData: images.isEmpty ? nil : images)
         messages.append(userMessage)
         try? await dataService.addMessage(userMessage, to: conversation.id)
 
@@ -77,11 +80,12 @@ final class ChatStore {
         timeToFirstToken = nil
         let startTime = Date()
         var assistantContent = ""
-        var assistantIndex = messages.count - 1
+        let assistantIndex = messages.count - 1
 
         streamTask = Task { @MainActor in
             let options = ChatOptions(systemPrompt: conversation.systemPrompt)
-            let stream = await aiService.chat(messages: messages.dropLast(), model: model, options: options)
+            let context = Array(messages.dropLast())
+            let stream = await aiService.chat(messages: context, model: model, options: options)
 
             do {
                 for try await token in stream {
@@ -101,10 +105,10 @@ final class ChatStore {
                 try? await dataService.addMessage(finalMessage, to: conversation.id)
                 conversationState = .idle
 
-                if conversations.first?.id == conversation.id {
+                if conversation.title == "New Conversation" && !text.isEmpty {
                     try? await dataService.updateConversationTitle(
                         id: conversation.id,
-                        title: conversation.title == "New Conversation" ? String(text.prefix(50)) : conversation.title
+                        title: String(text.prefix(50))
                     )
                     await loadConversations()
                 }

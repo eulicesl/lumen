@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct InputBarView: View {
     @Environment(ChatStore.self) private var chatStore
@@ -6,11 +7,29 @@ struct InputBarView: View {
     @State private var showingModelPicker = false
     @FocusState private var inputFocused: Bool
 
+    #if os(iOS)
+    @State private var selectedImages: [UIImage] = []
+    @State private var pickerItems: [PhotosPickerItem] = []
+    @State private var isRecording = false
+    @State private var voiceTask: Task<Void, Never>?
+    private let voiceService = VoiceService.shared
+    #endif
+
     var body: some View {
         @Bindable var bindableChat = chatStore
         VStack(spacing: 0) {
+            #if os(iOS)
+            ImageAttachmentRow(images: $selectedImages, onOCR: { image in
+                Task { await performOCR(on: image) }
+            })
+            .animation(LumenAnimation.standard, value: selectedImages.isEmpty)
+            #endif
+
             Divider()
             HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
+                #if os(iOS)
+                mediaButtons
+                #endif
                 modelChip
                 inputField(bindableChat: bindableChat)
                 sendButton
@@ -20,12 +39,45 @@ struct InputBarView: View {
             .padding(.bottom, LumenSpacing.xs)
         }
         .background(.bar)
+        .onChange(of: selectedImages) { syncPendingImages() }
         .sheet(isPresented: $showingModelPicker) {
             ModelPickerView()
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
     }
+
+    // MARK: - Media buttons (iOS only)
+
+    #if os(iOS)
+    private var mediaButtons: some View {
+        HStack(spacing: LumenSpacing.xs) {
+            PhotosPicker(
+                selection: $pickerItems,
+                maxSelectionCount: 4,
+                matching: .images
+            ) {
+                Image(systemName: LumenIcon.photo)
+                    .font(.system(size: 20))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.plain)
+            .onChange(of: pickerItems) { Task { await loadPickerImages() } }
+            .disabled(chatStore.conversationState == .generating)
+
+            Button { toggleVoice() } label: {
+                Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
+                    .font(.system(size: 20))
+                    .foregroundStyle(isRecording ? Color.red : Color.secondary)
+                    .frame(width: 32, height: 32)
+                    .symbolEffect(.pulse, isActive: isRecording)
+            }
+            .buttonStyle(.plain)
+            .disabled(chatStore.conversationState == .generating)
+        }
+    }
+    #endif
 
     // MARK: - Model chip
 
@@ -104,8 +156,12 @@ struct InputBarView: View {
         .animation(LumenAnimation.interactive, value: chatStore.conversationState == .generating)
     }
 
+    // MARK: - Logic
+
     private var canSend: Bool {
-        !chatStore.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasText = !chatStore.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasImages = !chatStore.pendingImageData.isEmpty
+        return (hasText || hasImages)
             && chatStore.selectedConversation != nil
             && chatStore.currentModel != nil
             && chatStore.conversationState != .generating
@@ -113,8 +169,78 @@ struct InputBarView: View {
 
     private func sendMessage() {
         guard canSend else { return }
+        #if os(iOS)
+        selectedImages = []
+        #endif
         Task { await chatStore.send() }
     }
+
+    private func syncPendingImages() {
+        #if os(iOS)
+        Task {
+            var result: [Data] = []
+            for image in selectedImages {
+                if let data = await ImageService.shared.prepareForAPI(image) {
+                    result.append(data)
+                }
+            }
+            chatStore.pendingImageData = result
+        }
+        #endif
+    }
+
+    #if os(iOS)
+    private func loadPickerImages() async {
+        var loaded: [UIImage] = []
+        for item in pickerItems {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                loaded.append(image)
+            }
+        }
+        if !loaded.isEmpty { selectedImages = loaded }
+        pickerItems = []
+    }
+
+    private func toggleVoice() {
+        if isRecording {
+            stopVoice()
+        } else {
+            startVoice()
+        }
+    }
+
+    private func startVoice() {
+        isRecording = true
+        voiceTask = Task {
+            let granted = await voiceService.requestPermissions()
+            guard granted else {
+                isRecording = false
+                return
+            }
+            let stream = await voiceService.startTranscribing()
+            for await result in stream {
+                if Task.isCancelled { break }
+                chatStore.inputText = result.text
+            }
+            isRecording = false
+        }
+    }
+
+    private func stopVoice() {
+        voiceTask?.cancel()
+        voiceTask = nil
+        Task { await voiceService.stopTranscribing() }
+        isRecording = false
+    }
+
+    private func performOCR(on image: UIImage) async {
+        guard let text = try? await ImageService.shared.extractText(from: image),
+              !text.isEmpty else { return }
+        let prefix = chatStore.inputText.isEmpty ? "" : "\n"
+        chatStore.inputText += prefix + text
+    }
+    #endif
 }
 
 // MARK: - LumenRadius input
