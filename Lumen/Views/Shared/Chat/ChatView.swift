@@ -30,6 +30,7 @@ struct ChatView: View {
                     Image(systemName: "arrow.left.arrow.right.circle")
                 }
                 .help("Compare Models")
+                .accessibilityLabel("Compare Models")
             }
         }
         .sheet(isPresented: $showingComparison) {

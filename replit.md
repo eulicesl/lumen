@@ -177,6 +177,13 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 5 | `AppStore.ollamaBearerToken` never persisted — lost on relaunch | Added `UserDefaults` read in `init()` and `saveOllamaBearerToken(_:)` function |
 | 6 | Zero test coverage for `MemoryStore` | Added `MemoryStoreTests.swift` with 10 isolated tests using `MemoryStore.forTesting()` |
 | 7 | Zero test coverage for `AgentTool` built-ins | Added `AgentToolTests.swift` with 16 tests covering all 5 tools + registry |
+| 8 | `MessageBubbleView` used `UIPasteboard.general` — UIKit-only, macOS build failure | Replaced with conditional `#if os(iOS)` / `#elseif os(macOS)` using `NSPasteboard.general` |
+| 9 | `AVSpeechSynthesizer()` created inline in button action — deallocated before speech completed | Stored as `@State private var speechSynthesizer`; stops previous utterance before starting new one |
+| 10 | `MemoryView` sheet used `.navigationBarTitleDisplayMode(.large)` — violates HIG for sheets | Changed to `.inline` inside `#if os(iOS)` |
+| 11 | Pinned conversations rendered inside the "Today" date section — violates HIG sidebar grouping | Added `Date.ConversationGroup.pinned` case; `grouped()` routes `isPinned` conversations to dedicated section |
+| 12 | `SettingsView` "Reset All" alert button body was empty `{}` — no data deleted | Added `Task { await chatStore.deleteAllConversations() }` call; added `deleteAllConversations()` to `ChatStore` |
+| 13 | `InputBarView` photo/mic buttons had 32×32pt touch targets (HIG min: 44pt) | Expanded frames to 44×44, added `.contentShape(Rectangle())` and `.accessibilityLabel` |
+| 14 | Compare/add-memory/filter icon-only buttons missing `.accessibilityLabel` | Labels added: "Compare Models", "Add Memory", "Filter Memories", "Attach Photo", "Start Voice Input"/"Stop Recording" |
 
 ## Privacy
 

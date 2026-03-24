@@ -38,9 +38,11 @@ struct SettingsView: View {
             }
             .alert("Reset Conversations", isPresented: $showingResetAlert) {
                 Button("Cancel", role: .cancel) {}
-                Button("Reset All", role: .destructive) {}
+                Button("Delete All", role: .destructive) {
+                    Task { await chatStore.deleteAllConversations() }
+                }
             } message: {
-                Text("This will permanently delete all conversations. This action cannot be undone.")
+                Text("This will permanently delete all conversations and cannot be undone.")
             }
             .sheet(isPresented: $showingMemory) {
                 MemoryView()

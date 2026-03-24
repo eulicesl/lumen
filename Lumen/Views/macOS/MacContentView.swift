@@ -58,6 +58,7 @@ struct MacContentView: View {
         .environment(AppStore.shared)
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
+        .environment(MemoryStore.shared)
         .frame(width: 900, height: 600)
 }
 #endif

@@ -2,6 +2,7 @@ import Foundation
 
 extension Date {
     enum ConversationGroup: String, CaseIterable {
+        case pinned        = "Pinned"
         case today         = "Today"
         case yesterday     = "Yesterday"
         case lastSevenDays = "Previous 7 Days"

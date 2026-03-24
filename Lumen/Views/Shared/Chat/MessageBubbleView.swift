@@ -1,10 +1,12 @@
 import SwiftUI
+import AVFoundation
 
 struct MessageBubbleView: View {
     let message: ChatMessage
     @Environment(ChatStore.self) private var chatStore
     @State private var thinkingExpanded = false
     @State private var showingBranchConfirm = false
+    @State private var speechSynthesizer = AVSpeechSynthesizer()
 
     var body: some View {
         HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
@@ -55,7 +57,12 @@ struct MessageBubbleView: View {
     @ViewBuilder
     private var contextMenuItems: some View {
         Button {
+            #if os(iOS)
             UIPasteboard.general.string = message.content
+            #elseif os(macOS)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(message.content, forType: .string)
+            #endif
         } label: {
             Label("Copy", systemImage: "doc.on.doc")
         }
@@ -180,10 +187,12 @@ struct MessageBubbleView: View {
     // MARK: - Actions
 
     private func speakMessage() {
-        let utterance = AVSpeechUtterance(string: mainContent.isEmpty ? message.content : mainContent)
+        let text = mainContent.isEmpty ? message.content : mainContent
+        let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: Locale.current.language.languageCode?.identifier)
         utterance.rate = 0.52
-        AVSpeechSynthesizer().speak(utterance)
+        if speechSynthesizer.isSpeaking { speechSynthesizer.stopSpeaking(at: .immediate) }
+        speechSynthesizer.speak(utterance)
     }
 
     private func saveToMemory() {
@@ -194,10 +203,6 @@ struct MessageBubbleView: View {
 
     private var maxBubbleWidth: CGFloat { 600 }
 }
-
-// MARK: - AVFoundation imports
-
-import AVFoundation
 
 // MARK: - Bubble background modifier
 

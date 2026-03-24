@@ -306,6 +306,25 @@ final class ChatStore {
         }
     }
 
+    func deleteAllConversations() async {
+        do {
+            try await dataService.deleteAllConversations()
+            conversations = []
+            selectedConversation = nil
+            messages = []
+            Task.detached(priority: .background) {
+                await SpotlightService.shared.deleteAll()
+                WidgetSharedStore.save([])
+            }
+            await createNewConversation()
+        } catch {
+            AppStore.shared.activeAlert = AppAlert(
+                title: "Failed to Reset",
+                message: error.localizedDescription
+            )
+        }
+    }
+
     func renameConversation(_ conversation: Conversation, to name: String) async {
         do {
             try await dataService.updateConversationTitle(id: conversation.id, title: name)

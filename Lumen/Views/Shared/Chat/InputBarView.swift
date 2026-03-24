@@ -60,9 +60,11 @@ struct InputBarView: View {
                 Image(systemName: LumenIcon.photo)
                     .font(.system(size: 20))
                     .foregroundStyle(.secondary)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Attach Photo")
             .onChange(of: pickerItems) { Task { await loadPickerImages() } }
             .disabled(chatStore.conversationState == .generating)
 
@@ -70,10 +72,12 @@ struct InputBarView: View {
                 Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
                     .font(.system(size: 20))
                     .foregroundStyle(isRecording ? Color.red : Color.secondary)
-                    .frame(width: 32, height: 32)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
                     .symbolEffect(.pulse, isActive: isRecording)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
             .disabled(chatStore.conversationState == .generating)
         }
     }

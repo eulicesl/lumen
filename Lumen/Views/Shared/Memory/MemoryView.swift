@@ -35,7 +35,9 @@ struct MemoryView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Memory")
-            .navigationBarTitleDisplayMode(.large)
+            #if os(iOS)
+            .navigationBarTitleDisplayMode(.inline)
+            #endif
             .searchable(text: $searchQuery, prompt: "Search memories…")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -44,6 +46,7 @@ struct MemoryView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add Memory")
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if !memoryStore.memories.isEmpty {
@@ -60,6 +63,7 @@ struct MemoryView: View {
                         } label: {
                             Image(systemName: "line.3.horizontal.decrease.circle")
                         }
+                        .accessibilityLabel("Filter by Category")
                     }
                 }
             }

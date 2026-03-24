@@ -132,7 +132,7 @@ struct ConversationListView: View {
         let unpinned = filtered.filter { !$0.isPinned }
         var result: [Date.ConversationGroup: [Conversation]] = [:]
         if !pinned.isEmpty {
-            result[.today] = (result[.today] ?? []) + pinned
+            result[.pinned] = pinned
         }
         for conv in unpinned {
             let key = conv.updatedAt.conversationGroup
