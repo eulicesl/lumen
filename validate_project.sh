@@ -108,6 +108,26 @@ check_file "$LUMEN/Views/Shared/Chat/ImageAttachmentRow.swift"
 check_file "$LUMEN/Views/Shared/Chat/MessageImageGrid.swift"
 echo ""
 
+echo "▶ Models — Intelligence (Phase 3)"
+check_file "$LUMEN/Models/SavedPrompt.swift"
+echo ""
+
+echo "▶ Stores — Intelligence (Phase 3)"
+check_file "$LUMEN/Stores/LibraryStore.swift"
+echo ""
+
+echo "▶ Views — Search (Phase 3)"
+check_file "$LUMEN/Views/Shared/Search/SearchView.swift"
+echo ""
+
+echo "▶ Views — Library (Phase 3)"
+check_file "$LUMEN/Views/Shared/Library/PromptLibraryView.swift"
+echo ""
+
+echo "▶ Views — Compare (Phase 3)"
+check_file "$LUMEN/Views/Shared/Compare/ModelComparisonView.swift"
+echo ""
+
 echo "▶ Views — Platform Shells"
 check_file "$LUMEN/Views/iOS/MainTabView.swift"
 check_file "$LUMEN/Views/iOS/iPadContentView.swift"

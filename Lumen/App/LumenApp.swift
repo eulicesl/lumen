@@ -11,6 +11,7 @@ struct LumenApp: App {
     @State private var appStore = AppStore.shared
     @State private var chatStore = ChatStore.shared
     @State private var modelStore = ModelStore.shared
+    @State private var libraryStore = LibraryStore.shared
 
     var body: some Scene {
         WindowGroup {
@@ -18,6 +19,7 @@ struct LumenApp: App {
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)
+                .environment(libraryStore)
                 .preferredColorScheme(appStore.resolvedColorScheme)
                 .alert(item: Binding(
                     get: { appStore.activeAlert },

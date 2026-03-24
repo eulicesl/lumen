@@ -21,19 +21,11 @@ struct MainTabView: View {
             }
 
             Tab("Library", systemImage: LumenIcon.library, value: LumenTab.library) {
-                PlaceholderView(
-                    title: "Library",
-                    subtitle: "Prompt templates coming in Phase 3",
-                    icon: LumenIcon.library
-                )
+                PromptLibraryView()
             }
 
             Tab("Search", systemImage: LumenIcon.search, role: .search, value: LumenTab.search) {
-                PlaceholderView(
-                    title: "Search",
-                    subtitle: "Conversation search coming in Phase 3",
-                    icon: LumenIcon.search
-                )
+                SearchView()
             }
 
             Tab("Settings", systemImage: LumenIcon.settings, value: LumenTab.settings) {
@@ -80,4 +72,5 @@ struct PlaceholderView: View {
         .environment(AppStore.shared)
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
+        .environment(LibraryStore.shared)
 }

@@ -68,8 +68,14 @@ Lumen/
 │   │   │   └── ConversationRowView.swift  # Title + preview + timestamp + pin indicator
 │   │   ├── Models/
 │   │   │   └── ModelPickerView.swift     # Ollama + Apple Intelligence sections, availability
-│   │   └── Settings/
-│   │       └── SettingsView.swift        # Ollama URL, Apple Intelligence status, appearance
+│   │   │   ├── Settings/
+│   │   │   └── SettingsView.swift        # Ollama URL, Apple Intelligence status, appearance
+│   │   ├── Search/
+│   │   │   └── SearchView.swift          # Live fuzzy search across conversations; tap → select + switch to chat
+│   │   ├── Library/
+│   │   │   └── PromptLibraryView.swift   # 17 built-in prompts by category, favorites, custom prompts, detail sheet
+│   │   └── Compare/
+│   │       └── ModelComparisonView.swift # Side-by-side (iPad) / stacked (iPhone) model comparison with TTFT
 │   ├── iOS/
 │   │   ├── MainTabView.swift      # 5-tab: Chat (SplitView), Voice, Library, Search, Settings
 │   │   └── iPadContentView.swift  # NavigationSplitView for regular width (iPad)
@@ -152,7 +158,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 0 | Foundation: scaffold, design system, SwiftData | ✅ Complete |
 | 1 | Core Chat: streaming UI, sidebar, model picker, settings | ✅ Complete |
 | 2 | Enhanced I/O: voice, camera, images, OCR | ✅ Complete |
-| 3 | Intelligence: search, tags, prompt library, comparison | 🔲 Planned |
+| 3 | Intelligence: search, prompt library, model comparison | ✅ Complete |
 | 4 | Platform: widgets, Siri, Spotlight, Shortcuts | 🔲 Planned |
 | 5 | Advanced: agents, memory, branching | 🔲 Planned |
 | 6 | Polish: performance, accessibility, App Store | 🔲 Planned |

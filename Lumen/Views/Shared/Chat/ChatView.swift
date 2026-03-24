@@ -2,8 +2,10 @@ import SwiftUI
 
 struct ChatView: View {
     @Environment(ChatStore.self) private var chatStore
+    @Environment(ModelStore.self) private var modelStore
     @State private var scrollProxy: ScrollViewProxy?
     @State private var isAtBottom = true
+    @State private var showingComparison = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -20,6 +22,21 @@ struct ChatView: View {
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingComparison = true
+                } label: {
+                    Image(systemName: "arrow.left.arrow.right.circle")
+                }
+                .help("Compare Models")
+            }
+        }
+        .sheet(isPresented: $showingComparison) {
+            ModelComparisonView()
+                .environment(chatStore)
+                .environment(modelStore)
+        }
         .onChange(of: chatStore.messages.count) {
             scrollToBottom()
         }
@@ -110,5 +127,6 @@ struct ChatView: View {
         ChatView()
             .environment(ChatStore.shared)
             .environment(AppStore.shared)
+            .environment(ModelStore.shared)
     }
 }
