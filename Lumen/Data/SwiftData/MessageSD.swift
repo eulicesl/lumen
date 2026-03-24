@@ -14,7 +14,7 @@ final class MessageSD {
     var tokenCount: Int?
 
     @Attribute(.externalStorage)
-    var imageData: Data?
+    var imageData: [Data]?
 
     var conversation: ConversationSD?
 
@@ -26,7 +26,7 @@ final class MessageSD {
         isComplete: Bool = true,
         isError: Bool = false,
         tokenCount: Int? = nil,
-        imageData: Data? = nil
+        imageData: [Data]? = nil
     ) {
         self.id = id
         self.content = content
@@ -46,7 +46,8 @@ final class MessageSD {
             createdAt: createdAt,
             isComplete: isComplete,
             isError: isError,
-            tokenCount: tokenCount
+            tokenCount: tokenCount,
+            imageData: imageData
         )
     }
 
@@ -58,7 +59,8 @@ final class MessageSD {
             createdAt: message.createdAt,
             isComplete: message.isComplete,
             isError: message.isError,
-            tokenCount: message.tokenCount
+            tokenCount: message.tokenCount,
+            imageData: message.imageData
         )
     }
 }
