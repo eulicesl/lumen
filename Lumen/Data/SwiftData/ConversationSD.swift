@@ -35,11 +35,10 @@ final class ConversationSD {
     }
 
     var preview: String {
-        messages
+        let raw = messages
             .filter { $0.role != "system" }
-            .last?.content
-            .prefix(100)
-            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            .last?.content ?? ""
+        return String(raw.prefix(100)).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func toDomain() -> Conversation {

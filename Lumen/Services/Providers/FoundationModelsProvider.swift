@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationModels)
+import FoundationModels
+#endif
 
 actor FoundationModelsProvider: AIProvider {
     let id = "foundationModels"

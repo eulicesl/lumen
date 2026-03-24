@@ -1,3 +1,4 @@
+#if os(iOS)
 import UIKit
 import BackgroundTasks
 
@@ -67,3 +68,4 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
 extension Notification.Name {
     static let lumenDeepLink = Notification.Name("com.lumen.deepLink")
 }
+#endif

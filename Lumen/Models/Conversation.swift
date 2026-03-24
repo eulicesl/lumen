@@ -35,7 +35,7 @@ struct Conversation: Identifiable, Hashable, Sendable, Codable {
     }
 
     var preview: String {
-        lastMessage?.content.prefix(100).trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        String(lastMessage?.content.prefix(100) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var messageCount: Int { messages.count }
