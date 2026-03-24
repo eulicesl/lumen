@@ -12,65 +12,79 @@ Lumen is a native Swift/SwiftUI app targeting iOS 26, iPadOS 26, and macOS 26. I
 
 ```
 Lumen/
-├── App/                           # Entry point + AppDelegate
-│   ├── LumenApp.swift             # @main, SwiftData model container
-│   ├── AppDelegate.swift          # BGTasks, deep link handling
-│   └── ContentView.swift          # Platform branch (iOS vs macOS)
-├── DesignSystem/                  # Design tokens + reusable components
-│   ├── LumenTokens.swift          # Spacing, radius, animation, type
+├── App/
+│   ├── LumenApp.swift             # @main, injects AppStore/ChatStore/ModelStore environments
+│   ├── AppDelegate.swift          # BGTasks, deep links (#if os(iOS))
+│   └── ContentView.swift          # Platform branch: iPhone→TabView, iPad→SplitView, Mac→SplitView
+├── DesignSystem/
+│   ├── LumenTokens.swift          # Spacing, radius, animation, typography tokens
 │   ├── LumenColor.swift           # Semantic system colors
 │   ├── LumenIcon.swift            # SF Symbol name constants
 │   └── Components/
 │       ├── GlassContainer.swift   # .glassEffect() wrapper with fallback
-│       ├── LumenButton.swift      # Primary/secondary/destructive styles
+│       ├── LumenButton.swift      # Primary/secondary/destructive/ghost/icon styles
 │       └── LoadingIndicator.swift # TypingIndicator + StreamingPulse
 ├── Models/                        # Domain value types (Sendable, Codable)
-│   ├── AIModel.swift              # AI model descriptor
-│   ├── ChatMessage.swift          # Message with role, content, metadata
+│   ├── AIModel.swift              # AI model descriptor + shortName computed property
+│   ├── ChatMessage.swift          # Message with role, content, [Data]? images
 │   ├── Conversation.swift         # Conversation with messages + metadata
 │   ├── ChatToken.swift            # Streaming token + ChatOptions
 │   └── Enums/
-│       ├── MessageRole.swift      # .user / .assistant / .system
-│       ├── ConversationState.swift # .idle / .generating / .error
-│       └── AIProviderType.swift   # .ollama / .foundationModels
-├── Data/                          # Persistence layer
+│       ├── MessageRole.swift
+│       ├── ConversationState.swift
+│       └── AIProviderType.swift
+├── Data/
 │   ├── SwiftData/
 │   │   ├── ConversationSD.swift   # @Model with cascade messages
-│   │   ├── MessageSD.swift        # @Model with externalStorage imageData
+│   │   ├── MessageSD.swift        # @Model with [Data]? imageData external storage
 │   │   ├── AIModelSD.swift        # @Model for persisted model configs
 │   │   └── Schema.swift           # VersionedSchema + migration plan
-│   └── DataService.swift          # Actor-isolated CRUD, .forTesting()
-├── Services/                      # Business logic layer (actors)
+│   └── DataService.swift          # nonisolated modelContainer, actor-isolated CRUD
+├── Services/
 │   ├── Providers/
 │   │   ├── AIProvider.swift       # Protocol: AIProvider: Actor
-│   │   ├── OllamaProvider.swift   # Full Ollama API impl (NDJSON stream)
-│   │   └── FoundationModelsProvider.swift  # Apple Foundation Models
+│   │   ├── OllamaProvider.swift   # Full Ollama NDJSON streaming
+│   │   └── FoundationModelsProvider.swift  # Apple Foundation Models (#if canImport)
 │   └── AIService.swift            # Provider router + availability check
-├── Stores/                        # @Observable state stores (MainActor)
-│   ├── AppStore.swift             # Global: tab, settings, alerts
-│   ├── ChatStore.swift            # Chat: messages, streaming, CRUD
-│   └── ModelStore.swift           # Models: listing, selection
+├── Stores/
+│   ├── AppStore.swift             # selectedTab, colorSchemePreference, ollamaServerURL
+│   ├── ChatStore.swift            # messages, streaming Task { @MainActor in }
+│   └── ModelStore.swift           # availableModels, loads on startup, syncs to ChatStore
 ├── Views/
-│   ├── Shared/                    # Cross-platform views (Phase 1+)
+│   ├── Shared/
+│   │   ├── Chat/
+│   │   │   ├── ChatView.swift            # ScrollView + LazyVStack, auto-scroll, empty states
+│   │   │   ├── MessageBubbleView.swift   # User/assistant/streaming/error bubbles + think-blocks
+│   │   │   └── InputBarView.swift        # Multiline TextField, model chip, send/stop button
+│   │   ├── Sidebar/
+│   │   │   ├── ConversationListView.swift # Grouped list, search, swipe, context menu
+│   │   │   └── ConversationRowView.swift  # Title + preview + timestamp + pin indicator
+│   │   ├── Models/
+│   │   │   └── ModelPickerView.swift     # Ollama + Apple Intelligence sections, availability
+│   │   └── Settings/
+│   │       └── SettingsView.swift        # Ollama URL, Apple Intelligence status, appearance
 │   ├── iOS/
-│   │   └── MainTabView.swift      # 5-tab TabView with .search role
+│   │   ├── MainTabView.swift      # 5-tab: Chat (SplitView), Voice, Library, Search, Settings
+│   │   └── iPadContentView.swift  # NavigationSplitView for regular width (iPad)
 │   └── macOS/
-│       └── MacContentView.swift   # NavigationSplitView + toolbar
+│       └── MacContentView.swift   # NavigationSplitView + toolbar + keyboard shortcuts
 ├── Extensions/
-│   ├── Date+Grouping.swift        # Today/Yesterday/7 days grouping
-│   └── String+Markdown.swift      # Markdown helpers + think-block parsing
+│   ├── Date+Grouping.swift        # Today/Yesterday/7 days/30 days conversation grouping
+│   └── String+Markdown.swift      # Markdown helpers, think-block parsing, AttributedString
 └── Resources/
-    └── Info.plist                 # Permissions + background tasks
+    └── Info.plist
 
 LumenTests/
-├── DataServiceTests.swift         # 8 tests: CRUD, pin, system prompt
-└── AIProviderMock.swift           # MockAIProvider actor + UnavailableProvider
+├── DataServiceTests.swift
+└── AIProviderMock.swift
 ```
 
 ## Architecture
 
 ```
 UI Layer (SwiftUI Views)
+  ChatView · MessageBubbleView · InputBarView
+  ConversationListView · ModelPickerView · SettingsView
         ↓
 Store Layer (@Observable, @MainActor)
   AppStore · ChatStore · ModelStore
@@ -83,47 +97,43 @@ Data Layer (SwiftData)
   ConversationSD · MessageSD · AIModelSD
 ```
 
-### Key Decisions
+## Key Architecture Decisions
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
 | Language | Swift 6, `-strict-concurrency=complete` | Catches threading bugs at compile time |
 | UI | SwiftUI (iOS 26 APIs) | Native, Liquid Glass, declarative |
 | Persistence | SwiftData | Native, iCloud-ready, SwiftUI-integrated |
-| State | `@Observable` | Modern replacement for `ObservableObject` |
+| State | `@Observable` + `@Bindable` | Modern, no ObservableObject overhead |
 | Services | `actor` isolation | Thread-safe, no DispatchQueue |
-| Testing | Swift Testing (`@Test`, `@Suite`, `#expect`) | Modern framework, Xcode 15+ |
+| Chat streaming | `Task { @MainActor in }` | Explicit MainActor for all UI state mutations |
+| DataService.modelContainer | `nonisolated` | Safely accessible from LumenApp.body |
+| Testing | Swift Testing (`@Test`, `@Suite`, `#expect`) | Modern framework |
 | AI Providers | Protocol-oriented (`AIProvider: Actor`) | Pluggable, testable, mockable |
-| Dependencies | SPM only | No CocoaPods/Carthage |
 
 ## Development Setup
 
 ### Prerequisites
-- Xcode 26 (beta) on macOS
-- iOS 26 Simulator or physical device with Apple Intelligence
+- Xcode 26 (beta) on macOS 26
+- iOS 26 Simulator or physical device
 - (Optional) Ollama running locally: `brew install ollama && ollama serve`
 
-### Running in Xcode
+### Create the Xcode Project
 
-1. Open `Lumen/` as an Xcode project (or create `Lumen.xcodeproj` in the folder)
-2. Select target: **iPhone 16 Pro** (iOS 26 simulator)
-3. Press **⌘R** to build and run
-4. For macOS: select **My Mac** target
+1. Open Xcode 26
+2. Create a new Swift/SwiftUI multiplatform app
+3. Move/overwrite source files from `Lumen/` into the Xcode project
+4. Add `LumenTests/` as a test target
+5. Set minimum deployment: iOS 26, macOS 26
+6. Enable `-strict-concurrency=complete` in Swift compiler flags
 
-### Running Tests
-
-```
-⌘U in Xcode → runs LumenTests suite
-```
-
-All DataService tests use in-memory SwiftData (`.forTesting()`), so they're fast and isolated.
-
-### Ollama Setup (optional)
+### Ollama Setup
 
 ```bash
 brew install ollama
-ollama serve            # Starts server at http://localhost:11434
-ollama pull llama3.2    # Download a model
+ollama serve                  # Starts server at http://localhost:11434
+ollama pull llama3.2          # Pull a model
+ollama pull deepseek-r1:8b    # Pull a reasoning model (supports <think> blocks)
 ```
 
 Configure the server URL in Lumen → Settings → Ollama Server URL.
@@ -133,7 +143,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | Phase | Feature | Status |
 |-------|---------|--------|
 | 0 | Foundation: scaffold, design system, SwiftData | ✅ Complete |
-| 1 | Core Chat: Ollama + Foundation Models, streaming UI | 🔲 Next |
+| 1 | Core Chat: streaming UI, sidebar, model picker, settings | ✅ Complete |
 | 2 | Enhanced I/O: voice, camera, images, OCR | 🔲 Planned |
 | 3 | Intelligence: search, tags, prompt library, comparison | 🔲 Planned |
 | 4 | Platform: widgets, Siri, Spotlight, Shortcuts | 🔲 Planned |
@@ -145,4 +155,3 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 - **Zero telemetry** — no analytics, no crash reporting sent to any server
 - **On-device or self-hosted** — all AI runs on Apple Intelligence or your own Ollama instance
 - **Privacy label: "Data Not Collected"** — the strongest possible App Store stance
-- Health data (Phase 5) is read on-device only and never transmitted

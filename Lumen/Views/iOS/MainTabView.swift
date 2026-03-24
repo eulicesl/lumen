@@ -3,16 +3,17 @@ import SwiftUI
 struct MainTabView: View {
 
     @Environment(AppStore.self) private var appStore
+    @Environment(ChatStore.self) private var chatStore
 
     var body: some View {
         @Bindable var store = appStore
         TabView(selection: $store.selectedTab) {
             Tab("Chat", systemImage: LumenIcon.chat, value: LumenTab.chat) {
-                PlaceholderView(
-                    title: "Chat",
-                    subtitle: "Full chat experience coming in Phase 1",
-                    icon: LumenIcon.chat
-                )
+                NavigationSplitView {
+                    ConversationListView()
+                } detail: {
+                    ChatView()
+                }
             }
 
             Tab("Voice", systemImage: LumenIcon.voice, value: LumenTab.voice) {
@@ -40,11 +41,9 @@ struct MainTabView: View {
             }
 
             Tab("Settings", systemImage: LumenIcon.settings, value: LumenTab.settings) {
-                PlaceholderView(
-                    title: "Settings",
-                    subtitle: "Full settings coming in Phase 1",
-                    icon: LumenIcon.settings
-                )
+                NavigationStack {
+                    SettingsView()
+                }
             }
         }
     }
@@ -83,4 +82,6 @@ struct PlaceholderView: View {
 #Preview {
     MainTabView()
         .environment(AppStore.shared)
+        .environment(ChatStore.shared)
+        .environment(ModelStore.shared)
 }

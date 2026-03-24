@@ -20,18 +20,22 @@ enum LumenRadius {
     static let xl: CGFloat   = 20
     static let xxl: CGFloat  = 24
     static let full: CGFloat = 9999
+    static let bubble: CGFloat = 18
 }
 
 enum LumenAnimation {
-    static let standard = Animation.spring(duration: 0.35, bounce: 0.15)
-    static let snappy   = Animation.spring(duration: 0.25, bounce: 0.2)
-    static let gentle   = Animation.spring(duration: 0.5, bounce: 0.1)
-    static let fade     = Animation.easeOut(duration: 0.15)
+    static let standard    = Animation.spring(duration: 0.35, bounce: 0.15)
+    static let snappy      = Animation.spring(duration: 0.25, bounce: 0.2)
+    static let gentle      = Animation.spring(duration: 0.5, bounce: 0.1)
+    static let fade        = Animation.easeOut(duration: 0.15)
+    static let interactive = Animation.spring(duration: 0.2, bounce: 0.1)
 }
 
 enum LumenType {
     static let messageBody    = Font.body
     static let messageCaption = Font.caption
+    static let body           = Font.body
+    static let caption        = Font.caption
     static let codeBlock      = Font.system(.body, design: .monospaced)
     static let largeTitle     = Font.largeTitle
     static let title          = Font.title3

@@ -9,11 +9,38 @@ struct LumenApp: App {
     #endif
 
     @State private var appStore = AppStore.shared
+    @State private var chatStore = ChatStore.shared
+    @State private var modelStore = ModelStore.shared
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(appStore)
+                .environment(chatStore)
+                .environment(modelStore)
+                .preferredColorScheme(appStore.resolvedColorScheme)
+                .alert(item: Binding(
+                    get: { appStore.activeAlert },
+                    set: { appStore.activeAlert = $0 }
+                )) { alert in
+                    Alert(
+                        title: Text(alert.title),
+                        message: Text(alert.message),
+                        dismissButton: .default(Text(alert.dismissLabel)) {
+                            alert.action?()
+                        }
+                    )
+                }
+                .task {
+                    await modelStore.loadModels()
+                    await chatStore.loadConversations()
+                    if chatStore.conversations.isEmpty {
+                        await chatStore.createNewConversation()
+                    }
+                    if chatStore.currentModel == nil {
+                        chatStore.currentModel = modelStore.selectedModel
+                    }
+                }
         }
         .modelContainer(DataService.shared.modelContainer)
 
@@ -22,6 +49,13 @@ struct LumenApp: App {
             Button("Open Lumen") {
                 NSApp.activate(ignoringOtherApps: true)
             }
+            Divider()
+            Button("New Conversation") {
+                Task { @MainActor in
+                    await ChatStore.shared.createNewConversation()
+                }
+            }
+            .keyboardShortcut("n", modifiers: .command)
         }
         #endif
     }

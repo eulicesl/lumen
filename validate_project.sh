@@ -77,9 +77,31 @@ check_file "$LUMEN/Stores/ChatStore.swift"
 check_file "$LUMEN/Stores/ModelStore.swift"
 echo ""
 
-echo "▶ Views"
+echo "▶ Views — Chat (Phase 1)"
+check_file "$LUMEN/Views/Shared/Chat/ChatView.swift"
+check_file "$LUMEN/Views/Shared/Chat/MessageBubbleView.swift"
+check_file "$LUMEN/Views/Shared/Chat/InputBarView.swift"
+echo ""
+
+echo "▶ Views — Sidebar (Phase 1)"
+check_file "$LUMEN/Views/Shared/Sidebar/ConversationListView.swift"
+check_file "$LUMEN/Views/Shared/Sidebar/ConversationRowView.swift"
+echo ""
+
+echo "▶ Views — Models + Settings (Phase 1)"
+check_file "$LUMEN/Views/Shared/Models/ModelPickerView.swift"
+check_file "$LUMEN/Views/Shared/Settings/SettingsView.swift"
+echo ""
+
+echo "▶ Views — Platform Shells"
 check_file "$LUMEN/Views/iOS/MainTabView.swift"
+check_file "$LUMEN/Views/iOS/iPadContentView.swift"
 check_file "$LUMEN/Views/macOS/MacContentView.swift"
+echo ""
+
+echo "▶ Extensions"
+check_file "$LUMEN/Extensions/Date+Grouping.swift"
+check_file "$LUMEN/Extensions/String+Markdown.swift"
 echo ""
 
 echo "▶ Tests"

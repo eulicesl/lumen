@@ -43,6 +43,14 @@ struct AIModel: Identifiable, Hashable, Sendable, Codable {
 }
 
 extension AIModel {
+    var shortName: String {
+        let parts = displayName.components(separatedBy: " ")
+        if parts.count <= 2 { return displayName }
+        return parts.prefix(2).joined(separator: " ")
+    }
+}
+
+extension AIModel {
     static let appleFoundationModel = AIModel(
         id: "foundation-models.apple",
         name: "apple-foundation",

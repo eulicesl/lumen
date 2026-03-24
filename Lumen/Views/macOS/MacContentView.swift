@@ -4,26 +4,23 @@ import SwiftUI
 struct MacContentView: View {
 
     @Environment(AppStore.self) private var appStore
-    @State private var selectedItem: String? = nil
+    @Environment(ChatStore.self) private var chatStore
+    @Environment(ModelStore.self) private var modelStore
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
 
     var body: some View {
         @Bindable var bindableStore = appStore
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            MacSidebarPlaceholder()
+            ConversationListView()
                 .navigationSplitViewColumnWidth(min: 220, ideal: LumenLayout.sidebarWidthMac)
         } detail: {
-            MacDetailPlaceholder()
+            ChatView()
         }
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 Button {
                     withAnimation(LumenAnimation.standard) {
-                        if columnVisibility == .all {
-                            columnVisibility = .detailOnly
-                        } else {
-                            columnVisibility = .all
-                        }
+                        columnVisibility = columnVisibility == .all ? .detailOnly : .all
                     }
                 } label: {
                     Label("Toggle Sidebar", systemImage: "sidebar.left")
@@ -31,77 +28,34 @@ struct MacContentView: View {
             }
             ToolbarItem(placement: .primaryAction) {
                 Button {
+                    Task { await ChatStore.shared.createNewConversation() }
                 } label: {
                     Label("New Conversation", systemImage: LumenIcon.newChat)
                 }
                 .keyboardShortcut("n", modifiers: .command)
             }
             ToolbarItem(placement: .primaryAction) {
-                Button {
-                    appStore.showingSettings = true
-                } label: {
+                Button { appStore.showingSettings = true } label: {
                     Label("Settings", systemImage: LumenIcon.settings)
                 }
                 .keyboardShortcut(",", modifiers: .command)
             }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            Text("Settings — Phase 1")
-                .padding()
+            SettingsView()
+                .frame(minWidth: 480, minHeight: 560)
+                .environment(appStore)
+                .environment(chatStore)
+                .environment(modelStore)
         }
-    }
-}
-
-private struct MacSidebarPlaceholder: View {
-    var body: some View {
-        VStack(spacing: LumenSpacing.lg) {
-            Spacer()
-            Image(systemName: LumenIcon.chat)
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-                .symbolRenderingMode(.hierarchical)
-            Text("Conversations")
-                .font(LumenType.headline)
-                .foregroundStyle(.secondary)
-            Text("Coming in Phase 1")
-                .font(LumenType.footnote)
-                .foregroundStyle(.tertiary)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
-        .navigationTitle("Lumen")
-    }
-}
-
-private struct MacDetailPlaceholder: View {
-    var body: some View {
-        VStack(spacing: LumenSpacing.xl) {
-            Spacer()
-            Image(systemName: "sparkle")
-                .font(.system(size: 64))
-                .foregroundStyle(.secondary)
-                .symbolRenderingMode(.hierarchical)
-            VStack(spacing: LumenSpacing.sm) {
-                Text("Welcome to Lumen")
-                    .font(LumenType.largeTitle)
-                    .fontWeight(.bold)
-                Text("Your private AI assistant")
-                    .font(LumenType.messageBody)
-                    .foregroundStyle(.secondary)
-                Text("Full chat experience coming in Phase 1")
-                    .font(LumenType.footnote)
-                    .foregroundStyle(.tertiary)
-            }
-            Spacer()
-        }
-        .frame(maxWidth: LumenLayout.maxContentWidthMac)
-        .frame(maxWidth: .infinity)
     }
 }
 
 #Preview {
     MacContentView()
         .environment(AppStore.shared)
+        .environment(ChatStore.shared)
+        .environment(ModelStore.shared)
         .frame(width: 900, height: 600)
 }
 #endif

@@ -12,7 +12,6 @@ final class ModelStore {
     var lastError: String?
 
     private let aiService = AIService.shared
-    private let dataService = DataService.shared
 
     private init() {}
 
@@ -20,14 +19,25 @@ final class ModelStore {
         isLoading = true
         lastError = nil
         defer { isLoading = false }
+
+        await syncOllamaURL()
         availableModels = await aiService.listAllModels()
-        if selectedModel == nil {
+
+        if let savedID = AppStore.shared.defaultModelID,
+           let saved = availableModels.first(where: { $0.id == savedID }) {
+            selectedModel = saved
+        } else if selectedModel == nil || !availableModels.contains(where: { $0.id == selectedModel?.id }) {
             selectedModel = availableModels.first
+        }
+
+        if let model = selectedModel {
+            ChatStore.shared.currentModel = model
         }
     }
 
     func selectModel(_ model: AIModel) {
         selectedModel = model
+        ChatStore.shared.currentModel = model
         AppStore.shared.saveDefaultModel(model.id)
     }
 
@@ -43,7 +53,13 @@ final class ModelStore {
         availableModels.filter { $0.providerType == .foundationModels }
     }
 
-    var hasOllamaModels: Bool { !ollamaModels.isEmpty }
-    var hasFoundationModels: Bool { !foundationModels.isEmpty }
+    var ollamaModelCount: Int { ollamaModels.count }
+    var appleIntelligenceAvailable: Bool { !foundationModels.isEmpty }
     var hasAnyModels: Bool { !availableModels.isEmpty }
+
+    private func syncOllamaURL() async {
+        let urlString = AppStore.shared.ollamaServerURL
+        guard let url = URL(string: urlString) else { return }
+        await aiService.configureOllama(baseURL: url, bearerToken: nil)
+    }
 }

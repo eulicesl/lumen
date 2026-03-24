@@ -21,6 +21,8 @@ enum LumenIcon {
     static let delete     = "trash"
     static let pin        = "pin"
     static let pinFill    = "pin.fill"
+    static let pinSlash   = "pin.slash"
+    static let trash      = "trash"
     static let rename     = "pencil.line"
 
     // MARK: - Input
@@ -39,9 +41,10 @@ enum LumenIcon {
     static let newChat   = "square.and.pencil"
 
     // MARK: - Models
-    static let model    = "cpu"
-    static let ollama   = "server.rack"
-    static let onDevice = "apple.logo"
+    static let model              = "cpu"
+    static let ollama             = "server.rack"
+    static let appleIntelligence  = "apple.logo"
+    static let onDevice           = "apple.logo"
     static let compare  = "rectangle.split.2x1"
 
     // MARK: - Status

@@ -7,14 +7,11 @@ final class AppStore {
     static let shared = AppStore()
 
     var selectedTab: LumenTab = .chat
-    var colorScheme: ColorScheme? = nil
-    var ollamaBaseURL: String = "http://localhost:11434"
+    var colorSchemePreference: AppColorScheme = .system
+    var ollamaServerURL: String = "http://localhost:11434"
     var ollamaBearerToken: String = ""
     var defaultModelID: String?
     var isFirstLaunch: Bool = false
-
-    var ollamaAvailable: Bool = false
-    var foundationModelsAvailable: Bool = false
 
     var showingOnboarding: Bool = false
     var showingSettings: Bool = false
@@ -26,16 +23,26 @@ final class AppStore {
             UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
             showingOnboarding = true
         }
-        ollamaBaseURL = UserDefaults.standard.string(forKey: "ollamaBaseURL") ?? "http://localhost:11434"
+        ollamaServerURL = UserDefaults.standard.string(forKey: "ollamaServerURL") ?? "http://localhost:11434"
         defaultModelID = UserDefaults.standard.string(forKey: "defaultModelID")
+        if let raw = UserDefaults.standard.string(forKey: "colorSchemePreference"),
+           let scheme = AppColorScheme(rawValue: raw) {
+            colorSchemePreference = scheme
+        }
+    }
+
+    var resolvedColorScheme: ColorScheme? {
+        switch colorSchemePreference {
+        case .system: return nil
+        case .light:  return .light
+        case .dark:   return .dark
+        }
     }
 
     func saveOllamaURL(_ urlString: String) {
-        ollamaBaseURL = urlString
-        UserDefaults.standard.set(urlString, forKey: "ollamaBaseURL")
-        Task {
-            await syncOllamaConfiguration()
-        }
+        ollamaServerURL = urlString
+        UserDefaults.standard.set(urlString, forKey: "ollamaServerURL")
+        Task { await syncOllamaConfiguration() }
     }
 
     func saveDefaultModel(_ modelID: String) {
@@ -43,19 +50,22 @@ final class AppStore {
         UserDefaults.standard.set(modelID, forKey: "defaultModelID")
     }
 
-    func checkProviderAvailability() async {
-        let availability = await AIService.shared.checkAvailability()
-        await MainActor.run {
-            ollamaAvailable = availability[.ollama] ?? false
-            foundationModelsAvailable = availability[.foundationModels] ?? false
-        }
+    func saveColorScheme(_ scheme: AppColorScheme) {
+        colorSchemePreference = scheme
+        UserDefaults.standard.set(scheme.rawValue, forKey: "colorSchemePreference")
     }
 
     private func syncOllamaConfiguration() async {
-        guard let url = URL(string: ollamaBaseURL) else { return }
+        guard let url = URL(string: ollamaServerURL) else { return }
         let token = ollamaBearerToken.isEmpty ? nil : ollamaBearerToken
         await AIService.shared.configureOllama(baseURL: url, bearerToken: token)
     }
+}
+
+// MARK: - Enums
+
+enum AppColorScheme: String, CaseIterable {
+    case system, light, dark
 }
 
 enum LumenTab: String, CaseIterable, Identifiable {
