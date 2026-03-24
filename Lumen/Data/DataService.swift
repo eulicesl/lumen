@@ -4,7 +4,7 @@ import Foundation
 actor DataService {
     static let shared = DataService()
 
-    let modelContainer: ModelContainer
+    nonisolated let modelContainer: ModelContainer
     private let modelContext: ModelContext
 
     private init(inMemory: Bool = false) {

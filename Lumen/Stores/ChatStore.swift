@@ -79,7 +79,7 @@ final class ChatStore {
         var assistantContent = ""
         var assistantIndex = messages.count - 1
 
-        streamTask = Task {
+        streamTask = Task { @MainActor in
             let options = ChatOptions(systemPrompt: conversation.systemPrompt)
             let stream = await aiService.chat(messages: messages.dropLast(), model: model, options: options)
 
