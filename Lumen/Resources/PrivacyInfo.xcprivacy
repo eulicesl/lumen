@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+    <!--
+        Lumen AI — Privacy Manifest
+        Data collected: NONE (privacy-first, fully on-device or self-hosted)
+        All AI inference runs on Apple Intelligence or the user's own Ollama server.
+        No telemetry, no analytics, no data leaves the device.
+    -->
+
+    <!-- No data types collected or linked to users -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+
+    <!-- No tracking -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!--
+        Required API access declarations.
+        These APIs are used internally for app functionality only.
+    -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+
+        <!-- UserDefaults: stores user settings (server URL, onboarding state, preferences) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- CA92.1: Access info from same-app group containers, limited to own app -->
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- File timestamp: SwiftData reads/writes conversation store in app sandbox -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- 3B52.1: Access file timestamps within app's own container/sandbox -->
+                <string>3B52.1</string>
+            </array>
+        </dict>
+
+        <!-- Disk space: SwiftData checks available storage before writing -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- E174.1: Display storage info to user, or prevent exceeding storage limits -->
+                <string>E174.1</string>
+            </array>
+        </dict>
+
+    </array>
+
+</dict>
+</plist>
