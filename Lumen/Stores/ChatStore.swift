@@ -411,6 +411,21 @@ final class ChatStore {
         } catch {}
     }
 
+    func setSystemPrompt(_ prompt: String?, for conversation: Conversation) async {
+        let normalized = prompt?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let value: String? = (normalized?.isEmpty ?? true) ? nil : normalized
+        do {
+            try await dataService.updateConversationSystemPrompt(
+                id: conversation.id,
+                systemPrompt: value
+            )
+            if selectedConversation?.id == conversation.id {
+                selectedConversation?.systemPrompt = value
+            }
+            await loadConversations()
+        } catch {}
+    }
+
     func togglePin(_ conversation: Conversation) async {
         do {
             try await dataService.toggleConversationPin(id: conversation.id)

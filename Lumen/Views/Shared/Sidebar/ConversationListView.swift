@@ -5,6 +5,7 @@ struct ConversationListView: View {
     @State private var searchText = ""
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
+    @State private var promptConversation: Conversation?
 
     var body: some View {
         List(selection: Binding(
@@ -68,6 +69,14 @@ struct ConversationListView: View {
                                         systemImage: conversation.isPinned ? LumenIcon.pinSlash : LumenIcon.pin
                                     )
                                 }
+                                Button {
+                                    promptConversation = conversation
+                                } label: {
+                                    Label(
+                                        conversation.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
+                                        systemImage: "brain.head.profile"
+                                    )
+                                }
                                 Divider()
                                 Button(role: .destructive) {
                                     Task { await chatStore.deleteConversation(conversation) }
@@ -93,6 +102,10 @@ struct ConversationListView: View {
                 }
                 .accessibilityLabel("New Conversation")
             }
+        }
+        .sheet(item: $promptConversation) { conversation in
+            SystemPromptSheet(conversation: conversation)
+                .environment(chatStore)
         }
         .alert("Rename", isPresented: Binding(
             get: { renamingConversation != nil },

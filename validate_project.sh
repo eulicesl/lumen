@@ -93,6 +93,7 @@ echo ""
 echo "▶ Views — Models + Settings (Phase 1)"
 check_file "$LUMEN/Views/Shared/Models/ModelPickerView.swift"
 check_file "$LUMEN/Views/Shared/Settings/SettingsView.swift"
+check_file "$LUMEN/Views/Shared/Settings/SystemPromptSheet.swift"
 echo ""
 
 echo "▶ Services — Enhanced I/O (Phase 2)"

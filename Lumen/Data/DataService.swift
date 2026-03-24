@@ -73,6 +73,14 @@ actor DataService {
         try modelContext.save()
     }
 
+    func updateConversationSystemPrompt(id: UUID, systemPrompt: String?) throws {
+        let predicate = #Predicate<ConversationSD> { $0.id == id }
+        let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
+        guard let conversation = try modelContext.fetch(descriptor).first else { return }
+        conversation.systemPrompt = systemPrompt
+        try modelContext.save()
+    }
+
     func toggleConversationPin(id: UUID) throws {
         let predicate = #Predicate<ConversationSD> { $0.id == id }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)

@@ -6,6 +6,7 @@ struct ChatView: View {
     @State private var scrollProxy: ScrollViewProxy?
     @State private var isAtBottom = true
     @State private var showingComparison = false
+    @State private var showingSystemPrompt = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,6 +31,17 @@ struct ChatView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: LumenSpacing.xs) {
+                    if let conv = chatStore.selectedConversation {
+                        Button {
+                            showingSystemPrompt = true
+                        } label: {
+                            Image(systemName: "brain.head.profile")
+                                .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
+                        }
+                        .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
+                        .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                    }
+
                     if !chatStore.exportText.isEmpty {
                         ShareLink(item: chatStore.exportText) {
                             Image(systemName: LumenIcon.share)
@@ -52,6 +64,12 @@ struct ChatView: View {
             ModelComparisonView()
                 .environment(chatStore)
                 .environment(modelStore)
+        }
+        .sheet(isPresented: $showingSystemPrompt) {
+            if let conv = chatStore.selectedConversation {
+                SystemPromptSheet(conversation: conv)
+                    .environment(chatStore)
+            }
         }
         .onChange(of: chatStore.messages.count) {
             scrollToBottom()
