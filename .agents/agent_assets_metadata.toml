@@ -6,3 +6,21 @@ id = "_-cKkvouA_wSWRy75JPIR"
 uri = "file://Lumen/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
 type = "image"
 title = "Lumen AI — App Icon (1024×1024)"
+
+[[outputs]]
+id = "iqytQxa0u0iGbQ4ahrHjo"
+uri = "file://Lumen/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-Light.png"
+type = "image"
+title = "Light Mode Icon"
+
+[[outputs]]
+id = "ePAQNBTxc6RY8cQ6-1Nql"
+uri = "file://Lumen/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-Dark.png"
+type = "image"
+title = "Dark Mode Icon"
+
+[[outputs]]
+id = "4a5uHBqu5zWQ_lbbXbrWl"
+uri = "file://Lumen/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon-Tinted.png"
+type = "image"
+title = "Tinted Icon (greyscale — OS applies your system colour)"
