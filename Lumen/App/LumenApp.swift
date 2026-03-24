@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CoreSpotlight
 
 @main
 struct LumenApp: App {
@@ -42,6 +43,12 @@ struct LumenApp: App {
                     if chatStore.currentModel == nil {
                         chatStore.currentModel = modelStore.selectedModel
                     }
+                }
+                .onOpenURL { url in
+                    Task { await DeepLinkHandler.shared.handle(url: url) }
+                }
+                .onContinueUserActivity(CSSearchableItemActionType) { activity in
+                    Task { await DeepLinkHandler.shared.handle(userActivity: activity) }
                 }
         }
         .modelContainer(DataService.shared.modelContainer)

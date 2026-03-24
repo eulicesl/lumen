@@ -128,6 +128,27 @@ echo "▶ Views — Compare (Phase 3)"
 check_file "$LUMEN/Views/Shared/Compare/ModelComparisonView.swift"
 echo ""
 
+echo "▶ Platform — Spotlight (Phase 4)"
+check_file "$LUMEN/Spotlight/SpotlightService.swift"
+check_file "$LUMEN/Spotlight/WidgetSharedStore.swift"
+echo ""
+
+echo "▶ Platform — App Intents / Siri (Phase 4)"
+check_file "$LUMEN/Intents/StartConversationIntent.swift"
+check_file "$LUMEN/Intents/AskLumenIntent.swift"
+check_file "$LUMEN/Intents/LumenShortcuts.swift"
+echo ""
+
+echo "▶ Platform — Deep Links (Phase 4)"
+check_file "$LUMEN/App/DeepLinkHandler.swift"
+echo ""
+
+echo "▶ Platform — Widget (Phase 4)"
+check_file "LumenWidget/LumenWidgetBundle.swift"
+check_file "LumenWidget/QuickAskWidget.swift"
+check_file "LumenWidget/RecentConversationWidget.swift"
+echo ""
+
 echo "▶ Views — Platform Shells"
 check_file "$LUMEN/Views/iOS/MainTabView.swift"
 check_file "$LUMEN/Views/iOS/iPadContentView.swift"

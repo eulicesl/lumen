@@ -74,7 +74,7 @@ Lumen/
 │   │   │   └── SearchView.swift          # Live fuzzy search across conversations; tap → select + switch to chat
 │   │   ├── Library/
 │   │   │   └── PromptLibraryView.swift   # 17 built-in prompts by category, favorites, custom prompts, detail sheet
-│   │   └── Compare/
+│   │   │   └── Compare/
 │   │       └── ModelComparisonView.swift # Side-by-side (iPad) / stacked (iPhone) model comparison with TTFT
 │   ├── iOS/
 │   │   ├── MainTabView.swift      # 5-tab: Chat (SplitView), Voice, Library, Search, Settings
@@ -159,7 +159,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 1 | Core Chat: streaming UI, sidebar, model picker, settings | ✅ Complete |
 | 2 | Enhanced I/O: voice, camera, images, OCR | ✅ Complete |
 | 3 | Intelligence: search, prompt library, model comparison | ✅ Complete |
-| 4 | Platform: widgets, Siri, Spotlight, Shortcuts | 🔲 Planned |
+| 4 | Platform: widgets, Siri, Spotlight, Shortcuts, deep links | ✅ Complete |
 | 5 | Advanced: agents, memory, branching | 🔲 Planned |
 | 6 | Polish: performance, accessibility, App Store | 🔲 Planned |
 

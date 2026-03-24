@@ -25,6 +25,18 @@ final class ChatStore {
         do {
             let loaded = try await dataService.fetchAllConversations()
             conversations = loaded
+            Task.detached(priority: .background) {
+                await SpotlightService.shared.indexConversations(loaded)
+                let widgets = loaded.prefix(5).map { conv in
+                    WidgetConversation(
+                        id: conv.id.uuidString,
+                        title: conv.title,
+                        preview: conv.preview,
+                        updatedAt: conv.updatedAt
+                    )
+                }
+                WidgetSharedStore.save(Array(widgets))
+            }
         } catch {
             AppStore.shared.activeAlert = AppAlert(
                 title: "Failed to Load",
@@ -135,6 +147,18 @@ final class ChatStore {
         do {
             try await dataService.deleteConversation(id: conversation.id)
             conversations.removeAll { $0.id == conversation.id }
+            Task.detached(priority: .background) {
+                await SpotlightService.shared.deleteConversation(id: conversation.id)
+                let widgets = ChatStore.shared.conversations.prefix(5).map { conv in
+                    WidgetConversation(
+                        id: conv.id.uuidString,
+                        title: conv.title,
+                        preview: conv.preview,
+                        updatedAt: conv.updatedAt
+                    )
+                }
+                WidgetSharedStore.save(Array(widgets))
+            }
             if selectedConversation?.id == conversation.id {
                 selectedConversation = conversations.first
                 if let first = selectedConversation {
