@@ -165,6 +165,7 @@ Configure the server URL in Lumen → Settings → Ollama Server URL.
 | 5 | Advanced: agents, memory, branching | ✅ Complete |
 | 6 | Polish: onboarding, haptics, review prompts, privacy, empty states | ✅ Complete |
 | Audit | Bug fixes, API alignment, test coverage | ✅ Complete |
+| Parity | Code highlighting, regenerate, share conversation | ✅ Complete |
 
 ## Audit Fixes (final pass)
 

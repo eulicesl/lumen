@@ -16,6 +16,11 @@ struct ChatView: View {
             } else {
                 messageList
             }
+
+            if chatStore.canRegenerate {
+                regenerateBar
+            }
+
             InputBarView()
         }
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
@@ -24,13 +29,23 @@ struct ChatView: View {
         #endif
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingComparison = true
-                } label: {
-                    Image(systemName: "arrow.left.arrow.right.circle")
+                HStack(spacing: LumenSpacing.xs) {
+                    if !chatStore.exportText.isEmpty {
+                        ShareLink(item: chatStore.exportText) {
+                            Image(systemName: LumenIcon.share)
+                        }
+                        .help("Share conversation")
+                        .accessibilityLabel("Share conversation")
+                    }
+
+                    Button {
+                        showingComparison = true
+                    } label: {
+                        Image(systemName: "arrow.left.arrow.right.circle")
+                    }
+                    .help("Compare Models")
+                    .accessibilityLabel("Compare Models")
                 }
-                .help("Compare Models")
-                .accessibilityLabel("Compare Models")
             }
         }
         .sheet(isPresented: $showingComparison) {
@@ -108,6 +123,23 @@ struct ChatView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: - Regenerate bar
+
+    private var regenerateBar: some View {
+        Button {
+            Task { await chatStore.regenerate() }
+        } label: {
+            Label("Regenerate response", systemImage: "arrow.clockwise")
+                .font(LumenType.footnote)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, LumenSpacing.xs)
+        }
+        .buttonStyle(.plain)
+        .background(.regularMaterial)
+        .accessibilityLabel("Regenerate response")
     }
 
     // MARK: - Helpers

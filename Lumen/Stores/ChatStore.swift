@@ -272,6 +272,85 @@ final class ChatStore {
         }
     }
 
+    // MARK: - Regenerate
+
+    var canRegenerate: Bool {
+        conversationState == .idle &&
+        messages.last?.isAssistant == true &&
+        messages.last?.isComplete == true
+    }
+
+    func regenerate() async {
+        guard canRegenerate else { return }
+        guard let lastAssistant = messages.last, lastAssistant.isAssistant else { return }
+        guard let conversation = selectedConversation else { return }
+        guard let model = currentModel else { return }
+
+        // Remove the last assistant response from memory and persistence
+        try? await dataService.deleteMessage(id: lastAssistant.id)
+        messages.removeLast()
+
+        HapticEngine.impact(.medium)
+        agentEvents = []
+
+        // Add a fresh streaming placeholder — do NOT re-append the user message
+        let placeholder = ChatMessage.streamingPlaceholder(model: model)
+        messages.append(placeholder)
+
+        conversationState = .generating
+        timeToFirstToken = nil
+        let startTime = Date()
+        let assistantIndex = messages.count - 1
+
+        let memoryContext = MemoryStore.shared.contextString
+        let basePrompt = conversation.systemPrompt ?? ""
+        let fullPrompt = [memoryContext, basePrompt]
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n\n")
+        let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
+
+        // Context is everything except the new placeholder
+        let context = Array(messages.dropLast())
+        let promptText = context.last(where: { $0.isUser })?.content ?? ""
+
+        if agentModeEnabled {
+            streamTask = Task { @MainActor in
+                await self.runAgentStream(
+                    context: context, model: model, options: options,
+                    assistantIndex: assistantIndex, startTime: startTime,
+                    conversation: conversation, promptText: promptText
+                )
+            }
+        } else {
+            streamTask = Task { @MainActor in
+                await self.runDirectStream(
+                    context: context, model: model, options: options,
+                    assistantIndex: assistantIndex, startTime: startTime,
+                    conversation: conversation, promptText: promptText
+                )
+            }
+        }
+    }
+
+    // MARK: - Export / Share
+
+    var exportText: String {
+        guard let conv = selectedConversation else { return "" }
+        let header = "Conversation: \(conv.title)\n\(String(repeating: "─", count: 40))\n\n"
+        let body = messages
+            .filter { $0.isUser || $0.isAssistant }
+            .filter { $0.isComplete && !$0.isError }
+            .map { msg -> String in
+                let role = msg.isUser ? "You" : "Lumen"
+                let content = msg.isAssistant
+                    ? msg.content.stripThinkBlocks()
+                    : msg.content
+                return "\(role):\n\(content)"
+            }
+            .joined(separator: "\n\n")
+        return header + body
+    }
+
     // MARK: - Delete
 
     func deleteConversation(_ conversation: Conversation) async {

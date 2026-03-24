@@ -23,7 +23,6 @@ struct MessageBubbleView: View {
 
                 if !message.content.isEmpty || message.isStreaming {
                     bubbleContent
-                        .bubbleBackground(isUser: message.isUser, isError: message.isError)
                         .contextMenu { contextMenuItems }
                 }
 
@@ -106,14 +105,20 @@ struct MessageBubbleView: View {
     private var bubbleContent: some View {
         if message.isStreaming {
             streamingContent
+                .bubbleBackground(isUser: false, isError: false)
         } else if message.isError {
             errorContent
+                .bubbleBackground(isUser: false, isError: true)
+        } else if message.isAssistant && mainContent.hasCodeBlocks {
+            // Mixed text + code: no outer bubble; code blocks break out to full-width dark panels
+            MessageContentView(text: mainContent, maxWidth: maxBubbleWidth)
         } else {
-            renderedContent
+            plainRenderedContent
+                .bubbleBackground(isUser: message.isUser, isError: false)
         }
     }
 
-    private var renderedContent: some View {
+    private var plainRenderedContent: some View {
         let displayText = message.isAssistant ? mainContent : message.content
         return Text(AttributedString.fromMarkdown(displayText))
             .font(LumenType.messageBody)
