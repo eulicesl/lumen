@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "_-cKkvouA_wSWRy75JPIR"
+uri = "file://Lumen/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon.png"
+type = "image"
+title = "Lumen AI — App Icon (1024×1024)"
