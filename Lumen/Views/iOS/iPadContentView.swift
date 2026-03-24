@@ -1,49 +1,18 @@
+#if os(iOS)
 import SwiftUI
 
-#if os(macOS)
-struct MacContentView: View {
+struct iPadContentView: View {
 
     @Environment(AppStore.self) private var appStore
-    @State private var selectedItem: String? = nil
-    @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
         @Bindable var bindableStore = appStore
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            MacSidebarPlaceholder()
-                .navigationSplitViewColumnWidth(min: 220, ideal: LumenLayout.sidebarWidthMac)
+            iPadSidebarPlaceholder()
+                .navigationSplitViewColumnWidth(min: 260, ideal: LumenLayout.sidebarWidthMac)
         } detail: {
-            MacDetailPlaceholder()
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigation) {
-                Button {
-                    withAnimation(LumenAnimation.standard) {
-                        if columnVisibility == .all {
-                            columnVisibility = .detailOnly
-                        } else {
-                            columnVisibility = .all
-                        }
-                    }
-                } label: {
-                    Label("Toggle Sidebar", systemImage: "sidebar.left")
-                }
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                } label: {
-                    Label("New Conversation", systemImage: LumenIcon.newChat)
-                }
-                .keyboardShortcut("n", modifiers: .command)
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    appStore.showingSettings = true
-                } label: {
-                    Label("Settings", systemImage: LumenIcon.settings)
-                }
-                .keyboardShortcut(",", modifiers: .command)
-            }
+            iPadDetailPlaceholder()
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
             Text("Settings — Phase 1")
@@ -52,7 +21,7 @@ struct MacContentView: View {
     }
 }
 
-private struct MacSidebarPlaceholder: View {
+private struct iPadSidebarPlaceholder: View {
     var body: some View {
         VStack(spacing: LumenSpacing.lg) {
             Spacer()
@@ -73,7 +42,7 @@ private struct MacSidebarPlaceholder: View {
     }
 }
 
-private struct MacDetailPlaceholder: View {
+private struct iPadDetailPlaceholder: View {
     var body: some View {
         VStack(spacing: LumenSpacing.xl) {
             Spacer()
@@ -100,8 +69,7 @@ private struct MacDetailPlaceholder: View {
 }
 
 #Preview {
-    MacContentView()
+    iPadContentView()
         .environment(AppStore.shared)
-        .frame(width: 900, height: 600)
 }
 #endif
