@@ -1,0 +1,15 @@
+# Lumen sprint progress and learning loop
+
+This file records what worked, what failed, and what should improve after each meaningful sprint/run.
+
+## Rules
+- append short, concrete notes
+- capture process mistakes, validation gaps, review friction, merge pain, and repeated confusion
+- use this to improve docs/config/workflow over time
+- this file is process memory, not product spec
+
+## Current baseline
+- Product/source-of-truth docs are established in `docs/`.
+- Shared shell/settings/provider work must be tightly scoped and should not be parallelized casually.
+- Upstream/noisy PR discipline matters because Lumen is both a product and a portfolio piece.
+- Keep PRs small, reviewer-friendly, and intentional.

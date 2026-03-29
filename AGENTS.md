@@ -89,6 +89,11 @@ For each task, run the most relevant validation available:
 
 If something cannot be validated in the current environment, document that honestly.
 
+## Learning Loop
+- After meaningful runs, append concise process learnings to `.ralphy/progress.txt`.
+- If a pattern repeats, update the repo rules/docs rather than only logging it again.
+- See `docs/LEARNING_LOOP.md` for the expected format and escalation rule.
+
 ## Draft PR Policy
 - Use draft PRs when work is still under validation.
 - Keep upstream-facing work clean and intentional.

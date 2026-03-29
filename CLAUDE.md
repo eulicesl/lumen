@@ -58,6 +58,8 @@ The following count as engineering-critical work:
 - Do not create noisy or premature upstream PRs.
 - Fork-first / review-first discipline applies for substantial work.
 - Shared shell/navigation/settings/provider work should have a single owner or tightly controlled sequencing.
+- Run a feedback loop after meaningful work; do not wait until the end of a long sprint to learn.
+- Use `.ralphy/progress.txt` and `docs/LEARNING_LOOP.md` to capture process improvements.
 
 ## Parallel Agent Rules
 - Follow the micro-PRD structure.
