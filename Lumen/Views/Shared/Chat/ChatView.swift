@@ -40,13 +40,24 @@ struct ChatView: View {
                 }
             }
 
-            if !chatStore.exportText.isEmpty {
+            if chatStore.canExportSelectedConversation {
                 ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(item: chatStore.exportText) {
+                    Menu {
+                        ForEach(ConversationExportFormat.allCases) { format in
+                            if let export = chatStore.exportFile(for: format) {
+                                ShareLink(
+                                    item: export,
+                                    preview: SharePreview(export.filename)
+                                ) {
+                                    Label(format.title, systemImage: format.iconName)
+                                }
+                            }
+                        }
+                    } label: {
                         Image(systemName: LumenIcon.share)
                     }
-                    .help("Share conversation")
-                    .accessibilityLabel("Share conversation")
+                    .help("Export conversation")
+                    .accessibilityLabel("Export conversation")
                 }
             }
 

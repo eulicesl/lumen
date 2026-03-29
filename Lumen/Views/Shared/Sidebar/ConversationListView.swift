@@ -77,6 +77,18 @@ struct ConversationListView: View {
                                         systemImage: "brain.head.profile"
                                     )
                                 }
+                                Menu("Export") {
+                                    ForEach(ConversationExportFormat.allCases) { format in
+                                        if let export = chatStore.exportFile(for: conversation, format: format) {
+                                            ShareLink(
+                                                item: export,
+                                                preview: SharePreview(export.filename)
+                                            ) {
+                                                Label(format.title, systemImage: format.iconName)
+                                            }
+                                        }
+                                    }
+                                }
                                 Divider()
                                 Button(role: .destructive) {
                                     Task { await chatStore.deleteConversation(conversation) }

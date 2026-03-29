@@ -19,6 +19,7 @@ final class ChatStore {
 
     private let aiService = AIService.shared
     private let dataService = DataService.shared
+    private let exportService = ConversationExportService()
     private var streamTask: Task<Void, Never>?
 
     private init() {}
@@ -334,21 +335,23 @@ final class ChatStore {
 
     // MARK: - Export / Share
 
-    var exportText: String {
-        guard let conv = selectedConversation else { return "" }
-        let header = "Conversation: \(conv.title)\n\(String(repeating: "─", count: 40))\n\n"
-        let body = messages
-            .filter { $0.isUser || $0.isAssistant }
-            .filter { $0.isComplete && !$0.isError }
-            .map { msg -> String in
-                let role = msg.isUser ? "You" : "Lumen"
-                let content = msg.isAssistant
-                    ? msg.content.stripThinkBlocks()
-                    : msg.content
-                return "\(role):\n\(content)"
-            }
-            .joined(separator: "\n\n")
-        return header + body
+    var canExportSelectedConversation: Bool {
+        selectedConversation != nil
+    }
+
+    func exportFile(for format: ConversationExportFormat) -> ConversationExportFile? {
+        guard let conversation = exportableSelectedConversation else { return nil }
+        return try? exportService.exportFile(for: conversation, format: format)
+    }
+
+    func exportFile(for conversation: Conversation, format: ConversationExportFormat) -> ConversationExportFile? {
+        try? exportService.exportFile(for: conversation, format: format)
+    }
+
+    private var exportableSelectedConversation: Conversation? {
+        guard var conversation = selectedConversation else { return nil }
+        conversation.messages = messages
+        return conversation
     }
 
     // MARK: - Delete
