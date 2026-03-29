@@ -25,7 +25,7 @@ struct SystemPromptSheet: View {
                     .font(LumenType.body)
                     .focused($editorFocused)
                     .padding(LumenSpacing.sm)
-                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md))
+                    .glassCard(radius: LumenRadius.md)
                     .padding(.horizontal, LumenSpacing.md)
                     .frame(maxHeight: .infinity)
 

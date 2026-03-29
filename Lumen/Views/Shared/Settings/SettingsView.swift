@@ -16,11 +16,11 @@ struct SettingsView: View {
         @Bindable var bindableApp = appStore
         NavigationStack {
             Form {
-                ollamaSection(bindableApp: bindableApp)
+                ollamaSection(bindableApp: $bindableApp)
                 appleIntelligenceSection
                 memorySection
                 agentSection
-                appearanceSection(bindableApp: bindableApp)
+                appearanceSection(bindableApp: $bindableApp)
                 aboutSection
                 dangerSection
             }
@@ -132,7 +132,7 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Image(systemName: "brain.head.profile")
-                        .foregroundStyle(memoryStore.isEnabled ? .accentColor : .secondary)
+                        .foregroundStyle(memoryStore.isEnabled ? Color.accentColor : Color.secondary)
                         .frame(width: 24)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Memory")
@@ -163,7 +163,7 @@ struct SettingsView: View {
             } label: {
                 HStack {
                     Image(systemName: "cpu.fill")
-                        .foregroundStyle(chatStore.agentModeEnabled ? .accentColor : .secondary)
+                        .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                         .frame(width: 24)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Agent Mode")
@@ -172,7 +172,7 @@ struct SettingsView: View {
                              ? "Active — \(AgentToolRegistry.all.count) tools available"
                              : "Disabled")
                             .font(LumenType.caption)
-                            .foregroundStyle(chatStore.agentModeEnabled ? .accentColor : .secondary)
+                            .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")

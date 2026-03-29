@@ -215,7 +215,7 @@ struct PromptDetailView: View {
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, LumenSpacing.sm)
                             .padding(.vertical, LumenSpacing.xxs)
-                            .background(.regularMaterial, in: Capsule())
+                            .glassCard(radius: LumenRadius.full)
                         Spacer()
                     }
 
@@ -223,7 +223,7 @@ struct PromptDetailView: View {
                         .font(LumenType.messageBody)
                         .frame(minHeight: 200)
                         .padding(LumenSpacing.sm)
-                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md))
+                        .glassCard(radius: LumenRadius.md)
 
                     LumenButton("Use This Prompt", style: .primary) {
                         onUse(editedContent)
@@ -314,9 +314,25 @@ struct AddPromptView: View {
     }
 }
 
-#Preview {
+#Preview("Prompt Library") {
     PromptLibraryView()
         .environment(ChatStore.shared)
         .environment(AppStore.shared)
         .environment(LibraryStore.shared)
+}
+
+#Preview("Prompt Detail") {
+    PromptDetailView(
+        prompt: SavedPrompt(
+            title: "Code Review",
+            content: "Review this Swift code for correctness, architecture, and test gaps.",
+            category: .coding,
+            isFavorite: true
+        )
+    ) { _ in }
+    .environment(LibraryStore.shared)
+}
+
+#Preview("Add Prompt") {
+    AddPromptView { _, _, _ in }
 }

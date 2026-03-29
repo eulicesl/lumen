@@ -17,7 +17,7 @@ struct iPadContentView: View {
             ChatView()
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            SettingsView()
+            SettingsStoreView()
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)
@@ -32,3 +32,4 @@ struct iPadContentView: View {
         .environment(ModelStore.shared)
 }
 #endif
+

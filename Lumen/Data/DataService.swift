@@ -5,7 +5,6 @@ actor DataService {
     static let shared = DataService()
 
     nonisolated let modelContainer: ModelContainer
-    private let modelContext: ModelContext
 
     private init(inMemory: Bool = false) {
         let config = ModelConfiguration(isStoredInMemoryOnly: inMemory)
@@ -19,12 +18,16 @@ actor DataService {
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
-        self.modelContext = ModelContext(modelContainer)
-        self.modelContext.autosaveEnabled = true
     }
 
     static func forTesting() -> DataService {
         DataService(inMemory: true)
+    }
+
+    private func makeContext() -> ModelContext {
+        let context = ModelContext(modelContainer)
+        context.autosaveEnabled = true
+        return context
     }
 
     // MARK: - Conversation CRUD
@@ -33,6 +36,7 @@ actor DataService {
         title: String = "New Conversation",
         systemPrompt: String? = nil
     ) throws -> UUID {
+        let modelContext = makeContext()
         let conversation = ConversationSD(title: title, systemPrompt: systemPrompt)
         modelContext.insert(conversation)
         try modelContext.save()
@@ -40,6 +44,7 @@ actor DataService {
     }
 
     func fetchConversation(id: UUID) throws -> Conversation? {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.id == id }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
         let results = try modelContext.fetch(descriptor)
@@ -47,6 +52,7 @@ actor DataService {
     }
 
     func fetchAllConversations(sortedBy sort: SortOrder = .reverse) throws -> [Conversation] {
+        let modelContext = makeContext()
         var descriptor = FetchDescriptor<ConversationSD>(
             sortBy: [SortDescriptor(\.updatedAt, order: sort)]
         )
@@ -56,6 +62,7 @@ actor DataService {
     }
 
     func fetchPinnedConversations() throws -> [Conversation] {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.isPinned }
         let descriptor = FetchDescriptor<ConversationSD>(
             predicate: predicate,
@@ -65,6 +72,7 @@ actor DataService {
     }
 
     func updateConversationTitle(id: UUID, title: String) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.id == id }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
         guard let conversation = try modelContext.fetch(descriptor).first else { return }
@@ -74,6 +82,7 @@ actor DataService {
     }
 
     func updateConversationSystemPrompt(id: UUID, systemPrompt: String?) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.id == id }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
         guard let conversation = try modelContext.fetch(descriptor).first else { return }
@@ -82,6 +91,7 @@ actor DataService {
     }
 
     func toggleConversationPin(id: UUID) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.id == id }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
         guard let conversation = try modelContext.fetch(descriptor).first else { return }
@@ -90,6 +100,7 @@ actor DataService {
     }
 
     func deleteConversation(id: UUID) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.id == id }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
         guard let conversation = try modelContext.fetch(descriptor).first else { return }
@@ -98,6 +109,7 @@ actor DataService {
     }
 
     func deleteAllConversations() throws {
+        let modelContext = makeContext()
         let descriptor = FetchDescriptor<ConversationSD>()
         let all = try modelContext.fetch(descriptor)
         for conversation in all {
@@ -109,6 +121,7 @@ actor DataService {
     // MARK: - Message CRUD
 
     func addMessage(_ message: ChatMessage, to conversationID: UUID) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<ConversationSD> { $0.id == conversationID }
         let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
         guard let conversation = try modelContext.fetch(descriptor).first else {
@@ -122,6 +135,7 @@ actor DataService {
     }
 
     func updateMessage(id: UUID, content: String, isComplete: Bool = true, tokenCount: Int? = nil) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<MessageSD> { $0.id == id }
         let descriptor = FetchDescriptor<MessageSD>(predicate: predicate)
         guard let message = try modelContext.fetch(descriptor).first else { return }
@@ -132,6 +146,7 @@ actor DataService {
     }
 
     func deleteMessage(id: UUID) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<MessageSD> { $0.id == id }
         let descriptor = FetchDescriptor<MessageSD>(predicate: predicate)
         guard let message = try modelContext.fetch(descriptor).first else { return }
@@ -140,6 +155,7 @@ actor DataService {
     }
 
     func fetchMessages(for conversationID: UUID) throws -> [ChatMessage] {
+        let modelContext = makeContext()
         let predicate = #Predicate<MessageSD> { $0.conversation?.id == conversationID }
         let descriptor = FetchDescriptor<MessageSD>(
             predicate: predicate,
@@ -151,17 +167,20 @@ actor DataService {
     // MARK: - Model CRUD
 
     func saveModel(_ model: AIModel) throws {
+        let modelContext = makeContext()
         let modelSD = AIModelSD.from(model)
         modelContext.insert(modelSD)
         try modelContext.save()
     }
 
     func fetchSavedModels() throws -> [AIModel] {
+        let modelContext = makeContext()
         let descriptor = FetchDescriptor<AIModelSD>()
         return try modelContext.fetch(descriptor).map { $0.toDomain() }
     }
 
     func deleteModel(id: String) throws {
+        let modelContext = makeContext()
         let predicate = #Predicate<AIModelSD> { $0.modelID == id }
         let descriptor = FetchDescriptor<AIModelSD>(predicate: predicate)
         guard let model = try modelContext.fetch(descriptor).first else { return }

@@ -73,11 +73,10 @@ actor AIService {
     }
 
     func bestAvailableModel() async -> AIModel? {
-        let availability = await checkAvailability()
-        if availability[.foundationModels] == true {
+        if await foundationModelsProvider.checkAvailability() {
             return .appleFoundationModel
         }
-        if availability[.ollama] == true,
+        if await ollamaProvider.checkAvailability(),
            let ollamaModels = try? await ollamaProvider.listModels(),
            let first = ollamaModels.first {
             return first
@@ -85,3 +84,4 @@ actor AIService {
         return nil
     }
 }
+

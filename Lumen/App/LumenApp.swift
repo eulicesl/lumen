@@ -19,50 +19,50 @@ struct LumenApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(appStore)
-                .environment(chatStore)
-                .environment(modelStore)
-                .environment(libraryStore)
-                .environment(memoryStore)
-                .preferredColorScheme(appStore.resolvedColorScheme)
-                .fullScreenCover(isPresented: Binding(
-                    get: { !hasSeenOnboarding },
-                    set: { if !$0 { hasSeenOnboarding = true } }
-                )) {
+            Group {
+                if hasSeenOnboarding {
+                    ContentView()
+                } else {
                     OnboardingView(hasSeenOnboarding: Binding(
                         get: { hasSeenOnboarding },
                         set: { hasSeenOnboarding = $0 }
                     ))
                 }
-                .alert(item: Binding(
-                    get: { appStore.activeAlert },
-                    set: { appStore.activeAlert = $0 }
-                )) { alert in
-                    Alert(
-                        title: Text(alert.title),
-                        message: Text(alert.message),
-                        dismissButton: .default(Text(alert.dismissLabel)) {
-                            alert.action?()
-                        }
-                    )
-                }
-                .task {
-                    await modelStore.loadModels()
-                    await chatStore.loadConversations()
-                    if chatStore.conversations.isEmpty {
-                        await chatStore.createNewConversation()
+            }
+            .environment(appStore)
+            .environment(chatStore)
+            .environment(modelStore)
+            .environment(libraryStore)
+            .environment(memoryStore)
+            .preferredColorScheme(appStore.resolvedColorScheme)
+            .alert(item: Binding(
+                get: { appStore.activeAlert },
+                set: { appStore.activeAlert = $0 }
+            )) { alert in
+                Alert(
+                    title: Text(alert.title),
+                    message: Text(alert.message),
+                    dismissButton: .default(Text(alert.dismissLabel)) {
+                        alert.action?()
                     }
-                    if chatStore.currentModel == nil {
-                        chatStore.currentModel = modelStore.selectedModel
-                    }
+                )
+            }
+            .task {
+                await modelStore.loadModels()
+                await chatStore.loadConversations()
+                if chatStore.conversations.isEmpty {
+                    await chatStore.createNewConversation()
                 }
-                .onOpenURL { url in
-                    Task { await DeepLinkHandler.shared.handle(url: url) }
+                if chatStore.currentModel == nil {
+                    chatStore.currentModel = modelStore.selectedModel
                 }
-                .onContinueUserActivity(CSSearchableItemActionType) { activity in
-                    Task { await DeepLinkHandler.shared.handle(userActivity: activity) }
-                }
+            }
+            .onOpenURL { url in
+                Task { await DeepLinkHandler.shared.handle(url: url) }
+            }
+            .onContinueUserActivity(CSSearchableItemActionType) { activity in
+                Task { await DeepLinkHandler.shared.handle(userActivity: activity) }
+            }
         }
         .modelContainer(DataService.shared.modelContainer)
 

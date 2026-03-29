@@ -14,9 +14,9 @@ struct LumenShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: AskLumenIntent(),
             phrases: [
-                "Ask \(.applicationName) \(\.$query)",
-                "Send \(\.$query) to \(.applicationName)",
-                "Question for \(.applicationName): \(\.$query)",
+                "Ask \(.applicationName)",
+                "Talk to \(.applicationName)",
+                "Question for \(.applicationName)",
             ],
             shortTitle: "Ask Lumen",
             systemImageName: "sparkle"

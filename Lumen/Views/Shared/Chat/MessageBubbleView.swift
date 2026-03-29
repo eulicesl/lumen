@@ -186,7 +186,7 @@ struct MessageBubbleView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.xs)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md))
+        .glassCard(radius: LumenRadius.md)
     }
 
     // MARK: - Actions
@@ -228,7 +228,7 @@ private struct BubbleBackground: ViewModifier {
                 )
         } else {
             content
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
+                .glassCard(radius: LumenRadius.bubble)
         }
     }
 }

@@ -31,7 +31,7 @@ struct InputBarView: View {
                 mediaButtons
                 #endif
                 modelChip
-                inputField(bindableChat: bindableChat)
+                inputField(bindableChat: $bindableChat)
                 sendButton
             }
             .padding(.horizontal, LumenSpacing.md)
@@ -89,22 +89,30 @@ struct InputBarView: View {
         Button {
             showingModelPicker = true
         } label: {
-            HStack(spacing: LumenSpacing.xxs) {
-                Image(systemName: chatStore.currentModel?.providerType == .foundationModels
-                      ? LumenIcon.appleIntelligence : LumenIcon.ollama)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(chatStore.currentModel?.shortName ?? "Model")
-                    .font(LumenType.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 8, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+            GlassContainer(
+                style: .interactive,
+                shape: .capsule,
+                padding: .init(
+                    top: LumenSpacing.xs,
+                    leading: LumenSpacing.sm,
+                    bottom: LumenSpacing.xs,
+                    trailing: LumenSpacing.sm
+                )
+            ) {
+                HStack(spacing: LumenSpacing.xxs) {
+                    Image(systemName: chatStore.currentModel?.providerType == .foundationModels
+                          ? LumenIcon.appleIntelligence : LumenIcon.ollama)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(chatStore.currentModel?.shortName ?? "Model")
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
             }
-            .padding(.horizontal, LumenSpacing.sm)
-            .padding(.vertical, LumenSpacing.xs)
-            .background(.regularMaterial, in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(chatStore.conversationState == .generating)
@@ -114,20 +122,28 @@ struct InputBarView: View {
 
     @ViewBuilder
     private func inputField(bindableChat: Bindable<ChatStore>) -> some View {
-        TextField("Message", text: bindableChat.inputText, axis: .vertical)
-            .font(LumenType.messageBody)
-            .lineLimit(1...8)
-            .focused($inputFocused)
-            .submitLabel(.send)
-            .onSubmit {
-                #if os(iOS)
-                sendMessage()
-                #endif
-            }
-            .disabled(chatStore.selectedConversation == nil)
-            .padding(.horizontal, LumenSpacing.sm)
-            .padding(.vertical, LumenSpacing.xs)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.input))
+        GlassContainer(
+            style: .regular,
+            shape: .roundedRectangle(radius: LumenRadius.input),
+            padding: .init(
+                top: LumenSpacing.xs,
+                leading: LumenSpacing.sm,
+                bottom: LumenSpacing.xs,
+                trailing: LumenSpacing.sm
+            )
+        ) {
+            TextField("Message", text: bindableChat.inputText, axis: .vertical)
+                .font(LumenType.messageBody)
+                .lineLimit(1...8)
+                .focused($inputFocused)
+                .submitLabel(.send)
+                .onSubmit {
+                    #if os(iOS)
+                    sendMessage()
+                    #endif
+                }
+                .disabled(chatStore.selectedConversation == nil)
+        }
     }
 
     // MARK: - Send / Stop button

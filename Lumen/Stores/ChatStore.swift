@@ -357,7 +357,7 @@ final class ChatStore {
         do {
             try await dataService.deleteConversation(id: conversation.id)
             conversations.removeAll { $0.id == conversation.id }
-            Task.detached(priority: .background) {
+            Task { @MainActor in
                 await SpotlightService.shared.deleteConversation(id: conversation.id)
                 let widgets = ChatStore.shared.conversations.prefix(5).map { conv in
                     WidgetConversation(

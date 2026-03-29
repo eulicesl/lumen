@@ -56,8 +56,7 @@ struct LumenButton: View {
             .padding(.vertical, style == .icon ? LumenSpacing.xs : LumenSpacing.sm)
             .frame(minWidth: style == .icon ? LumenLayout.minTouchTarget : nil,
                    minHeight: LumenLayout.minTouchTarget)
-            .background(backgroundView)
-            .clipShape(RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            .modifier(LumenButtonBackground(style: style))
             .scaleEffect(isPressed && !reduceMotion ? 0.96 : 1.0)
             .opacity(isEnabled ? 1.0 : 0.45)
             .animation(LumenAnimation.snappy, value: isPressed)
@@ -82,19 +81,40 @@ struct LumenButton: View {
         }
     }
 
-    @ViewBuilder
-    private var backgroundView: some View {
-        switch style {
-        case .primary:
-            LumenColor.tint
-        case .secondary:
-            LumenColor.tint.opacity(0.12)
-        case .destructive:
-            LumenColor.destructive
-        case .ghost:
-            Color.clear
-        case .icon:
-            Color.clear
+}
+
+private struct LumenButtonBackground: ViewModifier {
+    let style: LumenButtonStyle
+
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, macOS 26.0, *) {
+            switch style {
+            case .primary:
+                content
+                    .glassEffect(.regular.tint(.accentColor).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            case .secondary:
+                content
+                    .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            case .destructive:
+                content
+                    .glassEffect(.regular.tint(.red).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            case .ghost, .icon:
+                content
+            }
+        } else {
+            switch style {
+            case .primary:
+                content
+                    .background(LumenColor.tint, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            case .secondary:
+                content
+                    .background(LumenColor.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            case .destructive:
+                content
+                    .background(LumenColor.destructive, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            case .ghost, .icon:
+                content
+            }
         }
     }
 }

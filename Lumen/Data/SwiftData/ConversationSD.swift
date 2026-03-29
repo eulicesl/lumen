@@ -3,8 +3,6 @@ import Foundation
 
 @Model
 final class ConversationSD {
-    #Unique([\.id])
-
     var id: UUID = UUID()
     var title: String = ""
     var createdAt: Date = Date()

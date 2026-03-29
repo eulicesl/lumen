@@ -1,5 +1,8 @@
 import Foundation
 import StoreKit
+#if os(iOS)
+import UIKit
+#endif
 
 // MARK: - ReviewRequestManager
 
@@ -60,9 +63,9 @@ final class ReviewRequestManager {
         #if os(iOS)
         guard let windowScene = UIApplication.shared.connectedScenes
             .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else { return }
-        AppStore.requestReview(in: windowScene)
+        SKStoreReviewController.requestReview(in: windowScene)
         #elseif os(macOS)
-        AppStore.requestReview()
+        SKStoreReviewController.requestReview()
         #endif
     }
 }

@@ -37,60 +37,61 @@ struct GlassContainer<Content: View>: View {
     }
 
     var body: some View {
-        content
-            .padding(padding)
-            .background(backgroundMaterial)
-            .clipShape(clipShapeView)
-    }
-
-    @ViewBuilder
-    private var backgroundMaterial: some View {
         if #available(iOS 26.0, macOS 26.0, *) {
-            switch style {
-            case .regular:
-                Rectangle()
-                    .fill(.clear)
-                    .glassEffect()
-            case .interactive:
-                Rectangle()
-                    .fill(.clear)
-                    .glassEffect(.interactive)
-            case .prominent:
-                Rectangle()
-                    .fill(.clear)
-                    .glassEffect(.prominent)
+            GlassEffectContainer {
+                content
+                    .padding(padding)
+                    .glassEffect(glassStyle, in: clipShapeView)
             }
         } else {
-            Rectangle().fill(.regularMaterial)
+            content
+                .padding(padding)
+                .background(.regularMaterial, in: clipShapeView)
+                .clipShape(clipShapeView)
         }
     }
 
-    @ViewBuilder
-    private var clipShapeView: some InsettableShape {
+    @available(iOS 26.0, macOS 26.0, *)
+    private var glassStyle: Glass {
+        switch style {
+        case .regular:
+            return .regular
+        case .interactive:
+            return .regular.interactive()
+        case .prominent:
+            return .regular.tint(.accentColor)
+        }
+    }
+
+    private var clipShapeView: AnyShape {
         switch shape {
         case .rectangle:
-            Rectangle()
+            AnyShape(Rectangle())
         case .capsule:
-            Capsule()
+            AnyShape(Capsule())
         case .roundedRectangle(let radius):
-            RoundedRectangle(cornerRadius: radius, style: .continuous)
+            AnyShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         }
     }
 }
 
 extension View {
-    func glassCard(radius: CGFloat = LumenRadius.md) -> some View {
-        self.background {
-            if #available(iOS 26.0, macOS 26.0, *) {
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(.clear)
-                    .glassEffect()
-            } else {
-                RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(.regularMaterial)
-            }
+    @ViewBuilder
+    func glassCard(
+        radius: CGFloat = LumenRadius.md,
+        interactive: Bool = false
+    ) -> some View {
+        if #available(iOS 26.0, macOS 26.0, *) {
+            self
+                .glassEffect(
+                    interactive ? .regular.interactive() : .regular,
+                    in: RoundedRectangle(cornerRadius: radius, style: .continuous)
+                )
+        } else {
+            self
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
         }
-        .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
 }
 

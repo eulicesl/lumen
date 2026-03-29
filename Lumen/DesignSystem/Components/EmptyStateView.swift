@@ -91,7 +91,7 @@ extension EmptyStateView {
         EmptyStateView(
             symbol: "magnifyingglass",
             title: "No Results",
-            subtitle: "No conversations matched "\(query)".",
+            subtitle: "No conversations matched \"\(query)\".",
             symbolColor: .secondary
         )
     }

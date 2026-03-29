@@ -3,8 +3,6 @@ import Foundation
 
 @Model
 final class MessageSD {
-    #Unique([\.id])
-
     var id: UUID = UUID()
     var content: String = ""
     var role: String = "user"

@@ -81,7 +81,7 @@ struct SearchView: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundStyle(.quaternary)
-            Text("No results for "\(query)"")
+            Text("No results for \"\(query)\"")
                 .font(LumenType.body)
                 .foregroundStyle(.secondary)
             Spacer()

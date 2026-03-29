@@ -8,10 +8,9 @@ struct MemoryView: View {
     @State private var searchQuery = ""
 
     var body: some View {
-        @Bindable var store = memoryStore
         NavigationStack {
             List {
-                enabledToggle(store: store)
+                enabledToggle(store: memoryStore)
 
                 if !memoryStore.memories.isEmpty {
                     ForEach(visibleCategories, id: \.self) { category in
@@ -83,11 +82,11 @@ struct MemoryView: View {
     // MARK: - Enable toggle
 
     @ViewBuilder
-    private func enabledToggle(store: Bindable<MemoryStore>) -> some View {
+    private func enabledToggle(store: MemoryStore) -> some View {
         Section {
             HStack {
                 Image(systemName: "brain.head.profile")
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 28)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Memory Enabled")
@@ -320,7 +319,22 @@ struct EditMemoryView: View {
     }
 }
 
-#Preview {
+#Preview("Memory") {
     MemoryView()
         .environment(MemoryStore.shared)
+}
+
+#Preview("Add Memory") {
+    AddMemoryView { _, _ in }
+}
+
+#Preview("Edit Memory") {
+    EditMemoryView(
+        item: MemoryItem(
+            content: "I prefer concise technical answers.",
+            category: .preference,
+            lastUsedAt: .now
+        )
+    ) { _, _ in }
+    .environment(MemoryStore.shared)
 }

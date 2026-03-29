@@ -22,6 +22,10 @@ final class ModelStore {
 
         await syncOllamaURL()
         availableModels = await aiService.listAllModels()
+        
+        if !AppStore.shared.allowOllama {
+            availableModels = availableModels.filter { $0.providerType == .foundationModels }
+        }
 
         if let savedID = AppStore.shared.defaultModelID,
            let saved = availableModels.first(where: { $0.id == savedID }) {
@@ -56,10 +60,11 @@ final class ModelStore {
     var ollamaModelCount: Int { ollamaModels.count }
     var appleIntelligenceAvailable: Bool { !foundationModels.isEmpty }
     var hasAnyModels: Bool { !availableModels.isEmpty }
-
+    
     private func syncOllamaURL() async {
         let urlString = AppStore.shared.ollamaServerURL
         guard let url = URL(string: urlString) else { return }
-        await aiService.configureOllama(baseURL: url, bearerToken: nil)
+        let token = AppStore.shared.ollamaBearerToken.isEmpty ? nil : AppStore.shared.ollamaBearerToken
+        await aiService.configureOllama(baseURL: url, bearerToken: token)
     }
 }

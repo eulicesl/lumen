@@ -155,3 +155,37 @@ struct CameraPickerView: UIViewControllerRepresentable {
         }
     }
 }
+
+private struct ImageAttachmentRowPreviewHost: View {
+    @State private var images: [UIImage] = [
+        .preview(color: .systemBlue),
+        .preview(color: .systemTeal)
+    ]
+    @State private var capturedImage: UIImage? = .preview(color: .systemOrange)
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: LumenSpacing.md) {
+            ImageAttachmentRow(images: $images)
+
+            HStack(spacing: LumenSpacing.md) {
+                PhotoPickerButton(selectedImages: $images)
+                CameraButton(capturedImage: $capturedImage)
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+    }
+}
+
+private extension UIImage {
+    static func preview(color: UIColor) -> UIImage {
+        UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120)).image { context in
+            color.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: 120, height: 120))
+        }
+    }
+}
+
+#Preview("Attachments") {
+    ImageAttachmentRowPreviewHost()
+}

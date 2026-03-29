@@ -60,7 +60,7 @@ extension AttributedString {
     static func fromMarkdown(_ text: String) -> AttributedString {
         do {
             var options = AttributedString.MarkdownParsingOptions()
-            options.interpretedSyntax = .inlinesOnlyPreservingWhitespace
+            options.interpretedSyntax = .inlineOnlyPreservingWhitespace
             return try AttributedString(markdown: text, options: options)
         } catch {
             return AttributedString(text)

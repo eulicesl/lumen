@@ -51,13 +51,15 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             pageContent
-
-            Spacer()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             controls
                 .padding(.horizontal, LumenSpacing.xl)
-                .padding(.bottom, LumenSpacing.xxl)
+                .padding(.top, LumenSpacing.md)
+                .padding(.bottom, LumenSpacing.lg)
+                .background(.ultraThinMaterial)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(backgroundGradient)
         .interactiveDismissDisabled()
     }
@@ -76,40 +78,41 @@ struct OnboardingView: View {
     }
 
     private func pageView(_ page: OnboardingPage) -> some View {
-        VStack(spacing: LumenSpacing.xl) {
-            Spacer()
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: LumenSpacing.xl) {
+                ZStack {
+                    Circle()
+                        .fill(page.symbolColor.opacity(0.12))
+                        .frame(width: 140, height: 140)
 
-            ZStack {
-                Circle()
-                    .fill(page.symbolColor.opacity(0.12))
-                    .frame(width: 140, height: 140)
+                    Circle()
+                        .fill(page.symbolColor.opacity(0.06))
+                        .frame(width: 180, height: 180)
 
-                Circle()
-                    .fill(page.symbolColor.opacity(0.06))
-                    .frame(width: 180, height: 180)
+                    Image(systemName: page.symbol)
+                        .font(.system(size: 64, weight: .light))
+                        .foregroundStyle(page.symbolColor)
+                        .symbolEffect(.pulse.byLayer, options: .repeating)
+                }
 
-                Image(systemName: page.symbol)
-                    .font(.system(size: 64, weight: .light))
-                    .foregroundStyle(page.symbolColor)
-                    .symbolEffect(.pulse.byLayer, options: .repeating)
+                VStack(spacing: LumenSpacing.md) {
+                    Text(page.title)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .multilineTextAlignment(.center)
+
+                    Text(page.subtitle)
+                        .font(LumenType.body)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, LumenSpacing.md)
+                }
             }
-
-            VStack(spacing: LumenSpacing.md) {
-                Text(page.title)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .multilineTextAlignment(.center)
-
-                Text(page.subtitle)
-                    .font(LumenType.body)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, LumenSpacing.md)
-            }
-
-            Spacer()
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, LumenSpacing.xl)
+            .padding(.top, LumenSpacing.xxl)
+            .padding(.bottom, 40)
         }
-        .padding(.horizontal, LumenSpacing.xl)
     }
 
     // MARK: - Controls

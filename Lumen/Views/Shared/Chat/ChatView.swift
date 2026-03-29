@@ -17,47 +17,47 @@ struct ChatView: View {
             } else {
                 messageList
             }
-
-            if chatStore.canRegenerate {
-                regenerateBar
-            }
-
-            InputBarView()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(.systemBackground))
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(Color(.systemBackground), for: .navigationBar)
         #endif
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: LumenSpacing.xs) {
-                    if let conv = chatStore.selectedConversation {
-                        Button {
-                            showingSystemPrompt = true
-                        } label: {
-                            Image(systemName: "brain.head.profile")
-                                .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
-                        }
-                        .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
-                        .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
-                    }
-
-                    if !chatStore.exportText.isEmpty {
-                        ShareLink(item: chatStore.exportText) {
-                            Image(systemName: LumenIcon.share)
-                        }
-                        .help("Share conversation")
-                        .accessibilityLabel("Share conversation")
-                    }
-
+            if let conv = chatStore.selectedConversation {
+                ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingComparison = true
+                        showingSystemPrompt = true
                     } label: {
-                        Image(systemName: "arrow.left.arrow.right.circle")
+                        Image(systemName: "brain.head.profile")
+                            .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
                     }
-                    .help("Compare Models")
-                    .accessibilityLabel("Compare Models")
+                    .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
+                    .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
                 }
+            }
+
+            if !chatStore.exportText.isEmpty {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: chatStore.exportText) {
+                        Image(systemName: LumenIcon.share)
+                    }
+                    .help("Share conversation")
+                    .accessibilityLabel("Share conversation")
+                }
+            }
+
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingComparison = true
+                } label: {
+                    Image(systemName: "arrow.left.arrow.right.circle")
+                }
+                .help("Compare Models")
+                .accessibilityLabel("Compare Models")
             }
         }
         .sheet(isPresented: $showingComparison) {
@@ -76,6 +76,14 @@ struct ChatView: View {
         }
         .onChange(of: chatStore.messages.last?.content) {
             if isAtBottom { scrollToBottom() }
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 0) {
+                if chatStore.canRegenerate {
+                    regenerateBar
+                }
+                InputBarView()
+            }
         }
     }
 
@@ -122,25 +130,28 @@ struct ChatView: View {
 
     private var emptyMessagesPrompt: some View {
         VStack(spacing: LumenSpacing.xl) {
-            Spacer()
             Image(systemName: "sparkle")
                 .font(.system(size: 56))
                 .foregroundStyle(.secondary)
                 .symbolRenderingMode(.hierarchical)
                 .symbolEffect(.pulse.wholeSymbol)
+
             VStack(spacing: LumenSpacing.sm) {
                 Text("What can I help with?")
                     .font(LumenType.largeTitle)
                     .fontWeight(.bold)
+                    .multilineTextAlignment(.center)
+
                 if let model = chatStore.currentModel {
                     Text("Using \(model.displayName)")
                         .font(LumenType.footnote)
                         .foregroundStyle(.secondary)
                 }
             }
-            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(.top, 96)
+        .padding(.horizontal, LumenSpacing.lg)
     }
 
     // MARK: - Regenerate bar
@@ -153,11 +164,12 @@ struct ChatView: View {
                 .font(LumenType.footnote)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, LumenSpacing.xs)
         }
         .buttonStyle(.plain)
-        .background(.regularMaterial)
         .accessibilityLabel("Regenerate response")
+        .padding(.horizontal, LumenSpacing.md)
+        .padding(.vertical, LumenSpacing.xs)
+        .regenerateBarBackground()
     }
 
     // MARK: - Helpers
@@ -170,6 +182,26 @@ struct ChatView: View {
         } else {
             scrollProxy?.scrollTo("bottom", anchor: .bottom)
         }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func regenerateBarBackground() -> some View {
+        #if os(iOS)
+        if #available(iOS 26.0, *) {
+            self.glassEffect(
+                .regular.interactive(),
+                in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+            )
+        } else {
+            self
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        }
+        #else
+        self
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        #endif
     }
 }
 

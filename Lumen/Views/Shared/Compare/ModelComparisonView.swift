@@ -189,7 +189,7 @@ struct ModelComparisonView: View {
                 .focused($promptFocused)
                 .padding(.horizontal, LumenSpacing.sm)
                 .padding(.vertical, LumenSpacing.xs)
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 14))
+                .glassCard(radius: 14, interactive: true)
 
             if isRunning {
                 Button { stopAll() } label: {
@@ -238,24 +238,30 @@ struct ModelComparisonView: View {
 
         if let modelA {
             taskA = Task { @MainActor in
-                await stream(userMsg, model: modelA, into: &responseA, startTime: startTime)
+                await stream(userMsg, model: modelA, side: .a, startTime: startTime)
             }
         }
         if let modelB {
             taskB = Task { @MainActor in
-                await stream(userMsg, model: modelB, into: &responseB, startTime: startTime)
+                await stream(userMsg, model: modelB, side: .b, startTime: startTime)
             }
         }
     }
+
+    private enum Side { case a, b }
 
     @MainActor
     private func stream(
         _ message: ChatMessage,
         model: AIModel,
-        into response: inout ComparisonResponse,
+        side: Side,
         startTime: Date
     ) async {
-        response.isStreaming = true
+        switch side {
+        case .a: responseA.isStreaming = true
+        case .b: responseB.isStreaming = true
+        }
+
         let aiService = AIService.shared
         let stream = await aiService.chat(
             messages: [message],
@@ -265,20 +271,30 @@ struct ModelComparisonView: View {
         do {
             for try await token in stream {
                 if Task.isCancelled { break }
-                if response.timeToFirstToken == nil {
-                    response.timeToFirstToken = Date().timeIntervalSince(startTime)
-                }
-                response.content += token.text
-                if token.isComplete {
-                    response.tokenCount = token.tokenCount
+                switch side {
+                case .a:
+                    if responseA.timeToFirstToken == nil { responseA.timeToFirstToken = Date().timeIntervalSince(startTime) }
+                    responseA.content += token.text
+                    if token.isComplete { responseA.tokenCount = token.tokenCount }
+                case .b:
+                    if responseB.timeToFirstToken == nil { responseB.timeToFirstToken = Date().timeIntervalSince(startTime) }
+                    responseB.content += token.text
+                    if token.isComplete { responseB.tokenCount = token.tokenCount }
                 }
             }
         } catch {
             if !Task.isCancelled {
-                response.error = error.localizedDescription
+                switch side {
+                case .a: responseA.error = error.localizedDescription
+                case .b: responseB.error = error.localizedDescription
+                }
             }
         }
-        response.isStreaming = false
+
+        switch side {
+        case .a: responseA.isStreaming = false
+        case .b: responseB.isStreaming = false
+        }
     }
 
     private func stopAll() {
@@ -332,22 +348,24 @@ private struct ModelSelectorButton: View {
         .buttonStyle(.plain)
         .sheet(isPresented: $showingPicker) {
             NavigationStack {
-                List(available) { m in
-                    Button {
-                        model = m
-                        showingPicker = false
-                    } label: {
-                        HStack {
-                            Text(m.name)
-                            Spacer()
-                            if model?.id == m.id {
-                                Image(systemName: "checkmark")
-                                    .foregroundStyle(.accentColor)
+                List {
+                    ForEach(available) { m in
+                        Button {
+                            model = m
+                            showingPicker = false
+                        } label: {
+                            HStack {
+                                Text(m.name)
+                                Spacer()
+                                if model?.id == m.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(Color.accentColor)
+                                }
                             }
+                            .contentShape(Rectangle())
                         }
-                        .contentShape(Rectangle())
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
                 .navigationTitle("Select \(label)")
                 .navigationBarTitleDisplayMode(.inline)
@@ -373,8 +391,25 @@ struct ComparisonResponse {
     var error: String? = nil
 }
 
-#Preview {
+private struct ModelSelectorButtonPreviewHost: View {
+    @State private var model: AIModel? = .appleFoundationModel
+
+    var body: some View {
+        ModelSelectorButton(
+            label: "Model A",
+            model: $model,
+            available: [.appleFoundationModel, .ollamaPlaceholder]
+        )
+        .padding()
+    }
+}
+
+#Preview("Model Comparison") {
     ModelComparisonView()
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
+}
+
+#Preview("Model Selector") {
+    ModelSelectorButtonPreviewHost()
 }

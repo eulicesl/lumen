@@ -3,8 +3,6 @@ import Foundation
 
 @Model
 final class AIModelSD {
-    #Unique([\.id])
-
     var id: UUID = UUID()
     var modelID: String = ""
     var name: String = ""

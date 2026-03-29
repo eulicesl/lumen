@@ -29,24 +29,6 @@
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
-    },
-    {
-      "filename" : "AppIcon-Light.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "1024x1024"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "dark"
-        }
-      ],
-      "filename" : "AppIcon-Dark.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "1024x1024"
     }
   ],
   "info" : {

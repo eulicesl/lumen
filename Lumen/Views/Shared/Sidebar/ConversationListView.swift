@@ -164,7 +164,7 @@ struct ConversationListView: View {
             systemImage: searchText.isEmpty ? LumenIcon.chat : "magnifyingglass",
             description: Text(searchText.isEmpty
                 ? "Tap + to start a new conversation."
-                : "No conversations match "\(searchText)".")
+                : "No conversations match \"\(searchText)\".")
         )
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)

@@ -16,6 +16,8 @@ struct AgentConfigView: View {
             .listStyle(.insetGrouped)
             .navigationTitle("Agent Mode")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color(.systemBackground), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
@@ -33,14 +35,14 @@ struct AgentConfigView: View {
             HStack(spacing: LumenSpacing.md) {
                 Image(systemName: "cpu.fill")
                     .font(.system(size: 22))
-                    .foregroundStyle(chatStore.agentModeEnabled ? .accentColor : .secondary)
+                    .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                     .frame(width: 30)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Agent Mode")
                         .font(LumenType.body)
                     Text(chatStore.agentModeEnabled ? "Active — tools available" : "Disabled")
                         .font(LumenType.footnote)
-                        .foregroundStyle(chatStore.agentModeEnabled ? .accentColor : .secondary)
+                        .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                 }
                 Spacer()
                 Toggle("", isOn: Binding(
@@ -137,57 +139,102 @@ struct AgentToolEventView: View {
     }
 
     private func toolCallBubble(name: String, input: String) -> some View {
-        HStack(spacing: LumenSpacing.sm) {
-            Image(systemName: "cpu")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Calling **\(name)**")
-                    .font(LumenType.caption)
+        GlassContainer(
+            style: .interactive,
+            shape: .roundedRectangle(radius: LumenRadius.md),
+            padding: .init(
+                top: LumenSpacing.xs,
+                leading: LumenSpacing.md,
+                bottom: LumenSpacing.xs,
+                trailing: LumenSpacing.md
+            )
+        ) {
+            HStack(spacing: LumenSpacing.sm) {
+                Image(systemName: "cpu")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-                if !input.isEmpty {
-                    Text(input)
-                        .font(.system(size: 12, design: .monospaced))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Calling **\(name)**")
+                        .font(LumenType.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                    if !input.isEmpty {
+                        Text(input)
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
                 }
+                Spacer()
             }
-            Spacer()
         }
-        .padding(.horizontal, LumenSpacing.md)
-        .padding(.vertical, LumenSpacing.xs)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md))
         .frame(maxWidth: 320, alignment: .leading)
     }
 
+    @ViewBuilder
     private func toolResultBubble(name: String, result: String) -> some View {
-        HStack(spacing: LumenSpacing.sm) {
-            Image(systemName: "checkmark.circle")
-                .font(.caption)
-                .foregroundStyle(.green)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("**\(name)** result")
-                    .font(LumenType.caption)
-                    .foregroundStyle(.secondary)
-                Text(result)
-                    .font(.system(size: 12, design: .monospaced))
-                    .foregroundStyle(.primary)
-                    .lineLimit(3)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            HStack(spacing: LumenSpacing.sm) {
+                Image(systemName: "checkmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("**\(name)** result")
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                    Text(result)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .lineLimit(3)
+                }
+                Spacer()
             }
-            Spacer()
+            .padding(.horizontal, LumenSpacing.md)
+            .padding(.vertical, LumenSpacing.xs)
+            .glassEffect(
+                .regular.tint(.green),
+                in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+            )
+            .frame(maxWidth: 320, alignment: .leading)
+        } else {
+            HStack(spacing: LumenSpacing.sm) {
+                Image(systemName: "checkmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("**\(name)** result")
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                    Text(result)
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.primary)
+                        .lineLimit(3)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, LumenSpacing.md)
+            .padding(.vertical, LumenSpacing.xs)
+            .background(Color.green.opacity(0.08), in: RoundedRectangle(cornerRadius: LumenRadius.md))
+            .overlay(
+                RoundedRectangle(cornerRadius: LumenRadius.md)
+                    .strokeBorder(Color.green.opacity(0.25), lineWidth: 0.5)
+            )
+            .frame(maxWidth: 320, alignment: .leading)
         }
-        .padding(.horizontal, LumenSpacing.md)
-        .padding(.vertical, LumenSpacing.xs)
-        .background(Color.green.opacity(0.08), in: RoundedRectangle(cornerRadius: LumenRadius.md))
-        .overlay(
-            RoundedRectangle(cornerRadius: LumenRadius.md)
-                .strokeBorder(Color.green.opacity(0.25), lineWidth: 0.5)
-        )
-        .frame(maxWidth: 320, alignment: .leading)
     }
 }
 
-#Preview {
+#Preview("Agent Config") {
     AgentConfigView()
         .environment(ChatStore.shared)
 }
+
+#Preview("Tool Call") {
+    AgentToolEventView(event: .toolCall(name: "calculator", input: "(42 * 2) + 8"))
+        .padding()
+}
+
+#Preview("Tool Result") {
+    AgentToolEventView(event: .toolResult(name: "calculator", result: "92"))
+        .padding()
+}
+

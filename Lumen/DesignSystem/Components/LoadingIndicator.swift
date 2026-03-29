@@ -101,7 +101,17 @@ struct LoadingIndicator: View {
     }
 }
 
-#Preview {
+#Preview("Typing Indicator") {
+    TypingIndicator()
+        .padding()
+}
+
+#Preview("Streaming Pulse") {
+    StreamingPulse()
+        .padding()
+}
+
+#Preview("Loading Styles") {
     VStack(spacing: LumenSpacing.xxl) {
         LoadingIndicator(style: .typingDots)
         LoadingIndicator(style: .streamingPulse)

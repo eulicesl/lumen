@@ -4,15 +4,28 @@ struct MainTabView: View {
 
     @Environment(AppStore.self) private var appStore
     @Environment(ChatStore.self) private var chatStore
+    @State private var showingConversationList = false
 
     var body: some View {
         @Bindable var store = appStore
         TabView(selection: $store.selectedTab) {
             Tab("Chat", systemImage: LumenIcon.chat, value: LumenTab.chat) {
-                NavigationSplitView {
-                    ConversationListView()
-                } detail: {
+                NavigationStack {
                     ChatView()
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button {
+                                    showingConversationList = true
+                                } label: {
+                                    Image(systemName: "sidebar.left")
+                                }
+                                .accessibilityLabel("Show Conversations")
+                            }
+                        }
+                }
+                .fullScreenCover(isPresented: $showingConversationList) {
+                    ConversationPickerView()
+                        .environment(chatStore)
                 }
             }
 
@@ -24,15 +37,34 @@ struct MainTabView: View {
                 PromptLibraryView()
             }
 
-            Tab("Search", systemImage: LumenIcon.search, role: .search, value: LumenTab.search) {
+            Tab("Search", systemImage: LumenIcon.search, value: LumenTab.search, role: .search) {
                 SearchView()
             }
 
             Tab("Settings", systemImage: LumenIcon.settings, value: LumenTab.settings) {
                 NavigationStack {
-                    SettingsView()
+                    SettingsStoreView()
                 }
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+}
+
+private struct ConversationPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ConversationListView()
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Close") {
+                            dismiss()
+                        }
+                    }
+                }
         }
     }
 }
@@ -67,10 +99,18 @@ struct PlaceholderView: View {
     }
 }
 
-#Preview {
+#Preview("Main Tab") {
     MainTabView()
         .environment(AppStore.shared)
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
         .environment(LibraryStore.shared)
+}
+
+#Preview("Placeholder") {
+    PlaceholderView(
+        title: "Prompt Library",
+        subtitle: "Quick actions and reusable prompts appear here.",
+        icon: LumenIcon.library
+    )
 }

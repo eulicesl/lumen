@@ -10,6 +10,7 @@ final class AppStore {
     var colorSchemePreference: AppColorScheme = .system
     var ollamaServerURL: String = "http://localhost:11434"
     var ollamaBearerToken: String = ""
+    var allowOllama: Bool = true
     var defaultModelID: String?
     var isFirstLaunch: Bool = false
 
@@ -24,6 +25,11 @@ final class AppStore {
         ollamaServerURL = UserDefaults.standard.string(forKey: "ollamaServerURL") ?? "http://localhost:11434"
         ollamaBearerToken = UserDefaults.standard.string(forKey: "ollamaBearerToken") ?? ""
         defaultModelID = UserDefaults.standard.string(forKey: "defaultModelID")
+        if UserDefaults.standard.object(forKey: "allowOllama") != nil {
+            allowOllama = UserDefaults.standard.bool(forKey: "allowOllama")
+        } else {
+            allowOllama = true
+        }
         if let raw = UserDefaults.standard.string(forKey: "colorSchemePreference"),
            let scheme = AppColorScheme(rawValue: raw) {
             colorSchemePreference = scheme
@@ -48,6 +54,11 @@ final class AppStore {
         ollamaBearerToken = token
         UserDefaults.standard.set(token, forKey: "ollamaBearerToken")
         Task { await syncOllamaConfiguration() }
+    }
+    
+    func saveAllowOllama(_ allow: Bool) {
+        allowOllama = allow
+        UserDefaults.standard.set(allow, forKey: "allowOllama")
     }
 
     func saveDefaultModel(_ modelID: String) {
