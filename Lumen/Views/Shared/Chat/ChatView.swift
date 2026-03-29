@@ -87,8 +87,6 @@ struct ChatView: View {
         }
     }
 
-    // MARK: - Message list
-
     private var messageList: some View {
         ScrollViewReader { proxy in
             ScrollView {
@@ -104,6 +102,7 @@ struct ChatView: View {
                 .padding(.top, LumenSpacing.md)
                 .padding(.bottom, LumenSpacing.sm)
             }
+            .modifier(ChatScrollEdgeEffect())
             .scrollDismissesKeyboard(.interactively)
             .onAppear {
                 scrollProxy = proxy
@@ -111,8 +110,6 @@ struct ChatView: View {
             }
         }
     }
-
-    // MARK: - Empty states
 
     private var emptyConversationPrompt: some View {
         ContentUnavailableView {
@@ -154,8 +151,6 @@ struct ChatView: View {
         .padding(.horizontal, LumenSpacing.lg)
     }
 
-    // MARK: - Regenerate bar
-
     private var regenerateBar: some View {
         Button {
             Task { await chatStore.regenerate() }
@@ -172,8 +167,6 @@ struct ChatView: View {
         .regenerateBarBackground()
     }
 
-    // MARK: - Helpers
-
     private func scrollToBottom(animated: Bool = true) {
         if animated {
             withAnimation(LumenAnimation.standard) {
@@ -181,6 +174,17 @@ struct ChatView: View {
             }
         } else {
             scrollProxy?.scrollTo("bottom", anchor: .bottom)
+        }
+    }
+}
+
+private struct ChatScrollEdgeEffect: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, macOS 26.0, visionOS 26.0, *) {
+            content
+                .scrollEdgeEffectStyle(.soft, for: [.top, .bottom])
+        } else {
+            content
         }
     }
 }

@@ -8,7 +8,21 @@ struct MainTabView: View {
 
     var body: some View {
         @Bindable var store = appStore
-        TabView(selection: $store.selectedTab) {
+
+        Group {
+            if #available(iOS 26.0, *) {
+                GlassEffectContainer {
+                    tabShell(selection: $store.selectedTab)
+                }
+            } else {
+                tabShell(selection: $store.selectedTab)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func tabShell(selection: Binding<LumenTab>) -> some View {
+        TabView(selection: selection) {
             Tab("Chat", systemImage: LumenIcon.chat, value: LumenTab.chat) {
                 NavigationStack {
                     ChatView()
@@ -23,7 +37,7 @@ struct MainTabView: View {
                             }
                         }
                 }
-                .fullScreenCover(isPresented: $showingConversationList) {
+                .sheet(isPresented: $showingConversationList) {
                     ConversationPickerView()
                         .environment(chatStore)
                 }
@@ -47,8 +61,52 @@ struct MainTabView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
+        .modifier(IOS26TabChrome(chatStore: chatStore))
+    }
+}
+
+private struct IOS26TabChrome: ViewModifier {
+    let chatStore: ChatStore
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .tabBarMinimizeBehavior(.onScrollDown)
+                .tabViewBottomAccessory {
+                    if chatStore.conversationState == .generating {
+                        HStack(spacing: LumenSpacing.sm) {
+                            ProgressView()
+                                .controlSize(.small)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Generating")
+                                    .font(LumenType.caption)
+                                    .fontWeight(.semibold)
+                                Text(chatStore.currentModel?.displayName ?? "Current model")
+                                    .font(LumenType.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+
+                            Spacer(minLength: 0)
+
+                            Button("Stop") {
+                                chatStore.stopGeneration()
+                            }
+                            .buttonStyle(.borderless)
+                            .font(LumenType.caption)
+                        }
+                        .padding(.horizontal, LumenSpacing.md)
+                        .padding(.vertical, LumenSpacing.xs)
+                        .glassEffect(.regular.interactive(), in: Capsule())
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+                .animation(.spring(response: 0.28, dampingFraction: 0.82), value: chatStore.conversationState == .generating)
+        } else {
+            content
+        }
     }
 }
 
