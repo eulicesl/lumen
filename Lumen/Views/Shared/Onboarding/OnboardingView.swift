@@ -49,19 +49,17 @@ struct OnboardingView: View {
     @State private var dragOffset: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            pageContent
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            controls
-                .padding(.horizontal, LumenSpacing.xl)
-                .padding(.top, LumenSpacing.md)
-                .padding(.bottom, LumenSpacing.lg)
-                .background(.ultraThinMaterial)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(backgroundGradient)
-        .interactiveDismissDisabled()
+        pageContent
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(backgroundGradient)
+            .safeAreaInset(edge: .bottom) {
+                controls
+                    .padding(.horizontal, LumenSpacing.xl)
+                    .padding(.top, LumenSpacing.md)
+                    .padding(.bottom, LumenSpacing.lg)
+                    .background(.ultraThinMaterial)
+            }
+            .interactiveDismissDisabled()
     }
 
     // MARK: - Page content
@@ -110,7 +108,7 @@ struct OnboardingView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.horizontal, LumenSpacing.xl)
-            .padding(.top, LumenSpacing.xxl)
+            .padding(.top, LumenSpacing.xl)
             .padding(.bottom, 40)
         }
     }

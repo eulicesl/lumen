@@ -35,7 +35,7 @@ struct InputBarView: View {
                 sendButton
             }
             .padding(.horizontal, LumenSpacing.md)
-            .padding(.vertical, LumenSpacing.sm)
+            .padding(.top, LumenSpacing.xs)
             .padding(.bottom, LumenSpacing.xs)
         }
         .background(.bar)

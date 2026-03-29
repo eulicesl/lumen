@@ -18,7 +18,7 @@ struct ChatView: View {
                 messageList
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
         #if os(iOS)
@@ -129,29 +129,34 @@ struct ChatView: View {
     }
 
     private var emptyMessagesPrompt: some View {
-        VStack(spacing: LumenSpacing.xl) {
-            Image(systemName: "sparkle")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
-                .symbolRenderingMode(.hierarchical)
-                .symbolEffect(.pulse.wholeSymbol)
+        VStack {
+            Spacer(minLength: LumenSpacing.xl)
 
-            VStack(spacing: LumenSpacing.sm) {
-                Text("What can I help with?")
-                    .font(LumenType.largeTitle)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
+            VStack(spacing: LumenSpacing.xl) {
+                Image(systemName: "sparkle")
+                    .font(.system(size: 56))
+                    .foregroundStyle(.secondary)
+                    .symbolRenderingMode(.hierarchical)
+                    .symbolEffect(.pulse.wholeSymbol)
 
-                if let model = chatStore.currentModel {
-                    Text("Using \(model.displayName)")
-                        .font(LumenType.footnote)
-                        .foregroundStyle(.secondary)
+                VStack(spacing: LumenSpacing.sm) {
+                    Text("What can I help with?")
+                        .font(LumenType.largeTitle)
+                        .fontWeight(.bold)
+                        .multilineTextAlignment(.center)
+
+                    if let model = chatStore.currentModel {
+                        Text("Using \(model.displayName)")
+                            .font(LumenType.footnote)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .padding(.horizontal, LumenSpacing.lg)
+
+            Spacer(minLength: LumenSpacing.xl)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 96)
-        .padding(.horizontal, LumenSpacing.lg)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     // MARK: - Regenerate bar
