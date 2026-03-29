@@ -42,12 +42,12 @@ If a proposed task conflicts with these docs, update the docs intentionally or r
 - If a change is broad, split bugfixes, modernization, and architecture work into separate PRs.
 
 ## Branch Naming
-Recommended:
-- `sprint/001-settings-unification`
-- `sprint/002-export-conversations`
-- `sprint/003-permission-hardening`
+Default to Ralphy-style task branches:
+- `ralphy/settings-unification`
+- `ralphy/export-conversations`
+- `ralphy/permission-hardening`
 
-Or another similarly explicit branch-per-task format.
+If a sprint lead chooses a different naming convention, it must be intentional, documented, and applied consistently across the sprint.
 
 ## Parallelization Rules
 ### Safe to parallelize
@@ -88,6 +88,13 @@ For each task, run the most relevant validation available:
 - screenshots for visible UI changes when possible
 
 If something cannot be validated in the current environment, document that honestly.
+
+## Protected Files
+Do not modify the execution/control-plane files during feature implementation unless the task explicitly targets workflow/process changes:
+- `tasks/*.yaml`
+- `.ralphy/progress.txt`
+- `.ralphy-worktrees/**`
+- `.ralphy-sandboxes/**`
 
 ## Learning Loop
 - After meaningful runs, append concise process learnings to `.ralphy/progress.txt`.

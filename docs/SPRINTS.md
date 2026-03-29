@@ -13,18 +13,24 @@ Included:
 - `.ralphy/config.yaml`
 
 ## Sprint 1 — App Store Foundations
+Machine-readable task source:
+- `tasks/sprint-1.yaml`
+
 ### 001 Settings unification
 **Owner:** solo
+**Task file title:** `settings-unification`
 
 ### 002 Export conversations
 **Owner:** parallel-safe
+**Task file title:** `export-conversations`
 
 ### 003 Permission hardening
 **Owner:** parallel-safe
+**Task file title:** `permission-hardening`
 
 Parallelization:
-- 001 solo
-- 002 and 003 may run in parallel
+- `parallel_group: 1` => settings unification runs first
+- `parallel_group: 2` => export conversations and permission hardening may run together
 
 ## Sprint 2 — Quality and Trust
 ### 004 Accessibility pass

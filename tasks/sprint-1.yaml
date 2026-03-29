@@ -1,0 +1,15 @@
+tasks:
+  - title: settings-unification
+    completed: false
+    parallel_group: 1
+    description: Unify duplicate settings surfaces into one canonical settings architecture and UI.
+
+  - title: export-conversations
+    completed: false
+    parallel_group: 2
+    description: Add JSON and Markdown conversation export with share-sheet integration.
+
+  - title: permission-hardening
+    completed: false
+    parallel_group: 2
+    description: Harden denied-permission UX and add App Review-safe recovery paths.

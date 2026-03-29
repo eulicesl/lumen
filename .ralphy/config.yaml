@@ -8,6 +8,14 @@ commands:
   test: "xcodebuild test -scheme Lumen"
   lint: "swiftlint"
 
+capabilities:
+  browser: "auto"
+
+notifications:
+  discord_webhook: ""
+  slack_webhook: ""
+  custom_webhook: ""
+
 rules:
   - "Follow docs/PRD.md, docs/DESIGN.md, docs/ROADMAP.md, and docs/micro-prds as source of truth."
   - "Prefer native Apple and SwiftUI APIs where practical."
@@ -22,6 +30,10 @@ boundaries:
     - "DerivedData/**"
     - ".build/**"
     - ".git/**"
+    - ".ralphy/progress.txt"
+    - "tasks/*.yaml"
+    - ".ralphy-worktrees/**"
+    - ".ralphy-sandboxes/**"
 
 workflow:
   branchPerTask: true

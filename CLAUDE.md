@@ -53,6 +53,7 @@ The following count as engineering-critical work:
 
 ## Workflow Rules
 - Branch per task.
+- Use the machine-readable task source (for example `tasks/sprint-1.yaml`) for actual sprint execution sequencing.
 - Draft PRs first when work is not yet fully validated.
 - Keep upstream-facing work clean and intentional.
 - Do not create noisy or premature upstream PRs.
