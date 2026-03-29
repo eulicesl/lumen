@@ -78,10 +78,17 @@ struct CalculatorTool: AgentTool {
     func run(input: String) async -> String {
         let cleaned = input.trimmingCharacters(in: .whitespaces)
         guard !cleaned.isEmpty else { return "Error: empty expression" }
-        let expr = NSExpression(format: cleaned)
+
+        let decimalized = cleaned.replacingOccurrences(
+            of: #"(?<![\w.])(\d+)(?![\w.])"#,
+            with: "$1.0",
+            options: .regularExpression
+        )
+
+        let expr = NSExpression(format: decimalized)
         if let result = expr.expressionValue(with: nil, context: nil) as? NSNumber {
             let double = result.doubleValue
-            if double == double.rounded() && !cleaned.contains(".") {
+            if double == double.rounded() && !cleaned.contains(".") && !cleaned.contains("/") {
                 return String(Int(double))
             }
             return String(format: "%.6g", double)
