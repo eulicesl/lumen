@@ -149,8 +149,8 @@ struct ChatView: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .padding(.top, 96)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .offset(y: -48)
         .padding(.horizontal, LumenSpacing.lg)
     }
 

@@ -49,15 +49,14 @@ struct OnboardingView: View {
     @State private var dragOffset: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             pageContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, 140)
 
             controls
                 .padding(.horizontal, LumenSpacing.xl)
-                .padding(.top, LumenSpacing.md)
                 .padding(.bottom, LumenSpacing.lg)
-                .background(.ultraThinMaterial)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(backgroundGradient)
@@ -158,6 +157,11 @@ struct OnboardingView: View {
                 }
             }
         }
+        .padding(.horizontal, LumenSpacing.xl)
+        .padding(.top, LumenSpacing.md)
+        .padding(.bottom, LumenSpacing.lg)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.xl, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 16, y: 4)
     }
 
     private var pageIndicator: some View {
