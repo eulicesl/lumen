@@ -10,23 +10,7 @@ struct MainTabView: View {
         @Bindable var store = appStore
         TabView(selection: $store.selectedTab) {
             Tab("Chat", systemImage: LumenIcon.chat, value: LumenTab.chat) {
-                NavigationStack {
-                    ChatView()
-                        .toolbar {
-                            ToolbarItem(placement: .topBarLeading) {
-                                Button {
-                                    showingConversationList = true
-                                } label: {
-                                    Image(systemName: "sidebar.left")
-                                }
-                                .accessibilityLabel("Show Conversations")
-                            }
-                        }
-                }
-                .fullScreenCover(isPresented: $showingConversationList) {
-                    ConversationPickerView()
-                        .environment(chatStore)
-                }
+                ChatTabRoot(showingConversationList: $showingConversationList)
             }
 
             Tab("Voice", systemImage: LumenIcon.voice, value: LumenTab.voice) {
@@ -47,8 +31,107 @@ struct MainTabView: View {
                 }
             }
         }
+        .applyiOS26TabChrome(using: store.selectedTab)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
+    }
+}
+
+private struct ChatTabRoot: View {
+    @Binding var showingConversationList: Bool
+    @Environment(ChatStore.self) private var chatStore
+
+    var body: some View {
+        NavigationStack {
+            ChatView()
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            showingConversationList = true
+                        } label: {
+                            Image(systemName: "sidebar.left")
+                        }
+                        .accessibilityLabel("Show Conversations")
+                    }
+                }
+                .chatComposerFallbackInset()
+        }
+        .fullScreenCover(isPresented: $showingConversationList) {
+            ConversationPickerView()
+                .environment(chatStore)
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func applyiOS26TabChrome(using selectedTab: LumenTab) -> some View {
+        if #available(iOS 26.0, *) {
+            self
+                .tabBarMinimizeBehavior(.onScrollDown)
+                .tabViewBottomAccessory {
+                    if selectedTab == .chat {
+                        ChatComposerChrome()
+                    }
+                }
+        } else {
+            self
+        }
+    }
+
+    @ViewBuilder
+    func chatComposerFallbackInset() -> some View {
+        if #available(iOS 26.0, *) {
+            self
+        } else {
+            self.safeAreaInset(edge: .bottom) {
+                ChatComposerChrome()
+            }
+        }
+    }
+}
+
+private struct ChatComposerChrome: View {
+    @Environment(ChatStore.self) private var chatStore
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if chatStore.canRegenerate {
+                regenerateBar
+            }
+            InputBarView()
+        }
+    }
+
+    private var regenerateBar: some View {
+        Button {
+            Task { await chatStore.regenerate() }
+        } label: {
+            Label("Regenerate response", systemImage: "arrow.clockwise")
+                .font(LumenType.footnote)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Regenerate response")
+        .padding(.horizontal, LumenSpacing.md)
+        .padding(.vertical, LumenSpacing.xs)
+        .chatRegenerateBackground()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func chatRegenerateBackground() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(
+                .regular.interactive(),
+                in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+            )
+        } else {
+            self
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        }
     }
 }
 

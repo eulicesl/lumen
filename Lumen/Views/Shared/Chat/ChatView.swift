@@ -77,14 +77,6 @@ struct ChatView: View {
         .onChange(of: chatStore.messages.last?.content) {
             if isAtBottom { scrollToBottom() }
         }
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                if chatStore.canRegenerate {
-                    regenerateBar
-                }
-                InputBarView()
-            }
-        }
     }
 
     // MARK: - Message list
@@ -154,24 +146,6 @@ struct ChatView: View {
         .padding(.horizontal, LumenSpacing.lg)
     }
 
-    // MARK: - Regenerate bar
-
-    private var regenerateBar: some View {
-        Button {
-            Task { await chatStore.regenerate() }
-        } label: {
-            Label("Regenerate response", systemImage: "arrow.clockwise")
-                .font(LumenType.footnote)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Regenerate response")
-        .padding(.horizontal, LumenSpacing.md)
-        .padding(.vertical, LumenSpacing.xs)
-        .regenerateBarBackground()
-    }
-
     // MARK: - Helpers
 
     private func scrollToBottom(animated: Bool = true) {
@@ -182,26 +156,6 @@ struct ChatView: View {
         } else {
             scrollProxy?.scrollTo("bottom", anchor: .bottom)
         }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func regenerateBarBackground() -> some View {
-        #if os(iOS)
-        if #available(iOS 26.0, *) {
-            self.glassEffect(
-                .regular.interactive(),
-                in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
-            )
-        } else {
-            self
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        }
-        #else
-        self
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        #endif
     }
 }
 
