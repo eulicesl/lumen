@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Lumen workflow guide
+    url: https://github.com/eulicesl/lumen/blob/main/docs/WORKFLOW.md
+    about: Read the engineering workflow before filing implementation work.
