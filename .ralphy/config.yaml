@@ -1,0 +1,30 @@
+project:
+  name: lumen
+  language: Swift
+  framework: SwiftUI
+
+commands:
+  build: "xcodebuild build -scheme Lumen"
+  test: "xcodebuild test -scheme Lumen"
+  lint: "swiftlint"
+
+rules:
+  - "Follow docs/PRD.md, docs/DESIGN.md, docs/ROADMAP.md, and docs/micro-prds as source of truth."
+  - "Prefer native Apple and SwiftUI APIs where practical."
+  - "Keep PRs small, reviewer-friendly, and scoped to one concern."
+  - "Do not create noisy or premature upstream PRs."
+  - "Preserve Lumen's privacy-first, local-first, Apple-native identity."
+  - "Do not port Enchanted features wholesale without product-fit review."
+
+boundaries:
+  never_touch:
+    - "*.pbxproj"
+    - "DerivedData/**"
+    - ".build/**"
+    - ".git/**"
+
+workflow:
+  branchPerTask: true
+  useDraftPRs: true
+  parallelOnlyWhenIsolated: true
+  microPrdDriven: true

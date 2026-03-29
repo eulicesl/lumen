@@ -1,0 +1,28 @@
+Follow `CLAUDE.md`, `AGENTS.md`, and the docs in `docs/` as the source of truth.
+
+Lumen standards:
+- privacy-first, local-first, Apple-native
+- App Store-quality and portfolio-quality
+- one concern per PR
+- one logical change per commit
+- prefer native SwiftUI/iOS APIs over layout hacks
+- avoid over-engineering and unrelated cleanup
+- do not port Enchanted complexity wholesale
+- preserve clean diffs and reviewer-friendly structure
+
+Priority order:
+1. architecture and core abstractions
+2. integration points
+3. risky unknowns / spike work
+4. implementation
+5. polish later
+
+Parallel work rules:
+- branch per task
+- micro-PRD driven
+- do not run multiple agents on shared shell/settings/provider files without coordination
+
+Before calling work done:
+- run relevant validation
+- be honest about anything not validated
+- keep the PR clean and tightly scoped
