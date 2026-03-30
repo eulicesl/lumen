@@ -31,8 +31,7 @@ struct MainTabView: View {
                 }
             }
         }
-        .applyiOS26TabChrome(using: store.selectedTab)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .applyiOS26TabChrome(using: store.selectedTab, showChatAccessory: !showingConversationList)
         .background(Color(.systemBackground))
     }
 }
@@ -54,23 +53,27 @@ private struct ChatTabRoot: View {
                         .accessibilityLabel("Show Conversations")
                     }
                 }
+                .navigationDestination(isPresented: $showingConversationList) {
+                    ConversationListView()
+                        .environment(chatStore)
+                        .navigationTitle("Lumen")
+                        #if os(iOS)
+                        .navigationBarTitleDisplayMode(.inline)
+                        #endif
+                }
                 .chatComposerFallbackInset()
-        }
-        .fullScreenCover(isPresented: $showingConversationList) {
-            ConversationPickerView()
-                .environment(chatStore)
         }
     }
 }
 
 private extension View {
     @ViewBuilder
-    func applyiOS26TabChrome(using selectedTab: LumenTab) -> some View {
+    func applyiOS26TabChrome(using selectedTab: LumenTab, showChatAccessory: Bool) -> some View {
         if #available(iOS 26.0, *) {
             self
                 .tabBarMinimizeBehavior(.onScrollDown)
                 .tabViewBottomAccessory {
-                    if selectedTab == .chat {
+                    if selectedTab == .chat && showChatAccessory {
                         ChatComposerChrome()
                     }
                 }
@@ -135,22 +138,6 @@ private extension View {
     }
 }
 
-private struct ConversationPickerView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            ConversationListView()
-                .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button("Close") {
-                            dismiss()
-                        }
-                    }
-                }
-        }
-    }
-}
 
 struct PlaceholderView: View {
 
