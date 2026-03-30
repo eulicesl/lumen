@@ -1,5 +1,8 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: Lumen workflow guide
     url: https://github.com/eulicesl/lumen/blob/main/docs/WORKFLOW.md
     about: Read the engineering workflow before filing implementation work.
+  - name: Engineering standard (portfolio bar)
+    url: https://github.com/eulicesl/lumen/blob/main/docs/ENGINEERING_STANDARD.md
+    about: Review the senior-level quality bar used for code, reviews, and releases.

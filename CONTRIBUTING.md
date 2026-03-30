@@ -8,6 +8,7 @@
   - `chore/<name>`
 - Open a pull request back into `main`.
 - Merge only after CI is green and required review is satisfied.
+- Follow `docs/ENGINEERING_STANDARD.md` as the quality bar for implementation and review.
 
 ## Local quality gate
 Before opening a PR:

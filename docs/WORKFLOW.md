@@ -33,3 +33,8 @@ Prefer senior-engineer judgment:
 ## Merge standard
 Prefer squash merge unless there is a specific reason not to.
 Keep `main` clean, readable, and releasable.
+
+## Quality bar
+Treat this repo as a portfolio-grade artifact:
+- `docs/ENGINEERING_STANDARD.md` is the canonical engineering bar.
+- Workflow/process debt should be fixed proactively (not deferred indefinitely).
