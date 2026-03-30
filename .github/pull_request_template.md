@@ -1,7 +1,5 @@
 ## Summary
 
-Describe the problem and fix in 2–5 bullets:
-
 - Problem:
 - Why it matters:
 - What changed:
