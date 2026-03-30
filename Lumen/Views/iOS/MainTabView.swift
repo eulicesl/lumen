@@ -53,15 +53,11 @@ private struct ChatTabRoot: View {
                         .accessibilityLabel("Show Conversations")
                     }
                 }
-                .navigationDestination(isPresented: $showingConversationList) {
-                    ConversationListView()
-                        .environment(chatStore)
-                        .navigationTitle("Lumen")
-                        #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                        #endif
-                }
                 .chatComposerFallbackInset()
+        }
+        .fullScreenCover(isPresented: $showingConversationList) {
+            ConversationPickerView()
+                .environment(chatStore)
         }
     }
 }
@@ -138,6 +134,23 @@ private extension View {
     }
 }
 
+private struct ConversationPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ConversationListView()
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button("Close") {
+                            dismiss()
+                        }
+                    }
+                }
+        }
+        .interactiveDismissDisabled(false)
+    }
+}
 
 struct PlaceholderView: View {
 
