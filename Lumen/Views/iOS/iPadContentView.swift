@@ -29,7 +29,7 @@ struct iPadContentView: View {
                 }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            SettingsStoreView()
+            SettingsStoreView(showsDoneButton: true)
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)

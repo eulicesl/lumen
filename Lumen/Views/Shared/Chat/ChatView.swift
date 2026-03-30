@@ -23,8 +23,6 @@ struct ChatView: View {
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(Color(.systemBackground), for: .navigationBar)
         #endif
         .toolbar {
             if let conv = chatStore.selectedConversation {
@@ -83,23 +81,26 @@ struct ChatView: View {
 
     private var messageList: some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(spacing: LumenSpacing.md) {
-                    ForEach(chatStore.messages) { message in
-                        MessageBubbleView(message: message)
-                            .padding(.horizontal, LumenSpacing.md)
+            GeometryReader { geo in
+                ScrollView {
+                    LazyVStack(spacing: LumenSpacing.sm) {
+                        ForEach(chatStore.messages) { message in
+                            MessageBubbleView(message: message)
+                                .padding(.horizontal, LumenSpacing.md)
+                        }
+                        Color.clear
+                            .frame(height: 1)
+                            .id("bottom")
                     }
-                    Color.clear
-                        .frame(height: 1)
-                        .id("bottom")
+                    .frame(minHeight: geo.size.height - LumenSpacing.md, alignment: .bottom)
+                    .padding(.top, LumenSpacing.sm)
+                    .padding(.bottom, LumenSpacing.sm)
                 }
-                .padding(.top, LumenSpacing.md)
-                .padding(.bottom, LumenSpacing.sm)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .onAppear {
-                scrollProxy = proxy
-                scrollToBottom(animated: false)
+                .scrollDismissesKeyboard(.interactively)
+                .onAppear {
+                    scrollProxy = proxy
+                    scrollToBottom(animated: false)
+                }
             }
         }
     }

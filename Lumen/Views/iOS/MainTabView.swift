@@ -32,6 +32,7 @@ struct MainTabView: View {
             }
         }
         .applyiOS26TabChrome(using: store.selectedTab, showChatAccessory: !showingConversationList)
+        .toolbarColorScheme(.dark, for: .tabBar)
         .background(Color(.systemBackground))
     }
 }
@@ -115,22 +116,7 @@ private struct ChatComposerChrome: View {
         .accessibilityLabel("Regenerate response")
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.xs)
-        .chatRegenerateBackground()
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func chatRegenerateBackground() -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(
-                .regular.interactive(),
-                in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
-            )
-        } else {
-            self
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        }
+        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
     }
 }
 

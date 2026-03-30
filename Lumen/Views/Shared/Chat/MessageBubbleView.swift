@@ -1,5 +1,8 @@
 import SwiftUI
 import AVFoundation
+#if os(iOS)
+import UIKit
+#endif
 
 struct MessageBubbleView: View {
     let message: ChatMessage
@@ -10,7 +13,7 @@ struct MessageBubbleView: View {
 
     var body: some View {
         HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
-            if message.isUser { Spacer(minLength: 60) }
+            if message.isUser { Spacer(minLength: 40) }
 
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: LumenSpacing.xs) {
                 if message.isAssistant, !thinkBlocks.isEmpty {
@@ -34,7 +37,7 @@ struct MessageBubbleView: View {
                 }
             }
 
-            if !message.isUser { Spacer(minLength: 60) }
+            if !message.isUser { Spacer(minLength: 24) }
         }
         .id(message.id)
         .confirmationDialog(
@@ -206,7 +209,18 @@ struct MessageBubbleView: View {
         MemoryStore.shared.add(content: shortened, category: message.isUser ? .preference : .fact)
     }
 
-    private var maxBubbleWidth: CGFloat { 600 }
+    private var maxBubbleWidth: CGFloat {
+        #if os(iOS)
+        let screenWidth = UIScreen.main.bounds.width
+        if message.isUser {
+            return max(220, min(screenWidth * 0.72, 460))
+        } else {
+            return max(260, min(screenWidth * 0.84, 560))
+        }
+        #else
+        return 600
+        #endif
+    }
 }
 
 // MARK: - Bubble background modifier
@@ -228,7 +242,11 @@ private struct BubbleBackground: ViewModifier {
                 )
         } else {
             content
-                .glassCard(radius: LumenRadius.bubble)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
+                .overlay(
+                    RoundedRectangle(cornerRadius: LumenRadius.bubble)
+                        .strokeBorder(Color.primary.opacity(0.05), lineWidth: 1)
+                )
         }
     }
 }

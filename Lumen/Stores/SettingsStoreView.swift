@@ -4,6 +4,7 @@ import Observation
 struct SettingsStoreView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    var showsDoneButton: Bool = false
 
     private var allowOllamaBinding: Binding<Bool> {
         Binding(
@@ -39,7 +40,6 @@ struct SettingsStoreView: View {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-                    .settingsGlassCard()
                 }
 
                 Section("Ollama") {
@@ -51,14 +51,15 @@ struct SettingsStoreView: View {
 
                         SecureField("Bearer Token", text: ollamaBearerTokenBinding)
                     }
-                    .settingsGlassCard()
                 }
             }
             .navigationTitle("Settings")
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
-                        dismiss()
+                if showsDoneButton {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Done") {
+                            dismiss()
+                        }
                     }
                 }
             }

@@ -17,7 +17,7 @@ struct InputBarView: View {
 
     var body: some View {
         @Bindable var bindableChat = chatStore
-        VStack(spacing: 0) {
+        VStack(spacing: LumenSpacing.xs) {
             #if os(iOS)
             ImageAttachmentRow(images: $selectedImages, onOCR: { image in
                 Task { await performOCR(on: image) }
@@ -25,7 +25,6 @@ struct InputBarView: View {
             .animation(LumenAnimation.standard, value: selectedImages.isEmpty)
             #endif
 
-            Divider()
             HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
                 #if os(iOS)
                 mediaButtons
@@ -38,6 +37,7 @@ struct InputBarView: View {
             .padding(.vertical, LumenSpacing.sm)
             .padding(.bottom, LumenSpacing.xs)
         }
+        .padding(.top, LumenSpacing.xs)
         .background(.bar)
         .onChange(of: selectedImages) { syncPendingImages() }
         .sheet(isPresented: $showingModelPicker) {
@@ -58,7 +58,7 @@ struct InputBarView: View {
                 matching: .images
             ) {
                 Image(systemName: LumenIcon.photo)
-                    .font(.system(size: 20))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(.secondary)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
@@ -70,7 +70,7 @@ struct InputBarView: View {
 
             Button { toggleVoice() } label: {
                 Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
-                    .font(.system(size: 20))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(isRecording ? Color.red : Color.secondary)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
@@ -89,30 +89,22 @@ struct InputBarView: View {
         Button {
             showingModelPicker = true
         } label: {
-            GlassContainer(
-                style: .interactive,
-                shape: .capsule,
-                padding: .init(
-                    top: LumenSpacing.xs,
-                    leading: LumenSpacing.sm,
-                    bottom: LumenSpacing.xs,
-                    trailing: LumenSpacing.sm
-                )
-            ) {
-                HStack(spacing: LumenSpacing.xxs) {
-                    Image(systemName: chatStore.currentModel?.providerType == .foundationModels
-                          ? LumenIcon.appleIntelligence : LumenIcon.ollama)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(chatStore.currentModel?.shortName ?? "Model")
-                        .font(LumenType.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 8, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
+            HStack(spacing: LumenSpacing.xxs) {
+                Image(systemName: chatStore.currentModel?.providerType == .foundationModels
+                      ? LumenIcon.appleIntelligence : LumenIcon.ollama)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(chatStore.currentModel?.shortName ?? "Model")
+                    .font(LumenType.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(.tertiary)
             }
+            .padding(.horizontal, LumenSpacing.sm)
+            .padding(.vertical, LumenSpacing.xs)
+            .background(.thinMaterial, in: Capsule())
         }
         .buttonStyle(.plain)
         .disabled(chatStore.conversationState == .generating)
@@ -122,28 +114,20 @@ struct InputBarView: View {
 
     @ViewBuilder
     private func inputField(bindableChat: Bindable<ChatStore>) -> some View {
-        GlassContainer(
-            style: .regular,
-            shape: .roundedRectangle(radius: LumenRadius.input),
-            padding: .init(
-                top: LumenSpacing.xs,
-                leading: LumenSpacing.sm,
-                bottom: LumenSpacing.xs,
-                trailing: LumenSpacing.sm
-            )
-        ) {
-            TextField("Message", text: bindableChat.inputText, axis: .vertical)
-                .font(LumenType.messageBody)
-                .lineLimit(1...8)
-                .focused($inputFocused)
-                .submitLabel(.send)
-                .onSubmit {
-                    #if os(iOS)
-                    sendMessage()
-                    #endif
-                }
-                .disabled(chatStore.selectedConversation == nil)
-        }
+        TextField("Message", text: bindableChat.inputText, axis: .vertical)
+            .font(LumenType.messageBody)
+            .lineLimit(1...8)
+            .focused($inputFocused)
+            .submitLabel(.send)
+            .padding(.horizontal, LumenSpacing.sm)
+            .padding(.vertical, LumenSpacing.xs)
+            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.input, style: .continuous))
+            .onSubmit {
+                #if os(iOS)
+                sendMessage()
+                #endif
+            }
+            .disabled(chatStore.selectedConversation == nil)
     }
 
     // MARK: - Send / Stop button
@@ -153,7 +137,7 @@ struct InputBarView: View {
             if chatStore.conversationState == .generating {
                 Button { chatStore.stopGeneration() } label: {
                     Image(systemName: LumenIcon.stop)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.red)
                         .frame(width: 36, height: 36)
                         .background(Color.red.opacity(0.12), in: Circle())
@@ -163,7 +147,7 @@ struct InputBarView: View {
             } else {
                 Button { sendMessage() } label: {
                     Image(systemName: LumenIcon.send)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(canSend ? Color.accentColor : Color.secondary)
                         .frame(width: 36, height: 36)
                         .background(canSend ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.08), in: Circle())
