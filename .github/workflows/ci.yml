@@ -5,33 +5,59 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  ci:
-    name: ci
+  build-and-test-ios:
+    name: iOS Build + Tests
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Select latest Xcode
+      - name: Select Xcode
         run: sudo xcode-select -switch /Applications/Xcode.app
 
-      - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: Regenerate project
+      - name: Show toolchain
         run: |
-          if command -v xcodegen >/dev/null 2>&1; then
-            xcodegen generate
-          else
-            echo 'xcodegen not installed on runner; skipping generation step'
+          xcodebuild -version
+          sw_vers
+
+      - name: Install XcodeGen if missing
+        run: |
+          if ! command -v xcodegen >/dev/null 2>&1; then
+            brew install xcodegen
           fi
 
-      - name: Build for simulator
-        run: xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Simulator,name=iPhone 16' build
+      - name: Regenerate project
+        run: xcodegen generate
 
-      - name: Run unit tests
-        run: xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Simulator,name=iPhone 16' -skip-testing:LumenUITests test
+      - name: Build (Simulator)
+        run: |
+          xcodebuild \
+            -project Lumen.xcodeproj \
+            -scheme Lumen \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            build
+
+      - name: Test (Unit tests)
+        run: |
+          xcodebuild \
+            -project Lumen.xcodeproj \
+            -scheme Lumen \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -skip-testing:LumenUITests \
+            test
+
+  lint-workflows:
+    name: Workflow Sanity Dependency
+    runs-on: ubuntu-latest
+    steps:
+      - name: Placeholder
+        run: echo "Workflow sanity checks run in separate workflow-sanity.yml"
