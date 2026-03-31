@@ -1,6 +1,5 @@
 import SwiftUI
 import PhotosUI
-
 private extension View {
     @ViewBuilder
     func liquidComposerSurface() -> some View {
@@ -16,6 +15,7 @@ struct InputBarView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
     @FocusState private var inputFocused: Bool
+    @State private var showingDocumentImporter = false
 
     #if os(iOS)
     @State private var selectedImages: [UIImage] = []
@@ -31,6 +31,13 @@ struct InputBarView: View {
             if chatStore.isEditingMessage {
                 editBanner
             }
+            if !chatStore.pendingDocuments.isEmpty {
+                DocumentAttachmentRow(
+                    documents: chatStore.pendingDocuments,
+                    onRemove: removeDocument
+                )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
 
             #if os(iOS)
             ImageAttachmentRow(images: $selectedImages, onOCR: { image in
@@ -40,8 +47,9 @@ struct InputBarView: View {
             #endif
 
             HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
+                documentButton
                 #if os(iOS)
-                mediaButtons
+                photoButton
                 #endif
                 inputField(bindableChat: $bindableChat)
                 voiceButton
@@ -62,6 +70,12 @@ struct InputBarView: View {
                 selectedImages = []
             }
         }
+        .fileImporter(
+            isPresented: $showingDocumentImporter,
+            allowedContentTypes: DocumentImportService.supportedContentTypes,
+            allowsMultipleSelection: true,
+            onCompletion: handleDocumentImport
+        )
     }
 
     private var editBanner: some View {
@@ -95,7 +109,7 @@ struct InputBarView: View {
     // MARK: - Media buttons (iOS only)
 
     #if os(iOS)
-    private var mediaButtons: some View {
+    private var photoButton: some View {
         PhotosPicker(
             selection: $pickerItems,
             maxSelectionCount: 4,
@@ -114,6 +128,22 @@ struct InputBarView: View {
         .disabled(chatStore.conversationState == .generating)
     }
     #endif
+
+    private var documentButton: some View {
+        Button {
+            showingDocumentImporter = true
+        } label: {
+            Image(systemName: "doc.badge.plus")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 34, height: 34)
+                .background(Color.secondary.opacity(0.12), in: Circle())
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Attach Document")
+        .disabled(chatStore.conversationState == .generating)
+    }
 
     // MARK: - Input field
 
@@ -204,7 +234,8 @@ struct InputBarView: View {
     private var canSend: Bool {
         let hasText = !chatStore.inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hasImages = !chatStore.pendingImageData.isEmpty
-        return (hasText || hasImages)
+        let hasDocuments = !chatStore.pendingDocuments.isEmpty
+        return (hasText || hasImages || hasDocuments)
             && chatStore.selectedConversation != nil
             && chatStore.currentModel != nil
             && chatStore.conversationState != .generating
@@ -238,6 +269,49 @@ struct InputBarView: View {
         #if os(iOS)
         selectedImages = []
         #endif
+    }
+
+    private func handleDocumentImport(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            Task { await importDocuments(from: urls) }
+        case .failure(let error):
+            appStore.activeAlert = AppAlert(
+                title: "Import Failed",
+                message: error.localizedDescription
+            )
+        }
+    }
+
+    @MainActor
+    private func importDocuments(from urls: [URL]) async {
+        var imported: [ImportedDocument] = []
+        var failures: [String] = []
+
+        for url in urls {
+            do {
+                let document = try await DocumentImportService.shared.importDocument(from: url)
+                imported.append(document)
+            } catch {
+                failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
+            }
+        }
+
+        if !imported.isEmpty {
+            chatStore.pendingDocuments.append(contentsOf: imported)
+        }
+
+        if !failures.isEmpty {
+            let message = failures.prefix(3).joined(separator: "\n")
+            appStore.activeAlert = AppAlert(
+                title: "Some Documents Couldn't Be Imported",
+                message: message
+            )
+        }
+    }
+
+    private func removeDocument(_ document: ImportedDocument) {
+        chatStore.pendingDocuments.removeAll { $0.id == document.id }
     }
 
     #if os(iOS)
@@ -292,6 +366,66 @@ struct InputBarView: View {
         chatStore.inputText += prefix + text
     }
     #endif
+}
+
+private struct DocumentAttachmentRow: View {
+    let documents: [ImportedDocument]
+    let onRemove: (ImportedDocument) -> Void
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: LumenSpacing.sm) {
+                ForEach(documents) { document in
+                    documentChip(document)
+                }
+            }
+            .padding(.horizontal, LumenSpacing.md)
+            .padding(.vertical, LumenSpacing.xs)
+        }
+        .frame(height: 88)
+        .background(.bar)
+    }
+
+    private func documentChip(_ document: ImportedDocument) -> some View {
+        HStack(spacing: LumenSpacing.sm) {
+            Image(systemName: "doc.text.fill")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 28, height: 28)
+                .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(document.fileName)
+                    .font(LumenType.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+
+                Text(document.previewText)
+                    .font(LumenType.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+
+            Button {
+                onRemove(document)
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.tertiary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, LumenSpacing.md)
+        .padding(.vertical, LumenSpacing.sm)
+        .background(
+            Color(.secondarySystemBackground),
+            in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+                .strokeBorder(.separator, lineWidth: 0.5)
+        )
+    }
 }
 
 #Preview {

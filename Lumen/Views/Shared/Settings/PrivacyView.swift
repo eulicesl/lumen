@@ -103,8 +103,8 @@ struct PrivacyView: View {
             privacyRow(
                 icon: "camera.fill",
                 iconColor: .green,
-                title: "Camera / Photos",
-                detail: "Used only when you choose to attach an image. Images are processed locally for OCR and visual context."
+                title: "Camera / Photos / Files",
+                detail: "Used only when you choose to attach images or import documents. OCR and document text extraction happen locally on-device."
             )
             privacyRow(
                 icon: "magnifyingglass",
