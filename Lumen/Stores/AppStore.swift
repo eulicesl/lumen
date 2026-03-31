@@ -13,6 +13,7 @@ final class AppStore {
     private static let defaultModelIDKey = "defaultModelID"
     private static let allowOllamaKey = "allowOllama"
     private static let colorSchemePreferenceKey = "colorSchemePreference"
+    fileprivate static let keychainServiceName = "com.eulices.lumen.secrets"
 
     var selectedTab: LumenTab = .chat
     var colorSchemePreference: AppColorScheme = .system
@@ -77,7 +78,7 @@ final class AppStore {
             } else {
                 try secretStore.setString(normalizedToken, forKey: Self.ollamaBearerTokenKey)
             }
-            userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+            clearLegacyOllamaBearerTokenIfNeeded()
         } catch {
             activeAlert = AppAlert(
                 title: "Secure Storage Failed",
@@ -112,7 +113,7 @@ final class AppStore {
     private func loadOllamaBearerToken() -> String {
         if let storedToken = try? secretStore.string(forKey: Self.ollamaBearerTokenKey),
            !storedToken.isEmpty {
-            userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+            clearLegacyOllamaBearerTokenIfNeeded()
             return storedToken
         }
 
@@ -122,7 +123,7 @@ final class AppStore {
 
         do {
             try secretStore.setString(legacyToken, forKey: Self.ollamaBearerTokenKey)
-            userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+            clearLegacyOllamaBearerTokenIfNeeded()
         } catch {
             activeAlert = AppAlert(
                 title: "Secure Storage Failed",
@@ -131,6 +132,11 @@ final class AppStore {
         }
 
         return legacyToken
+    }
+
+    private func clearLegacyOllamaBearerTokenIfNeeded() {
+        guard userDefaults.object(forKey: Self.ollamaBearerTokenKey) != nil else { return }
+        userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
     }
 }
 
@@ -143,7 +149,7 @@ protocol SecretStore {
 struct KeychainSecretStore: SecretStore {
     private let service: String
 
-    init(service: String = (Bundle.main.bundleIdentifier ?? "com.eulices.lumen") + ".secrets") {
+    init(service: String = AppStore.keychainServiceName) {
         self.service = service
     }
 
