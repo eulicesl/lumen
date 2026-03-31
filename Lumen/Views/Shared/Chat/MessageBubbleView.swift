@@ -59,11 +59,12 @@ struct MessageBubbleView: View {
     @ViewBuilder
     private var contextMenuItems: some View {
         Button {
+            let copiedContent = message.isUser ? message.content.documentAwareDisplayText : message.content
             #if os(iOS)
-            UIPasteboard.general.string = message.content
+            UIPasteboard.general.string = copiedContent
             #elseif os(macOS)
             NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(message.content, forType: .string)
+            NSPasteboard.general.setString(copiedContent, forType: .string)
             #endif
         } label: {
             Label("Copy", systemImage: "doc.on.doc")
@@ -87,7 +88,7 @@ struct MessageBubbleView: View {
 
         if message.isUser && !message.content.isEmpty {
             Button {
-                chatStore.inputText = message.content
+                chatStore.inputText = message.content.documentAwareDisplayText
             } label: {
                 Label("Edit & Resend", systemImage: "pencil")
             }
@@ -122,7 +123,7 @@ struct MessageBubbleView: View {
     }
 
     private var plainRenderedContent: some View {
-        let displayText = message.isAssistant ? mainContent : message.content
+        let displayText = message.isAssistant ? mainContent : message.content.documentAwareDisplayText
 
         if message.isUser {
             return AnyView(
@@ -219,7 +220,7 @@ struct MessageBubbleView: View {
     }
 
     private func saveToMemory() {
-        let text = message.isUser ? message.content : mainContent
+        let text = message.isUser ? message.content.documentAwareDisplayText : mainContent
         let shortened = String(text.prefix(200))
         MemoryStore.shared.add(content: shortened, category: message.isUser ? .preference : .fact)
     }

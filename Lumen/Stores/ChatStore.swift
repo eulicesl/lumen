@@ -14,6 +14,7 @@ final class ChatStore {
     var currentModel: AIModel?
     var timeToFirstToken: TimeInterval?
     var pendingImageData: [Data] = []
+    var pendingDocuments: [ImportedDocument] = []
     var agentModeEnabled: Bool = false
     var agentEvents: [AgentEvent] = []
 
@@ -51,6 +52,7 @@ final class ChatStore {
 
     func selectConversation(_ conversation: Conversation) async {
         selectedConversation = conversation
+        pendingDocuments = []
         do {
             let loaded = try await dataService.fetchMessages(for: conversation.id)
             messages = loaded
@@ -60,6 +62,7 @@ final class ChatStore {
     }
 
     func createNewConversation() async {
+        pendingDocuments = []
         do {
             let id = try await dataService.createConversation()
             let new = try await dataService.fetchConversation(id: id)
@@ -105,15 +108,23 @@ final class ChatStore {
     func send() async {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         let images = pendingImageData
-        guard !text.isEmpty || !images.isEmpty else { return }
+        let documents = pendingDocuments
+        guard !text.isEmpty || !images.isEmpty || !documents.isEmpty else { return }
         guard let conversation = selectedConversation else { return }
         guard let model = currentModel else { return }
 
+        let composedText = DocumentPromptComposer.compose(userText: text, documents: documents)
+        let titleSeed = DocumentPromptComposer.titleSeed(userText: text, documents: documents)
+
         inputText = ""
         pendingImageData = []
+        pendingDocuments = []
         agentEvents = []
 
-        let userMessage = ChatMessage.userMessage(text, imageData: images.isEmpty ? nil : images)
+        let userMessage = ChatMessage.userMessage(
+            composedText,
+            imageData: images.isEmpty ? nil : images
+        )
         messages.append(userMessage)
         try? await dataService.addMessage(userMessage, to: conversation.id)
 
@@ -141,7 +152,7 @@ final class ChatStore {
                     assistantIndex: assistantIndex,
                     startTime: startTime,
                     conversation: conversation,
-                    promptText: text
+                    promptText: titleSeed
                 )
             }
         } else {
@@ -153,7 +164,7 @@ final class ChatStore {
                     assistantIndex: assistantIndex,
                     startTime: startTime,
                     conversation: conversation,
-                    promptText: text
+                    promptText: titleSeed
                 )
             }
         }
@@ -391,6 +402,7 @@ final class ChatStore {
             conversations = []
             selectedConversation = nil
             messages = []
+            pendingDocuments = []
             Task.detached(priority: .background) {
                 await SpotlightService.shared.deleteAll()
                 WidgetSharedStore.save([])

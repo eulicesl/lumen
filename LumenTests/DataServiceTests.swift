@@ -169,3 +169,78 @@ extension MockAIProvider {
         self.shouldThrowError = value
     }
 }
+
+@Suite("DocumentPromptComposer")
+struct DocumentPromptComposerTests {
+
+    @Test("Compose request with imported documents")
+    func composeRequestWithDocuments() {
+        let document = ImportedDocument(
+            fileName: "brief.txt",
+            extractedText: "Quarterly roadmap and milestones.",
+            contentTypeIdentifier: "public.plain-text"
+        )
+
+        let composed = DocumentPromptComposer.compose(
+            userText: "Summarize this",
+            documents: [document]
+        )
+
+        #expect(composed.contains("Summarize this"))
+        #expect(composed.contains("[Document: brief.txt]"))
+        #expect(composed.contains("Quarterly roadmap and milestones."))
+    }
+
+    @Test("Compose document-only request adds fallback instruction")
+    func composeDocumentOnlyRequest() {
+        let document = ImportedDocument(
+            fileName: "notes.md",
+            extractedText: "Standup notes",
+            contentTypeIdentifier: "net.daringfireball.markdown"
+        )
+
+        let composed = DocumentPromptComposer.compose(userText: "", documents: [document])
+
+        #expect(composed.contains("Please use the imported document context below"))
+        #expect(composed.contains("[Document: notes.md]"))
+    }
+
+    @Test("Normalize extracted text trims noise and truncates")
+    func normalizeExtractedText() {
+        let source = String(repeating: "Line one with additional detail. ", count: 8)
+        let normalized = DocumentPromptComposer.normalizeExtractedText(source, maxCharacters: 80)
+
+        #expect(normalized.contains("Line one"))
+        #expect(normalized.contains("Document truncated"))
+        #expect(!normalized.contains("\r"))
+    }
+
+    @Test("Document-aware display text hides raw imported content")
+    func documentAwareDisplayText() {
+        let content = """
+        Summarize the attached file.
+
+        [Document: brief.txt]
+        Internal project detail that should not flood the transcript.
+        [/Document]
+        """
+
+        let display = content.documentAwareDisplayText
+
+        #expect(display.contains("Summarize the attached file."))
+        #expect(display.contains("Attached document: brief.txt"))
+        #expect(!display.contains("Internal project detail"))
+    }
+
+    @Test("Title seed falls back to document name")
+    func titleSeedFallsBackToDocumentName() {
+        let document = ImportedDocument(
+            fileName: "research.pdf",
+            extractedText: "Content",
+            contentTypeIdentifier: "com.adobe.pdf"
+        )
+
+        let titleSeed = DocumentPromptComposer.titleSeed(userText: "", documents: [document])
+        #expect(titleSeed == "Discuss research.pdf")
+    }
+}
