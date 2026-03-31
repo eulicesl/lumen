@@ -57,6 +57,7 @@ final class ModelStore {
     private init() {}
 
     func loadModels() async {
+        guard !isLoading else { return }
         isLoading = true
         lastError = nil
         ollamaConnectionStatus = AppStore.shared.allowOllama ? .checking : .disabled

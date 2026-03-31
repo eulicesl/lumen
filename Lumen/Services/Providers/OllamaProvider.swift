@@ -127,10 +127,12 @@ actor OllamaProvider: AIProvider {
                     continuation.finish()
                 } catch is CancellationError {
                     continuation.finish(throwing: AIProviderError.cancelled)
+                } catch let error as AIProviderError {
+                    continuation.finish(throwing: error)
                 } catch let error as URLError {
                     continuation.finish(throwing: AIProviderError.networkError(error))
                 } catch {
-                    continuation.finish(throwing: error)
+                    continuation.finish(throwing: AIProviderError.invalidResponse(error.localizedDescription))
                 }
             }
         }

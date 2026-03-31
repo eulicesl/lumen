@@ -98,10 +98,6 @@ struct SettingsView: View {
                     Spacer()
                     if modelStore.isLoading || isRefreshingOllama {
                         ProgressView()
-                    } else {
-                        Text(modelStore.ollamaConnectionStatus.title)
-                            .font(LumenType.caption)
-                            .foregroundStyle(.secondary)
                     }
                 }
             }
