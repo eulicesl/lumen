@@ -1,10 +1,18 @@
 import SwiftUI
 import Observation
+import Security
 
 @Observable
 @MainActor
 final class AppStore {
     static let shared = AppStore()
+
+    private static let hasLaunchedBeforeKey = "hasLaunchedBefore"
+    private static let ollamaServerURLKey = "ollamaServerURL"
+    private static let ollamaBearerTokenKey = "ollamaBearerToken"
+    private static let defaultModelIDKey = "defaultModelID"
+    private static let allowOllamaKey = "allowOllama"
+    private static let colorSchemePreferenceKey = "colorSchemePreference"
 
     var selectedTab: LumenTab = .chat
     var colorSchemePreference: AppColorScheme = .system
@@ -17,20 +25,29 @@ final class AppStore {
     var showingSettings: Bool = false
     var activeAlert: AppAlert? = nil
 
-    private init() {
-        isFirstLaunch = !UserDefaults.standard.bool(forKey: "hasLaunchedBefore")
+    private let userDefaults: UserDefaults
+    private let secretStore: any SecretStore
+
+    init(
+        userDefaults: UserDefaults = .standard,
+        secretStore: any SecretStore = KeychainSecretStore()
+    ) {
+        self.userDefaults = userDefaults
+        self.secretStore = secretStore
+
+        isFirstLaunch = !userDefaults.bool(forKey: Self.hasLaunchedBeforeKey)
         if isFirstLaunch {
-            UserDefaults.standard.set(true, forKey: "hasLaunchedBefore")
+            userDefaults.set(true, forKey: Self.hasLaunchedBeforeKey)
         }
-        ollamaServerURL = UserDefaults.standard.string(forKey: "ollamaServerURL") ?? "http://localhost:11434"
-        ollamaBearerToken = UserDefaults.standard.string(forKey: "ollamaBearerToken") ?? ""
-        defaultModelID = UserDefaults.standard.string(forKey: "defaultModelID")
-        if UserDefaults.standard.object(forKey: "allowOllama") != nil {
-            allowOllama = UserDefaults.standard.bool(forKey: "allowOllama")
+        ollamaServerURL = userDefaults.string(forKey: Self.ollamaServerURLKey) ?? "http://localhost:11434"
+        ollamaBearerToken = loadOllamaBearerToken()
+        defaultModelID = userDefaults.string(forKey: Self.defaultModelIDKey)
+        if userDefaults.object(forKey: Self.allowOllamaKey) != nil {
+            allowOllama = userDefaults.bool(forKey: Self.allowOllamaKey)
         } else {
             allowOllama = true
         }
-        if let raw = UserDefaults.standard.string(forKey: "colorSchemePreference"),
+        if let raw = userDefaults.string(forKey: Self.colorSchemePreferenceKey),
            let scheme = AppColorScheme(rawValue: raw) {
             colorSchemePreference = scheme
         }
@@ -46,35 +63,161 @@ final class AppStore {
 
     func saveOllamaURL(_ urlString: String) {
         ollamaServerURL = urlString
-        UserDefaults.standard.set(urlString, forKey: "ollamaServerURL")
+        userDefaults.set(urlString, forKey: Self.ollamaServerURLKey)
         Task { await syncOllamaConfiguration() }
     }
 
     func saveOllamaBearerToken(_ token: String) {
-        ollamaBearerToken = token
-        UserDefaults.standard.set(token, forKey: "ollamaBearerToken")
+        let normalizedToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        ollamaBearerToken = normalizedToken
+
+        do {
+            if normalizedToken.isEmpty {
+                try secretStore.removeValue(forKey: Self.ollamaBearerTokenKey)
+            } else {
+                try secretStore.setString(normalizedToken, forKey: Self.ollamaBearerTokenKey)
+            }
+            userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+        } catch {
+            activeAlert = AppAlert(
+                title: "Secure Storage Failed",
+                message: error.localizedDescription
+            )
+        }
+
         Task { await syncOllamaConfiguration() }
     }
     
     func saveAllowOllama(_ allow: Bool) {
         allowOllama = allow
-        UserDefaults.standard.set(allow, forKey: "allowOllama")
+        userDefaults.set(allow, forKey: Self.allowOllamaKey)
     }
 
     func saveDefaultModel(_ modelID: String) {
         defaultModelID = modelID
-        UserDefaults.standard.set(modelID, forKey: "defaultModelID")
+        userDefaults.set(modelID, forKey: Self.defaultModelIDKey)
     }
 
     func saveColorScheme(_ scheme: AppColorScheme) {
         colorSchemePreference = scheme
-        UserDefaults.standard.set(scheme.rawValue, forKey: "colorSchemePreference")
+        userDefaults.set(scheme.rawValue, forKey: Self.colorSchemePreferenceKey)
     }
 
     private func syncOllamaConfiguration() async {
         guard let url = URL(string: ollamaServerURL) else { return }
         let token = ollamaBearerToken.isEmpty ? nil : ollamaBearerToken
         await AIService.shared.configureOllama(baseURL: url, bearerToken: token)
+    }
+
+    private func loadOllamaBearerToken() -> String {
+        if let storedToken = try? secretStore.string(forKey: Self.ollamaBearerTokenKey),
+           !storedToken.isEmpty {
+            userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+            return storedToken
+        }
+
+        let legacyToken = userDefaults.string(forKey: Self.ollamaBearerTokenKey)?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !legacyToken.isEmpty else { return "" }
+
+        do {
+            try secretStore.setString(legacyToken, forKey: Self.ollamaBearerTokenKey)
+            userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+        } catch {
+            activeAlert = AppAlert(
+                title: "Secure Storage Failed",
+                message: error.localizedDescription
+            )
+        }
+
+        return legacyToken
+    }
+}
+
+protocol SecretStore {
+    func string(forKey key: String) throws -> String?
+    func setString(_ value: String, forKey key: String) throws
+    func removeValue(forKey key: String) throws
+}
+
+struct KeychainSecretStore: SecretStore {
+    private let service: String
+
+    init(service: String = (Bundle.main.bundleIdentifier ?? "com.eulices.lumen") + ".secrets") {
+        self.service = service
+    }
+
+    func string(forKey key: String) throws -> String? {
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: key,
+            kSecReturnData: true,
+            kSecMatchLimit: kSecMatchLimitOne
+        ]
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+
+        switch status {
+        case errSecSuccess:
+            guard let data = item as? Data else { return nil }
+            return String(data: data, encoding: .utf8)
+        case errSecItemNotFound:
+            return nil
+        default:
+            throw KeychainSecretStoreError(status: status)
+        }
+    }
+
+    func setString(_ value: String, forKey key: String) throws {
+        let data = Data(value.utf8)
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: key
+        ]
+        let attributes: [CFString: Any] = [
+            kSecValueData: data
+        ]
+
+        let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+        if updateStatus == errSecSuccess {
+            return
+        }
+
+        if updateStatus != errSecItemNotFound {
+            throw KeychainSecretStoreError(status: updateStatus)
+        }
+
+        var addQuery = query
+        addQuery[kSecValueData] = data
+
+        let addStatus = SecItemAdd(addQuery as CFDictionary, nil)
+        guard addStatus == errSecSuccess else {
+            throw KeychainSecretStoreError(status: addStatus)
+        }
+    }
+
+    func removeValue(forKey key: String) throws {
+        let query: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: service,
+            kSecAttrAccount: key
+        ]
+
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainSecretStoreError(status: status)
+        }
+    }
+}
+
+struct KeychainSecretStoreError: LocalizedError {
+    let status: OSStatus
+
+    var errorDescription: String? {
+        (SecCopyErrorMessageString(status, nil) as String?) ?? "Keychain error (\(status))"
     }
 }
 
