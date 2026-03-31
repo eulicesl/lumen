@@ -1,44 +1,107 @@
 ## Summary
-- 
 
-## Why
-- 
+- Problem:
+- Why it matters:
+- What changed:
+- What did NOT change (scope boundary):
 
-## Changes
-- 
+## Change Type (select all)
 
-## Validation
-- [ ] Builds locally in Xcode
-- [ ] Unit tests pass
-- [ ] Manual simulator smoke test completed
-- [ ] No new warnings/errors in Xcode navigator
+- [ ] Bug fix
+- [ ] Feature
+- [ ] Refactor
+- [ ] Docs
+- [ ] Security hardening
+- [ ] Chore/infra
 
-## Apple / Platform Review
-- [ ] API availability reviewed (`#available`, deployment target, simulator/runtime compatibility)
-- [ ] SwiftUI behavior checked on target simulator(s)
-- [ ] Permissions / privacy copy reviewed if relevant
-- [ ] Widget / extension behavior reviewed if relevant
-- [ ] Signing / bundle identifier / target config sanity checked if relevant
+## Scope (select all touched areas)
 
-## Simulator Smoke Test
-- Device/runtime used:
-- Flows tested:
-  - [ ] Launch
-  - [ ] Onboarding
-  - [ ] Chat send/response
-  - [ ] Settings
-  - [ ] Memory / Search / Compare (as applicable)
+- [ ] iOS UI/UX
+- [ ] iPad/macOS UI
+- [ ] Data / persistence
+- [ ] AI provider/model integration
+- [ ] Permissions / privacy
+- [ ] Widgets / intents
+- [ ] Build/signing/release
+- [ ] CI/CD / repo process
 
-## Screenshots / Video
-- 
+## Linked Issue/PR
 
-## Release Impact
-- [ ] No release impact
-- [ ] Requires release notes update
-- [ ] Requires TestFlight regression focus
+- Closes #
+- Related #
 
-## Risks / Follow-ups
-- 
+## User-visible / Behavior Changes
 
-## Rollback Plan
-- 
+List user-visible changes (including defaults/config).  
+If none, write `None`.
+
+## Security & Privacy Impact (required)
+
+- New permissions/capabilities? (`Yes/No`)
+- Secrets/tokens handling changed? (`Yes/No`)
+- New/changed network calls? (`Yes/No`)
+- Data access scope changed? (`Yes/No`)
+- If any `Yes`, explain risk + mitigation:
+
+## Repro + Verification
+
+### Environment
+
+- Xcode version:
+- iOS runtime/device:
+- Build config (Debug/Release):
+- Branch:
+
+### Steps
+
+1.
+2.
+3.
+
+### Expected
+
+-
+
+### Actual
+
+-
+
+## Evidence
+
+Attach at least one:
+
+- [ ] Failing state before + passing after (logs/screenshots)
+- [ ] Device screenshot/recording
+- [ ] CI output links
+- [ ] Perf numbers (if relevant)
+
+## Human Verification (required)
+
+What you personally verified (not just CI), and how:
+
+- Verified scenarios:
+- Edge cases checked:
+- What you did **not** verify:
+
+## Review Conversations
+
+- [ ] I replied to or resolved every review conversation I addressed in this PR.
+- [ ] I left unresolved only conversations requiring reviewer/maintainer judgment.
+
+## Compatibility / Migration
+
+- Backward compatible? (`Yes/No`)
+- Config/env changes? (`Yes/No`)
+- Migration needed? (`Yes/No`)
+- If yes, exact upgrade steps:
+
+## Failure Recovery (if this breaks)
+
+- How to disable/revert quickly:
+- Files/config to restore:
+- Known bad symptoms reviewers should watch for:
+
+## Risks and Mitigations
+
+- Risk:
+  - Mitigation:

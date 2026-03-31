@@ -1,0 +1,58 @@
+name: Feature request
+description: Propose a product or engineering improvement for Lumen
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or engineering pain are we solving?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe your preferred approach.
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: User value
+      description: Why this matters now.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: UI/UX only
+        - label: Data/model changes
+        - label: Platform/integration changes
+        - label: Permissions/privacy implications
+        - label: Release/signing implications
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ]
+        - [ ]
+        - [ ]
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks / tradeoffs
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Screenshots, links, docs, related issues/PRs.

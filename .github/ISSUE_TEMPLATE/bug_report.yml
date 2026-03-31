@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a defect in Lumen
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Clear and concise bug description.
+      placeholder: What is broken?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to...
+        2. Tap...
+        3. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: App version/build
+      placeholder: e.g. 1.1.0 (48)
+
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      placeholder: e.g. iPhone 17 Pro Max
+
+  - type: input
+    id: ios-version
+    attributes:
+      label: iOS version
+      placeholder: e.g. iOS 26.3.1
+
+  - type: checkboxes
+    id: evidence
+    attributes:
+      label: Evidence attached
+      options:
+        - label: Screenshot(s)
+        - label: Screen recording
+        - label: Relevant logs/console output
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context
+      description: Anything else useful for triage.

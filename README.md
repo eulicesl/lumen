@@ -13,6 +13,7 @@ Lumen is a native SwiftUI app treated as a real product from day one: private re
   - `release/<version>`
 - Open a PR back into `main`.
 - Merge only after CI is green and review is complete.
+- Maintain the portfolio-grade engineering bar in `docs/ENGINEERING_STANDARD.md`.
 
 ## Local setup
 ### Prerequisites
