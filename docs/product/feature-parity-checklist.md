@@ -64,10 +64,10 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [x] Ollama bearer token moved from `UserDefaults` to Keychain + migration.  
   - Priority: P1  
   - Status: Done
-- [ ] Improved user-facing error surfaces + retry paths.  
+- [x] Improved user-facing error surfaces + retry paths.  
   - Priority: P1  
-  - Status: In Progress
-  - Notes: Model refresh failures now surface inline status and explicit retry actions; chat send failures still need broader recovery UX.
+  - Status: Done
+  - Notes: Model refresh failures surface inline status and retry actions, and failed chat responses can be retried directly from the composer.
 - [x] Network reachability/status indicator for Ollama connectivity.  
   - Priority: P1  
   - Status: Done

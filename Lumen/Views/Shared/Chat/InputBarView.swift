@@ -28,6 +28,9 @@ struct InputBarView: View {
     var body: some View {
         @Bindable var bindableChat = chatStore
         VStack(spacing: LumenSpacing.xs) {
+            if chatStore.canRetryLastResponse {
+                retryBanner
+            }
             if chatStore.isEditingMessage {
                 editBanner
             }
@@ -76,6 +79,37 @@ struct InputBarView: View {
             allowsMultipleSelection: true,
             onCompletion: handleDocumentImport
         )
+    }
+
+    private var retryBanner: some View {
+        HStack(spacing: LumenSpacing.sm) {
+            Image(systemName: "arrow.clockwise.circle.fill")
+                .foregroundStyle(.orange)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Last response failed")
+                    .font(LumenType.footnote.weight(.semibold))
+                if let errorMessage = chatStore.conversationState.errorMessage {
+                    Text(errorMessage)
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+
+            Button("Retry") {
+                Task { await chatStore.retryLastResponse() }
+            }
+            .font(LumenType.caption.weight(.semibold))
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, LumenSpacing.md)
+        .padding(.top, LumenSpacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Last response failed")
+        .accessibilityHint("Retries the most recent assistant response")
     }
 
     private var editBanner: some View {
