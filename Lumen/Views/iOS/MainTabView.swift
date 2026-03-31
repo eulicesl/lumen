@@ -11,8 +11,10 @@ struct MainTabView: View {
     @State private var activePanel: iPhoneQuickPanel?
 
     var body: some View {
+        @Bindable var bindableStore = appStore
+
         NavigationStack {
-            ChatView(showsConversationTools: false)
+            ChatView(showsConversationTools: true)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
@@ -75,6 +77,7 @@ struct MainTabView: View {
         }
         .sheet(isPresented: $showingConversationList) {
             ConversationPickerView()
+                .environment(appStore)
                 .environment(chatStore)
         }
         .sheet(item: $activePanel) { panel in
@@ -91,11 +94,12 @@ struct MainTabView: View {
                         .navigationTitle("Search")
                 }
             }
+            .environment(appStore)
+            .environment(chatStore)
+            .environment(modelStore)
+            .environment(libraryStore)
         }
-        .sheet(isPresented: Binding(
-            get: { appStore.showingSettings },
-            set: { appStore.showingSettings = $0 }
-        )) {
+        .sheet(isPresented: $bindableStore.showingSettings) {
             NavigationStack {
                 SettingsStoreView(showsDoneButton: true)
             }
