@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import Lumen
 
@@ -111,5 +112,78 @@ struct MemoryStoreTests {
         store.add(content: "Ephemeral", category: .fact)
         let another = MemoryStore.forTesting()
         #expect(another.memories.isEmpty, "Each forTesting() instance starts empty")
+    }
+}
+
+@Suite("AppStore security")
+@MainActor
+struct AppStoreSecurityTests {
+
+    @Test("Migrates legacy Ollama bearer token from UserDefaults to secure storage")
+    func migratesLegacyToken() {
+        let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults.set("legacy-token", forKey: "ollamaBearerToken")
+
+        let secretStore = InMemorySecretStore()
+        let store = AppStore(userDefaults: defaults, secretStore: secretStore)
+
+        #expect(store.ollamaBearerToken == "legacy-token")
+        #expect(secretStore.storage["ollamaBearerToken"] == "legacy-token")
+        #expect(defaults.string(forKey: "ollamaBearerToken") == nil)
+
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    @Test("Saving Ollama bearer token stores only the secure copy")
+    func savesTokenSecurely() {
+        let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+
+        let secretStore = InMemorySecretStore()
+        let store = AppStore(userDefaults: defaults, secretStore: secretStore)
+        store.saveOllamaBearerToken("new-token")
+
+        #expect(store.ollamaBearerToken == "new-token")
+        #expect(secretStore.storage["ollamaBearerToken"] == "new-token")
+        #expect(defaults.string(forKey: "ollamaBearerToken") == nil)
+
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    @Test("Clearing Ollama bearer token removes the secure copy")
+    func clearsTokenSecurely() {
+        let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+
+        let secretStore = InMemorySecretStore()
+        secretStore.storage["ollamaBearerToken"] = "existing-token"
+
+        let store = AppStore(userDefaults: defaults, secretStore: secretStore)
+        store.saveOllamaBearerToken("")
+
+        #expect(store.ollamaBearerToken.isEmpty)
+        #expect(secretStore.storage["ollamaBearerToken"] == nil)
+
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+}
+
+private final class InMemorySecretStore: SecretStore {
+    var storage: [String: String] = [:]
+
+    func string(forKey key: String) throws -> String? {
+        storage[key]
+    }
+
+    func setString(_ value: String, forKey key: String) throws {
+        storage[key] = value
+    }
+
+    func removeValue(forKey key: String) throws {
+        storage.removeValue(forKey: key)
     }
 }

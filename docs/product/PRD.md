@@ -26,7 +26,6 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 - Pull-to-refresh on conversation/model surfaces.
 - Scene state restoration (`@SceneStorage`) for core context.
 - Reduce Motion behavior completion across symbol-heavy views.
-- Move Ollama bearer token persistence from `UserDefaults` to Keychain.
 - Starter prompts/suggested replies for empty chats.
 
 ### Current behavior to preserve while closing parity gaps

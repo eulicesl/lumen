@@ -9,7 +9,7 @@ Close security and operational confidence gaps before wider rollout.
 - User-facing transient error surfacing + retry affordances.
 
 ## Acceptance Criteria
-- [ ] Token is persisted in Keychain and legacy defaults key is migrated/cleared.
+- [x] Token is persisted in Keychain and legacy defaults key is migrated/cleared.
 - [ ] User can quickly see when Ollama is unreachable.
 - [ ] Retry paths are available for common transient failures.
 
