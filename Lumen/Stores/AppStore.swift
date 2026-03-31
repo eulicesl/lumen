@@ -2,6 +2,8 @@ import SwiftUI
 import Observation
 import Security
 
+private let keychainServiceName = "com.eulices.lumen.secrets"
+
 @Observable
 @MainActor
 final class AppStore {
@@ -13,7 +15,6 @@ final class AppStore {
     private static let defaultModelIDKey = "defaultModelID"
     private static let allowOllamaKey = "allowOllama"
     private static let colorSchemePreferenceKey = "colorSchemePreference"
-    fileprivate static let keychainServiceName = "com.eulices.lumen.secrets"
 
     var selectedTab: LumenTab = .chat
     var colorSchemePreference: AppColorScheme = .system
@@ -149,7 +150,7 @@ protocol SecretStore {
 struct KeychainSecretStore: SecretStore {
     private let service: String
 
-    init(service: String = AppStore.keychainServiceName) {
+    init(service: String = keychainServiceName) {
         self.service = service
     }
 
