@@ -179,6 +179,8 @@ struct ChatView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+
+            starterPromptSection
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.top, 96)
@@ -189,6 +191,26 @@ struct ChatView: View {
 
     private var showsScrollToBottomButton: Bool {
         !isAtBottom && chatStore.messages.count > 1
+    }
+
+    private var starterPromptSection: some View {
+        VStack(alignment: .leading, spacing: LumenSpacing.sm) {
+            Text("Start with a prompt")
+                .font(LumenType.footnote.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: LumenSpacing.sm) {
+                    ForEach(starterPrompts) { prompt in
+                        StarterPromptCard(prompt: prompt) {
+                            applyStarterPrompt(prompt)
+                        }
+                    }
+                }
+                .padding(.vertical, LumenSpacing.xxs)
+            }
+        }
+        .frame(maxWidth: 640, alignment: .leading)
     }
 
     private var scrollToBottomButton: some View {
@@ -209,6 +231,25 @@ struct ChatView: View {
         .transition(.move(edge: .trailing).combined(with: .opacity))
     }
 
+    private var starterPrompts: [SavedPrompt] {
+        let titles = [
+            "Improve my writing",
+            "Review my code",
+            "Brainstorm ideas",
+            "Action plan"
+        ]
+
+        return titles.compactMap { title in
+            SavedPrompt.builtIns.first(where: { $0.title == title })
+        }
+    }
+
+    private func applyStarterPrompt(_ prompt: SavedPrompt) {
+        chatStore.inputText = prompt.content
+        chatStore.focusedMessageID = nil
+        HapticEngine.impact(.light)
+    }
+
     private func scrollToBottom(animated: Bool = true) {
         if animated {
             withAnimation(LumenAnimation.standard) {
@@ -227,6 +268,45 @@ struct ChatView: View {
         } else {
             scrollProxy?.scrollTo(messageID, anchor: .center)
         }
+    }
+}
+
+private struct StarterPromptCard: View {
+    let prompt: SavedPrompt
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: LumenSpacing.sm) {
+                Label(prompt.category.rawValue, systemImage: prompt.category.icon)
+                    .font(LumenType.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Text(prompt.title)
+                    .font(LumenType.headline)
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.leading)
+
+                Text(promptPreview)
+                    .font(LumenType.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(3)
+            }
+            .frame(width: 220, alignment: .leading)
+            .padding(LumenSpacing.md)
+            .glassCard(radius: LumenRadius.lg, interactive: true)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(prompt.title)
+        .accessibilityHint("Inserts this starter prompt into the composer")
+    }
+
+    private var promptPreview: String {
+        prompt.content
+            .components(separatedBy: .newlines)
+            .first(where: { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? prompt.content
     }
 }
 
