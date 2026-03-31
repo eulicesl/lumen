@@ -4,6 +4,7 @@ struct ModelComparisonView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var modelA: AIModel?
     @State private var modelB: AIModel?
@@ -216,7 +217,10 @@ struct ModelComparisonView: View {
         .padding(.vertical, LumenSpacing.sm)
         .padding(.bottom, LumenSpacing.xs)
         .background(.bar)
-        .animation(LumenAnimation.interactive, value: isRunning)
+        .animation(
+            LumenMotion.animation(LumenAnimation.interactive, reduceMotion: reduceMotion),
+            value: isRunning
+        )
     }
 
     // MARK: - Logic

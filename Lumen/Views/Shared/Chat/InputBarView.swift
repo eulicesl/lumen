@@ -3,17 +3,22 @@ import PhotosUI
 private extension View {
     @ViewBuilder
     func liquidComposerSurface() -> some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            self.glassCard(radius: 22, interactive: true)
         } else {
             self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
+        #else
+        self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        #endif
     }
 }
 
 struct InputBarView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var inputFocused: Bool
     @State private var showingDocumentImporter = false
 
@@ -39,14 +44,17 @@ struct InputBarView: View {
                     documents: chatStore.pendingDocuments,
                     onRemove: removeDocument
                 )
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .transition(LumenMotion.moveTransition(edge: .bottom, reduceMotion: reduceMotion))
             }
 
             #if os(iOS)
             ImageAttachmentRow(images: $selectedImages, onOCR: { image in
                 Task { await performOCR(on: image) }
             })
-            .animation(LumenAnimation.standard, value: selectedImages.isEmpty)
+            .animation(
+                LumenMotion.animation(LumenAnimation.standard, reduceMotion: reduceMotion),
+                value: selectedImages.isEmpty
+            )
             #endif
 
             HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
@@ -206,13 +214,7 @@ struct InputBarView: View {
     #if os(iOS)
     private var voiceButton: some View {
         Button { toggleVoice() } label: {
-            Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(isRecording ? Color.red : Color.secondary)
-                .frame(width: 32, height: 32)
-                .background(Color.secondary.opacity(0.10), in: Circle())
-                .contentShape(Rectangle())
-                .symbolEffect(.pulse, isActive: isRecording)
+            voiceButtonIcon
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
@@ -236,7 +238,7 @@ struct InputBarView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Stop generating response")
                 .accessibilityHint("Stops the assistant response in progress")
-                .transition(.scale.combined(with: .opacity))
+                .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
             } else {
                 if canSend {
                     Button { sendMessage() } label: {
@@ -249,7 +251,7 @@ struct InputBarView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(chatStore.isEditingMessage ? "Send edited message in new branch" : "Send message")
                     .accessibilityHint(sendButtonAccessibilityHint)
-                    .transition(.scale.combined(with: .opacity))
+                    .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
                 } else {
                     #if os(iOS)
                     Button { toggleVoice() } label: {
@@ -262,14 +264,17 @@ struct InputBarView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel("Start voice mode")
                     .accessibilityHint("Begins voice input when there is no text to send")
-                    .transition(.scale.combined(with: .opacity))
+                    .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
                     #else
                     EmptyView()
                     #endif
                 }
             }
         }
-        .animation(LumenAnimation.interactive, value: chatStore.conversationState == .generating)
+        .animation(
+            LumenMotion.animation(LumenAnimation.interactive, reduceMotion: reduceMotion),
+            value: chatStore.conversationState == .generating
+        )
     }
 
     // MARK: - Logic
@@ -294,6 +299,22 @@ struct InputBarView: View {
         }
 
         return "Sends the current message"
+    }
+
+    @ViewBuilder
+    private var voiceButtonIcon: some View {
+        let icon = Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
+            .font(.system(size: 16, weight: .medium))
+            .foregroundStyle(isRecording ? Color.red : Color.secondary)
+            .frame(width: 32, height: 32)
+            .background(Color.secondary.opacity(0.10), in: Circle())
+            .contentShape(Rectangle())
+
+        if reduceMotion {
+            icon
+        } else {
+            icon.symbolEffect(.pulse, isActive: isRecording)
+        }
     }
 
     private func sendMessage() {

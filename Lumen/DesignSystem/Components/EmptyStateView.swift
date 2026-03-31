@@ -4,6 +4,7 @@ import SwiftUI
 
 /// Reusable empty state with SF Symbol, title, subtitle and optional action button.
 struct EmptyStateView: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let symbol: String
     let title: String
     let subtitle: String
@@ -21,11 +22,7 @@ struct EmptyStateView: View {
                         .fill(symbolColor.opacity(0.10))
                         .frame(width: 96, height: 96)
 
-                    Image(systemName: symbol)
-                        .font(.system(size: 40, weight: .light))
-                        .foregroundStyle(symbolColor.opacity(0.7))
-                        .symbolEffect(.pulse.byLayer, options: .repeating)
-                        .accessibilityHidden(true)
+                    emptyStateSymbol
                 }
 
                 VStack(spacing: LumenSpacing.sm) {
@@ -53,6 +50,20 @@ struct EmptyStateView: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title). \(subtitle)")
+    }
+
+    @ViewBuilder
+    private var emptyStateSymbol: some View {
+        let image = Image(systemName: symbol)
+            .font(.system(size: 40, weight: .light))
+            .foregroundStyle(symbolColor.opacity(0.7))
+            .accessibilityHidden(true)
+
+        if reduceMotion {
+            image
+        } else {
+            image.symbolEffect(.pulse.byLayer, options: .repeating)
+        }
     }
 }
 

@@ -15,12 +15,12 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [ ] Accessibility labels/hints/values audit for all critical controls.  
   - Priority: P0  
   - Status: In Progress
-- [ ] Reduce Motion consistency across symbol effects and animated transitions.  
+- [x] Reduce Motion consistency across symbol effects and animated transitions.  
   - Priority: P1  
-  - Status: Not Started
-- [ ] Settings primary page large title mode.  
+  - Status: Done
+- [x] Settings primary page large title mode.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
 - [x] Pull-to-refresh for conversations and model list.  
   - Priority: P1  
   - Status: Done
@@ -75,8 +75,8 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 
 ## Sprint Mapping
 - Sprint 01: Completed P0 parity trio (edit/regenerate, full-text search, doc uploads)
-- Sprint 02: HIG + accessibility fundamentals
-- Sprint 03: UX parity polish (suggestions, copy feedback, thinking UX)
+- Sprint 02: HIG + accessibility fundamentals, including scene restore, refresh, settings title mode, and Reduce Motion
+- Sprint 03: UX parity polish (copy feedback, thinking UX)
 - Sprint 04: Security + reliability (Keychain, network state, retry UX)
 
 ## Execution Notes

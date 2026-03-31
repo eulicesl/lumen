@@ -59,7 +59,10 @@ struct LumenButton: View {
             .modifier(LumenButtonBackground(style: style))
             .scaleEffect(isPressed && !reduceMotion ? 0.96 : 1.0)
             .opacity(isEnabled ? 1.0 : 0.45)
-            .animation(LumenAnimation.snappy, value: isPressed)
+            .animation(
+                LumenMotion.animation(LumenAnimation.snappy, reduceMotion: reduceMotion),
+                value: isPressed
+            )
         }
         .buttonStyle(.plain)
         .onLongPressGesture(
@@ -87,34 +90,51 @@ private struct LumenButtonBackground: ViewModifier {
     let style: LumenButtonStyle
 
     func body(content: Content) -> some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, macOS 26.0, *) {
-            switch style {
-            case .primary:
-                content
-                    .glassEffect(.regular.tint(.accentColor).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-            case .secondary:
-                content
-                    .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-            case .destructive:
-                content
-                    .glassEffect(.regular.tint(.red).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-            case .ghost, .icon:
-                content
-            }
+            modernBackground(content: content)
         } else {
-            switch style {
-            case .primary:
-                content
-                    .background(LumenColor.tint, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-            case .secondary:
-                content
-                    .background(LumenColor.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-            case .destructive:
-                content
-                    .background(LumenColor.destructive, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-            case .ghost, .icon:
-                content
-            }
+            legacyBackground(content: content)
+        }
+        #else
+        legacyBackground(content: content)
+        #endif
+    }
+
+    #if compiler(>=6.3)
+    @available(iOS 26.0, macOS 26.0, *)
+    @ViewBuilder
+    private func modernBackground(content: Content) -> some View {
+        switch style {
+        case .primary:
+            content
+                .glassEffect(.regular.tint(.accentColor).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        case .secondary:
+            content
+                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        case .destructive:
+            content
+                .glassEffect(.regular.tint(.red).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        case .ghost, .icon:
+            content
+        }
+    }
+    #endif
+
+    @ViewBuilder
+    private func legacyBackground(content: Content) -> some View {
+        switch style {
+        case .primary:
+            content
+                .background(LumenColor.tint, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        case .secondary:
+            content
+                .background(LumenColor.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        case .destructive:
+            content
+                .background(LumenColor.destructive, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        case .ghost, .icon:
+            content
         }
     }
 }

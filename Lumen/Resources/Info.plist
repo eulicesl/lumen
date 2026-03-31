@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.lumen.spotlight-index</string>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -18,10 +22,10 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>BGTaskSchedulerPermittedIdentifiers</key>
-	<array>
-		<string>com.lumen.spotlight-index</string>
-	</array>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Lumen uses your microphone to capture voice input for dictation.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>Lumen transcribes your speech so you can send voice input as chat messages.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
@@ -37,9 +41,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Lumen uses your microphone to capture voice input for dictation.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Lumen transcribes your speech so you can send voice input as chat messages.</string>
 </dict>
 </plist>

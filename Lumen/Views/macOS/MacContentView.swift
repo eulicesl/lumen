@@ -7,6 +7,7 @@ struct MacContentView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(MemoryStore.self) private var memoryStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @SceneStorage("scene.macColumnVisibility") private var restoredColumnVisibility = "automatic"
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
@@ -22,7 +23,7 @@ struct MacContentView: View {
         .toolbar {
             ToolbarItem(placement: .navigation) {
                 Button {
-                    withAnimation(LumenAnimation.standard) {
+                    LumenMotion.perform(LumenAnimation.standard, reduceMotion: reduceMotion) {
                         columnVisibility = columnVisibility == .all ? .detailOnly : .all
                     }
                 } label: {
