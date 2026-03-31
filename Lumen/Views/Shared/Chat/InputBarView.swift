@@ -166,7 +166,6 @@ struct InputBarView: View {
             .disabled(chatStore.selectedConversation == nil)
             .accessibilityLabel(chatStore.isEditingMessage ? "Edit message" : "Message composer")
             .accessibilityHint("Enter a prompt or question for the selected conversation")
-            .accessibilityValue(composerAccessibilityValue)
     }
 
     // MARK: - Send / Stop button
@@ -252,22 +251,16 @@ struct InputBarView: View {
             && chatStore.conversationState != .generating
     }
 
-    private var composerAccessibilityValue: String {
-        let trimmedText = chatStore.inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-        let textState = trimmedText.isEmpty ? "Empty" : "Contains text"
-        let imageCount = chatStore.pendingImageData.count
-        let documentCount = chatStore.pendingDocuments.count
-        return "\(textState), \(imageCount) attached image\(imageCount == 1 ? "" : "s"), \(documentCount) attached document\(documentCount == 1 ? "" : "s")"
-    }
-
     private var sendButtonAccessibilityHint: String {
+        if chatStore.isEditingMessage {
+            return "Creates a new branch from the edited message and regenerates the response"
+        }
+
         if !chatStore.pendingDocuments.isEmpty || !chatStore.pendingImageData.isEmpty {
             return "Sends the current text and attachments"
         }
 
-        return chatStore.isEditingMessage
-            ? "Creates a new branch from the edited message and regenerates the response"
-            : "Sends the current message"
+        return "Sends the current message"
     }
 
     private func sendMessage() {

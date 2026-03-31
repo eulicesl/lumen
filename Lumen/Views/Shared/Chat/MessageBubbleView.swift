@@ -262,26 +262,25 @@ private struct MessageAccessibilityActions: ViewModifier {
     let onEdit: () -> Void
 
     func body(content: Content) -> some View {
-        var view = AnyView(
-            content
-                .accessibilityHint(baseHint)
-                .accessibilityAction(named: Text("Copy"), onCopy)
-                .accessibilityAction(named: Text("Save to Memory"), onSaveToMemory)
-        )
-
-        if message.isComplete && !message.isError {
-            view = AnyView(view.accessibilityAction(named: Text("Branch from Here"), onBranch))
-        }
-
-        if message.isAssistant, !message.content.isEmpty {
-            view = AnyView(view.accessibilityAction(named: Text("Speak"), onSpeak))
-        }
-
-        if message.isUser, !message.content.isEmpty, !message.hasImages {
-            view = AnyView(view.accessibilityAction(named: Text("Edit & Resend"), onEdit))
-        }
-
-        return view
+        content
+            .accessibilityHint(baseHint)
+            .accessibilityAction(named: Text("Copy"), onCopy)
+            .accessibilityAction(named: Text("Save to Memory"), onSaveToMemory)
+            .messageAction(
+                isEnabled: message.isComplete && !message.isError,
+                name: "Branch from Here",
+                action: onBranch
+            )
+            .messageAction(
+                isEnabled: message.isAssistant && !message.content.isEmpty,
+                name: "Speak",
+                action: onSpeak
+            )
+            .messageAction(
+                isEnabled: message.isUser && !message.content.isEmpty && !message.hasImages,
+                name: "Edit & Resend",
+                action: onEdit
+            )
     }
 
     private var baseHint: String {
@@ -324,6 +323,15 @@ private struct BubbleBackground: ViewModifier {
 private extension View {
     func bubbleBackground(isUser: Bool, isError: Bool) -> some View {
         modifier(BubbleBackground(isUser: isUser, isError: isError))
+    }
+
+    @ViewBuilder
+    func messageAction(isEnabled: Bool, name: String, action: @escaping () -> Void) -> some View {
+        if isEnabled {
+            accessibilityAction(named: Text(name), action)
+        } else {
+            self
+        }
     }
 }
 
