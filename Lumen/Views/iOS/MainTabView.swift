@@ -112,7 +112,7 @@ struct MainTabView: View {
         .task {
             await restoreSceneSelectionIfNeeded()
         }
-        .onChange(of: chatStore.conversations.map { $0.id.uuidString }) {
+        .onChange(of: chatStore.conversations.count) {
             Task { await restoreSceneSelectionIfNeeded() }
         }
         .onChange(of: chatStore.selectedConversation?.id.uuidString) {
@@ -131,6 +131,32 @@ private extension MainTabView {
     func restoreSceneSelectionIfNeeded() async {
         let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
         await chatStore.restoreSelectedConversation(id: restoredID)
+    }
+}
+
+extension NavigationSplitViewVisibility {
+    init(sceneStorageValue: String, fallback: NavigationSplitViewVisibility) {
+        switch sceneStorageValue {
+        case "all":
+            self = .all
+        case "detailOnly":
+            self = .detailOnly
+        case "automatic":
+            self = .automatic
+        default:
+            self = fallback
+        }
+    }
+
+    var sceneStorageValue: String {
+        switch self {
+        case .all:
+            return "all"
+        case .detailOnly:
+            return "detailOnly"
+        default:
+            return "automatic"
+        }
     }
 }
 

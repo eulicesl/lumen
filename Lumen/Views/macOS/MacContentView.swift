@@ -56,14 +56,14 @@ struct MacContentView: View {
             restoreColumnVisibility()
             await restoreSceneSelectionIfNeeded()
         }
-        .onChange(of: chatStore.conversations.map { $0.id.uuidString }) {
+        .onChange(of: chatStore.conversations.count) {
             Task { await restoreSceneSelectionIfNeeded() }
         }
         .onChange(of: chatStore.selectedConversation?.id.uuidString) {
             restoredConversationID = chatStore.selectedConversation?.id.uuidString
         }
         .onChange(of: columnVisibility) {
-            restoredColumnVisibility = sceneStorageValue(for: columnVisibility)
+            restoredColumnVisibility = columnVisibility.sceneStorageValue
         }
     }
 }
@@ -75,25 +75,10 @@ private extension MacContentView {
     }
 
     func restoreColumnVisibility() {
-        switch restoredColumnVisibility {
-        case "all":
-            columnVisibility = .all
-        case "detailOnly":
-            columnVisibility = .detailOnly
-        default:
-            columnVisibility = .automatic
-        }
-    }
-
-    func sceneStorageValue(for visibility: NavigationSplitViewVisibility) -> String {
-        switch visibility {
-        case .all:
-            return "all"
-        case .detailOnly:
-            return "detailOnly"
-        default:
-            return "automatic"
-        }
+        columnVisibility = NavigationSplitViewVisibility(
+            sceneStorageValue: restoredColumnVisibility,
+            fallback: .automatic
+        )
     }
 }
 

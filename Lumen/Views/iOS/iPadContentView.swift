@@ -40,14 +40,14 @@ struct iPadContentView: View {
             restoreColumnVisibility()
             await restoreSceneSelectionIfNeeded()
         }
-        .onChange(of: chatStore.conversations.map { $0.id.uuidString }) {
+        .onChange(of: chatStore.conversations.count) {
             Task { await restoreSceneSelectionIfNeeded() }
         }
         .onChange(of: chatStore.selectedConversation?.id.uuidString) {
             restoredConversationID = chatStore.selectedConversation?.id.uuidString
         }
         .onChange(of: columnVisibility) {
-            restoredColumnVisibility = sceneStorageValue(for: columnVisibility)
+            restoredColumnVisibility = columnVisibility.sceneStorageValue
         }
     }
 }
@@ -59,25 +59,10 @@ private extension iPadContentView {
     }
 
     func restoreColumnVisibility() {
-        switch restoredColumnVisibility {
-        case "detailOnly":
-            columnVisibility = .detailOnly
-        case "automatic":
-            columnVisibility = .automatic
-        default:
-            columnVisibility = .all
-        }
-    }
-
-    func sceneStorageValue(for visibility: NavigationSplitViewVisibility) -> String {
-        switch visibility {
-        case .detailOnly:
-            return "detailOnly"
-        case .automatic:
-            return "automatic"
-        default:
-            return "all"
-        }
+        columnVisibility = NavigationSplitViewVisibility(
+            sceneStorageValue: restoredColumnVisibility,
+            fallback: .all
+        )
     }
 }
 
