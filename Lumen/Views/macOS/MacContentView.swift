@@ -43,7 +43,7 @@ struct MacContentView: View {
             }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            SettingsStoreView()
+            SettingsStoreView(showsDoneButton: true)
                 .frame(minWidth: 480, minHeight: 560)
                 .environment(appStore)
                 .environment(chatStore)

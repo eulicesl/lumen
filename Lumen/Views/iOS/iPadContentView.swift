@@ -15,9 +15,21 @@ struct iPadContentView: View {
                 .navigationSplitViewColumnWidth(min: 260, ideal: LumenLayout.sidebarWidthMac)
         } detail: {
             ChatView()
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                columnVisibility = columnVisibility == .all ? .detailOnly : .all
+                            }
+                        } label: {
+                            Image(systemName: "sidebar.left")
+                        }
+                        .accessibilityLabel(columnVisibility == .all ? "Hide Conversations" : "Show Conversations")
+                    }
+                }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            SettingsStoreView()
+            SettingsStoreView(showsDoneButton: true)
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)

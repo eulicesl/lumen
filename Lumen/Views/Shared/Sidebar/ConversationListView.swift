@@ -89,7 +89,7 @@ struct ConversationListView: View {
                 }
             }
         }
-        .listStyle(.sidebar)
+        .conversationListStyle()
         .searchable(text: $searchText, prompt: "Search conversations")
         .navigationTitle("Lumen")
         .toolbar {
@@ -168,6 +168,21 @@ struct ConversationListView: View {
         )
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func conversationListStyle() -> some View {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .pad {
+            self.listStyle(.sidebar)
+        } else {
+            self.listStyle(.insetGrouped)
+        }
+        #else
+        self.listStyle(.sidebar)
+        #endif
     }
 }
 

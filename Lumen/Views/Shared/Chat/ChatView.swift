@@ -23,8 +23,6 @@ struct ChatView: View {
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(Color(.systemBackground), for: .navigationBar)
         #endif
         .toolbar {
             if let conv = chatStore.selectedConversation {
@@ -77,37 +75,32 @@ struct ChatView: View {
         .onChange(of: chatStore.messages.last?.content) {
             if isAtBottom { scrollToBottom() }
         }
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                if chatStore.canRegenerate {
-                    regenerateBar
-                }
-                InputBarView()
-            }
-        }
     }
 
     // MARK: - Message list
 
     private var messageList: some View {
         ScrollViewReader { proxy in
-            ScrollView {
-                LazyVStack(spacing: LumenSpacing.md) {
-                    ForEach(chatStore.messages) { message in
-                        MessageBubbleView(message: message)
-                            .padding(.horizontal, LumenSpacing.md)
+            GeometryReader { geo in
+                ScrollView {
+                    LazyVStack(spacing: LumenSpacing.sm) {
+                        ForEach(chatStore.messages) { message in
+                            MessageBubbleView(message: message)
+                                .padding(.horizontal, LumenSpacing.md)
+                        }
+                        Color.clear
+                            .frame(height: 1)
+                            .id("bottom")
                     }
-                    Color.clear
-                        .frame(height: 1)
-                        .id("bottom")
+                    .frame(minHeight: geo.size.height - LumenSpacing.md, alignment: .bottom)
+                    .padding(.top, LumenSpacing.sm)
+                    .padding(.bottom, LumenSpacing.sm)
                 }
-                .padding(.top, LumenSpacing.md)
-                .padding(.bottom, LumenSpacing.sm)
-            }
-            .scrollDismissesKeyboard(.interactively)
-            .onAppear {
-                scrollProxy = proxy
-                scrollToBottom(animated: false)
+                .scrollDismissesKeyboard(.interactively)
+                .onAppear {
+                    scrollProxy = proxy
+                    scrollToBottom(animated: false)
+                }
             }
         }
     }
@@ -154,24 +147,6 @@ struct ChatView: View {
         .padding(.horizontal, LumenSpacing.lg)
     }
 
-    // MARK: - Regenerate bar
-
-    private var regenerateBar: some View {
-        Button {
-            Task { await chatStore.regenerate() }
-        } label: {
-            Label("Regenerate response", systemImage: "arrow.clockwise")
-                .font(LumenType.footnote)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Regenerate response")
-        .padding(.horizontal, LumenSpacing.md)
-        .padding(.vertical, LumenSpacing.xs)
-        .regenerateBarBackground()
-    }
-
     // MARK: - Helpers
 
     private func scrollToBottom(animated: Bool = true) {
@@ -182,26 +157,6 @@ struct ChatView: View {
         } else {
             scrollProxy?.scrollTo("bottom", anchor: .bottom)
         }
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func regenerateBarBackground() -> some View {
-        #if os(iOS)
-        if #available(iOS 26.0, *) {
-            self.glassEffect(
-                .regular.interactive(),
-                in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
-            )
-        } else {
-            self
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        }
-        #else
-        self
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        #endif
     }
 }
 
