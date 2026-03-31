@@ -1,6 +1,15 @@
 #if os(iOS)
 import SwiftUI
 
+private enum VoiceWaveformMetrics {
+    static let barSpacing: CGFloat = 4
+    static let barCornerRadius: CGFloat = 3
+    static let barWidth: CGFloat = 4
+    static let idleBarHeight: CGFloat = 8
+    static let reducedMotionActiveBarHeight: CGFloat = 24
+    static let waveformHeight: CGFloat = 40
+}
+
 struct VoiceWaveformView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let isAnimating: Bool
@@ -11,11 +20,11 @@ struct VoiceWaveformView: View {
     private let timer = Timer.publish(every: 0.08, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: VoiceWaveformMetrics.barSpacing) {
             ForEach(0..<barCount, id: \.self) { i in
-                RoundedRectangle(cornerRadius: 3)
+                RoundedRectangle(cornerRadius: VoiceWaveformMetrics.barCornerRadius)
                     .fill(color)
-                    .frame(width: 4, height: barHeight(for: i))
+                    .frame(width: VoiceWaveformMetrics.barWidth, height: barHeight(for: i))
                     .animation(
                         LumenMotion.animation(
                             isAnimating
@@ -24,10 +33,10 @@ struct VoiceWaveformView: View {
                             reduceMotion: reduceMotion
                         ),
                         value: levels.indices.contains(i) ? levels[i] : 0
-                    )
+                )
             }
         }
-        .frame(height: 40)
+        .frame(height: VoiceWaveformMetrics.waveformHeight)
         .onAppear { setupLevels() }
         .onReceive(timer) { _ in
             guard !reduceMotion else { return }
@@ -38,10 +47,14 @@ struct VoiceWaveformView: View {
 
     private func barHeight(for index: Int) -> CGFloat {
         if reduceMotion {
-            return isAnimating ? 24 : 8
+            return isAnimating
+                ? VoiceWaveformMetrics.reducedMotionActiveBarHeight
+                : VoiceWaveformMetrics.idleBarHeight
         }
-        guard levels.indices.contains(index) else { return 8 }
-        return isAnimating ? max(8, levels[index] * 40) : 8
+        guard levels.indices.contains(index) else { return VoiceWaveformMetrics.idleBarHeight }
+        return isAnimating
+            ? max(VoiceWaveformMetrics.idleBarHeight, levels[index] * VoiceWaveformMetrics.waveformHeight)
+            : VoiceWaveformMetrics.idleBarHeight
     }
 
     private func setupLevels() {
@@ -75,7 +88,7 @@ struct VoicePulseView: View {
                 .fill(Color.accentColor.opacity(0.15))
                 .frame(width: 100, height: 100)
                 .scaleEffect(isActive ? scale : 1.0)
-                .opacity(isActive ? (reduceMotion ? 0.25 : opacity) : 0)
+                .opacity(isActive ? opacity : 0)
 
             Circle()
                 .fill(Color.accentColor.opacity(0.25))
