@@ -69,21 +69,6 @@ struct SettingsStoreView: View {
 
 private extension View {
     @ViewBuilder
-    func settingsGlassCard() -> some View {
-        #if os(iOS)
-        if #available(iOS 26.0, *) {
-            self.glassEffect()
-        } else {
-            self
-                .padding(.vertical, 4)
-                .listRowBackground(Color.clear)
-        }
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
     func ollamaTextFieldTraits() -> some View {
         #if os(iOS)
         self
