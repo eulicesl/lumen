@@ -91,6 +91,9 @@ struct ConversationListView: View {
         }
         .conversationListStyle()
         .searchable(text: $searchText, prompt: "Search conversations")
+        .refreshable {
+            await refreshConversations()
+        }
         .navigationTitle("Lumen")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -168,6 +171,13 @@ struct ConversationListView: View {
         )
         .listRowBackground(Color.clear)
         .listRowSeparator(.hidden)
+    }
+
+    private func refreshConversations() async {
+        await chatStore.loadConversations()
+        if chatStore.conversations.isEmpty {
+            await chatStore.createNewConversation()
+        }
     }
 }
 

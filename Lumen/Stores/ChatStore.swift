@@ -30,8 +30,13 @@ final class ChatStore {
 
     func loadConversations() async {
         do {
+            let selectedConversationID = selectedConversation?.id
             let loaded = try await dataService.fetchAllConversations()
             conversations = loaded
+            if let selectedConversationID,
+               let refreshedSelection = loaded.first(where: { $0.id == selectedConversationID }) {
+                selectedConversation = refreshedSelection
+            }
             Task.detached(priority: .background) {
                 await SpotlightService.shared.indexConversations(loaded)
                 let widgets = loaded.prefix(5).map { conv in
