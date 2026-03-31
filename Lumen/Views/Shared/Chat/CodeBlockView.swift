@@ -3,6 +3,7 @@ import SwiftUI
 struct CodeBlockView: View {
     let language: String
     let code: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var didCopyCode = false
     @State private var copyResetTask: Task<Void, Never>?
 
@@ -91,11 +92,21 @@ struct CodeBlockView: View {
 
     private func showCopyConfirmation() {
         copyResetTask?.cancel()
-        didCopyCode = true
+        LumenMotion.perform(LumenAnimation.fade, reduceMotion: reduceMotion) {
+            didCopyCode = true
+        }
 
         copyResetTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
-            didCopyCode = false
+            do {
+                try await Task.sleep(nanoseconds: 1_200_000_000)
+            } catch {
+                return
+            }
+
+            guard !Task.isCancelled else { return }
+            LumenMotion.perform(LumenAnimation.fade, reduceMotion: reduceMotion) {
+                didCopyCode = false
+            }
         }
     }
 }

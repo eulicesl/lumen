@@ -7,6 +7,7 @@ import UIKit
 struct MessageBubbleView: View {
     let message: ChatMessage
     @Environment(ChatStore.self) private var chatStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var thinkingExpanded = false
     @State private var showingBranchConfirm = false
     @State private var showingCopyFeedback = false
@@ -275,20 +276,31 @@ struct MessageBubbleView: View {
                 Capsule()
                     .strokeBorder(Color.green.opacity(0.18), lineWidth: 1)
             )
-            .transition(.opacity.combined(with: .move(edge: message.isUser ? .trailing : .leading)))
+            .transition(
+                LumenMotion.moveTransition(
+                    edge: message.isUser ? .trailing : .leading,
+                    reduceMotion: reduceMotion
+                )
+            )
             .accessibilityLabel("Copied")
     }
 
     private func showCopyConfirmation() {
         copyFeedbackTask?.cancel()
 
-        withAnimation(LumenAnimation.fade) {
+        LumenMotion.perform(LumenAnimation.fade, reduceMotion: reduceMotion) {
             showingCopyFeedback = true
         }
 
         copyFeedbackTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 1_200_000_000)
-            withAnimation(LumenAnimation.fade) {
+            do {
+                try await Task.sleep(nanoseconds: 1_200_000_000)
+            } catch {
+                return
+            }
+
+            guard !Task.isCancelled else { return }
+            LumenMotion.perform(LumenAnimation.fade, reduceMotion: reduceMotion) {
                 showingCopyFeedback = false
             }
         }
