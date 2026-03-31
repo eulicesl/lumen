@@ -33,6 +33,7 @@ struct MainTabView: View {
                         } label: {
                             Image(systemName: "square.and.pencil")
                         }
+                        .buttonStyle(.plain)
                         .accessibilityLabel("New chat")
 
                         Menu {
@@ -64,6 +65,7 @@ struct MainTabView: View {
                         } label: {
                             Image(systemName: "ellipsis")
                         }
+                        .buttonStyle(.plain)
                         .accessibilityLabel("Open tools menu")
                     }
                 }
@@ -137,14 +139,25 @@ private struct ModelPickerChip: View {
                 Image(systemName: "chevron.down")
                     .font(.caption2)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(.thinMaterial, in: Capsule())
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .liquidCapsuleChrome()
         }
         .task {
             if modelStore.availableModels.isEmpty {
                 await modelStore.loadModels()
             }
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func liquidCapsuleChrome() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular.interactive(), in: Capsule())
+        } else {
+            self.background(.thinMaterial, in: Capsule())
         }
     }
 }
@@ -174,7 +187,18 @@ private struct ChatComposerChrome: View {
         .accessibilityLabel("Regenerate response")
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.xs)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        .liquidRegenerateSurface()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func liquidRegenerateSurface() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        } else {
+            self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        }
     }
 }
 

@@ -123,13 +123,28 @@ struct MessageBubbleView: View {
 
     private var plainRenderedContent: some View {
         let displayText = message.isAssistant ? mainContent : message.content
-        return Text(AttributedString.fromMarkdown(displayText))
-            .font(LumenType.messageBody)
-            .foregroundStyle(message.isUser ? Color.white : Color.primary)
-            .textSelection(.enabled)
-            .padding(.horizontal, LumenSpacing.md)
-            .padding(.vertical, LumenSpacing.sm)
-            .frame(maxWidth: maxBubbleWidth, alignment: message.isUser ? .trailing : .leading)
+
+        if message.isUser {
+            return AnyView(
+                Text(AttributedString.fromMarkdown(displayText))
+                    .font(LumenType.messageBody)
+                    .foregroundStyle(Color.white)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, LumenSpacing.md)
+                    .padding(.vertical, LumenSpacing.sm)
+            )
+        } else {
+            return AnyView(
+                Text(AttributedString.fromMarkdown(displayText))
+                    .font(LumenType.messageBody)
+                    .foregroundStyle(Color.primary)
+                    .textSelection(.enabled)
+                    .padding(.horizontal, LumenSpacing.md)
+                    .padding(.vertical, LumenSpacing.sm)
+                    .frame(maxWidth: maxBubbleWidth, alignment: .leading)
+            )
+        }
     }
 
     private var streamingContent: some View {
