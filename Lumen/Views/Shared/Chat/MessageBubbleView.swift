@@ -88,7 +88,7 @@ struct MessageBubbleView: View {
 
         if message.isUser && !message.content.isEmpty {
             Button {
-                chatStore.inputText = message.content.documentAwareDisplayText
+                chatStore.inputText = message.content
             } label: {
                 Label("Edit & Resend", systemImage: "pencil")
             }

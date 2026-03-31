@@ -33,6 +33,7 @@ enum DocumentImportError: LocalizedError {
     case unsupportedFile(String)
     case unreadableFile(String)
     case emptyContent(String)
+    case fileTooLarge(String, limitInBytes: Int)
 
     var errorDescription: String? {
         switch self {
@@ -42,12 +43,20 @@ enum DocumentImportError: LocalizedError {
             return "Lumen could not read \(fileName)."
         case .emptyContent(let fileName):
             return "\(fileName) does not contain extractable text."
+        case .fileTooLarge(let fileName, let limitInBytes):
+            let formatter = ByteCountFormatter()
+            formatter.allowedUnits = [.useMB]
+            formatter.countStyle = .file
+            return "\(fileName) is larger than \(formatter.string(fromByteCount: Int64(limitInBytes)))."
         }
     }
 }
 
 enum DocumentPromptComposer {
     static let maxDocumentCharacters = 12_000
+    private static let startMarkerPrefix = "<<LUMEN::DOCUMENT::"
+    private static let endMarker = "<<LUMEN::END_DOCUMENT>>"
+    private static let escapedEndMarker = "<<LUMEN::END_DOCUMENT_ESCAPED>>"
     private static let truncationNote = "\n\n[Document truncated to fit in the chat context.]"
 
     static func compose(userText: String, documents: [ImportedDocument]) -> String {
@@ -145,13 +154,18 @@ enum DocumentPromptComposer {
         }
     }
 
-    private static let documentBlockPattern = #"\[Document: ([^\n]+)\]\n[\s\S]*?\n\[/Document\]"#
+    private static let documentBlockPattern = #"(?s)<<LUMEN::DOCUMENT::([^\n>]+)>>\n(.*?)\n<<LUMEN::END_DOCUMENT>>"#
 
     private static func promptBlock(for document: ImportedDocument) -> String {
-        """
-        [Document: \(document.fileName)]
-        \(document.extractedText)
-        [/Document]
+        let safeContent = document.extractedText.replacingOccurrences(
+            of: endMarker,
+            with: escapedEndMarker
+        )
+
+        return """
+        \(startMarkerPrefix)\(document.fileName)>>
+        \(safeContent)
+        \(endMarker)
         """
     }
 
@@ -159,15 +173,14 @@ enum DocumentPromptComposer {
         var result: [String] = []
         var previousWasBlank = false
 
-        for rawLine in text.components(separatedBy: "\n") {
-            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
-            if line.isEmpty {
+        text.enumerateLines { rawLine, _ in
+            if rawLine.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 if !previousWasBlank {
                     result.append("")
                 }
                 previousWasBlank = true
             } else {
-                result.append(line)
+                result.append(rawLine.replacingOccurrences(of: escapedEndMarker, with: endMarker))
                 previousWasBlank = false
             }
         }
@@ -184,6 +197,7 @@ extension String {
 
 actor DocumentImportService {
     static let shared = DocumentImportService()
+    static let maxImportBytes = 5_000_000
 
     static let supportedContentTypes: [UTType] = {
         let candidates: [UTType?] = [
@@ -213,9 +227,13 @@ actor DocumentImportService {
             }
         }
 
-        let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .nameKey])
+        let resourceValues = try? url.resourceValues(forKeys: [.contentTypeKey, .nameKey, .fileSizeKey])
         let contentType = resourceValues?.contentType
         let fileName = resourceValues?.name ?? url.lastPathComponent
+
+        if let fileSize = resourceValues?.fileSize, fileSize > Self.maxImportBytes {
+            throw DocumentImportError.fileTooLarge(fileName, limitInBytes: Self.maxImportBytes)
+        }
 
         let rawText: String
         if contentType?.conforms(to: .pdf) == true || url.pathExtension.lowercased() == "pdf" {

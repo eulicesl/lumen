@@ -187,7 +187,7 @@ struct DocumentPromptComposerTests {
         )
 
         #expect(composed.contains("Summarize this"))
-        #expect(composed.contains("[Document: brief.txt]"))
+        #expect(composed.contains("<<LUMEN::DOCUMENT::brief.txt>>"))
         #expect(composed.contains("Quarterly roadmap and milestones."))
     }
 
@@ -202,7 +202,7 @@ struct DocumentPromptComposerTests {
         let composed = DocumentPromptComposer.compose(userText: "", documents: [document])
 
         #expect(composed.contains("Please use the imported document context below"))
-        #expect(composed.contains("[Document: notes.md]"))
+        #expect(composed.contains("<<LUMEN::DOCUMENT::notes.md>>"))
     }
 
     @Test("Normalize extracted text trims noise and truncates")
@@ -220,9 +220,9 @@ struct DocumentPromptComposerTests {
         let content = """
         Summarize the attached file.
 
-        [Document: brief.txt]
+        <<LUMEN::DOCUMENT::brief.txt>>
         Internal project detail that should not flood the transcript.
-        [/Document]
+        <<LUMEN::END_DOCUMENT>>
         """
 
         let display = content.documentAwareDisplayText
@@ -230,6 +230,18 @@ struct DocumentPromptComposerTests {
         #expect(display.contains("Summarize the attached file."))
         #expect(display.contains("Attached document: brief.txt"))
         #expect(!display.contains("Internal project detail"))
+    }
+
+    @Test("Normalize extracted text preserves indentation for code-like content")
+    func normalizeExtractedTextPreservesIndentation() {
+        let source = """
+        func greet() {
+            print("hello")
+        }
+        """
+
+        let normalized = DocumentPromptComposer.normalizeExtractedText(source)
+        #expect(normalized.contains("    print(\"hello\")"))
     }
 
     @Test("Title seed falls back to document name")
