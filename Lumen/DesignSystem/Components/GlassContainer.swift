@@ -37,16 +37,17 @@ struct GlassContainer<Content: View>: View {
     }
 
     var body: some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, macOS 26.0, *) {
             GlassEffectContainer {
                 glassContent
             }
         } else {
-            content
-                .padding(padding)
-                .background(.regularMaterial, in: clipShapeView)
-                .clipShape(clipShapeView)
+            fallbackContent
         }
+        #else
+        fallbackContent
+        #endif
     }
 
     private var clipShapeView: AnyShape {
@@ -60,6 +61,14 @@ struct GlassContainer<Content: View>: View {
         }
     }
 
+    private var fallbackContent: some View {
+        content
+            .padding(padding)
+            .background(.regularMaterial, in: clipShapeView)
+            .clipShape(clipShapeView)
+    }
+
+    #if compiler(>=6.3)
     @available(iOS 26.0, macOS 26.0, *)
     @ViewBuilder
     private var glassContent: some View {
@@ -78,6 +87,7 @@ struct GlassContainer<Content: View>: View {
                 .glassEffect(.regular.tint(.accentColor), in: clipShapeView)
         }
     }
+    #endif
 }
 
 extension View {
@@ -86,6 +96,7 @@ extension View {
         radius: CGFloat = LumenRadius.md,
         interactive: Bool = false
     ) -> some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, macOS 26.0, *) {
             self
                 .glassEffect(
@@ -93,10 +104,17 @@ extension View {
                     in: RoundedRectangle(cornerRadius: radius, style: .continuous)
                 )
         } else {
-            self
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
-                .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            materialCard(radius: radius)
         }
+        #else
+        materialCard(radius: radius)
+        #endif
+    }
+
+    private func materialCard(radius: CGFloat) -> some View {
+        self
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
     }
 }
 

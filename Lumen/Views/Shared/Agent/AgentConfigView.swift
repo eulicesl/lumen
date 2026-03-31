@@ -172,6 +172,7 @@ struct AgentToolEventView: View {
 
     @ViewBuilder
     private func toolResultBubble(name: String, result: String) -> some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, macOS 26.0, *) {
             HStack(spacing: LumenSpacing.sm) {
                 Image(systemName: "checkmark.circle")
@@ -196,6 +197,14 @@ struct AgentToolEventView: View {
             )
             .frame(maxWidth: 320, alignment: .leading)
         } else {
+            legacyToolResultBubble(name: name, result: result)
+        }
+        #else
+        legacyToolResultBubble(name: name, result: result)
+        #endif
+    }
+
+    private func legacyToolResultBubble(name: String, result: String) -> some View {
             HStack(spacing: LumenSpacing.sm) {
                 Image(systemName: "checkmark.circle")
                     .font(.caption)
@@ -219,7 +228,6 @@ struct AgentToolEventView: View {
                     .strokeBorder(Color.green.opacity(0.25), lineWidth: 0.5)
             )
             .frame(maxWidth: 320, alignment: .leading)
-        }
     }
 }
 
@@ -237,4 +245,3 @@ struct AgentToolEventView: View {
     AgentToolEventView(event: .toolResult(name: "calculator", result: "92"))
         .padding()
 }
-

@@ -3,11 +3,15 @@ import PhotosUI
 private extension View {
     @ViewBuilder
     func liquidComposerSurface() -> some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            self.glassCard(radius: 22, interactive: true)
         } else {
             self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
+        #else
+        self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        #endif
     }
 }
 
