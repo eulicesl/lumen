@@ -11,12 +11,13 @@ struct SettingsView: View {
     @State private var showingMemory = false
     @State private var showingAgentConfig = false
     @State private var showingPrivacy = false
+    @State private var isRefreshingOllama = false
 
     var body: some View {
         @Bindable var bindableApp = appStore
         NavigationStack {
             Form {
-                ollamaSection(bindableApp: $bindableApp)
+                ollamaSection
                 appleIntelligenceSection
                 memorySection
                 agentSection
@@ -30,11 +31,17 @@ struct SettingsView: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button("Done") {
+                        persistOllamaURLIfNeeded()
+                        dismiss()
+                    }
                 }
             }
             .onAppear {
                 ollamaURLDraft = appStore.ollamaServerURL
+            }
+            .onDisappear {
+                persistOllamaURLIfNeeded()
             }
             .alert("Reset Conversations", isPresented: $showingResetAlert) {
                 Button("Cancel", role: .cancel) {}
@@ -60,14 +67,14 @@ struct SettingsView: View {
 
     // MARK: - Sections
 
-    private func ollamaSection(bindableApp: Bindable<AppStore>) -> some View {
+    private var ollamaSection: some View {
         Section {
             HStack {
                 Image(systemName: LumenIcon.ollama)
                     .foregroundStyle(.secondary)
                     .frame(width: 24)
                     .accessibilityHidden(true)
-                TextField("http://localhost:11434", text: bindableApp.ollamaServerURL)
+                TextField("http://localhost:11434", text: $ollamaURLDraft)
                     .accessibilityLabel("Ollama server URL")
                     .accessibilityHint("Enter the base URL for your local Ollama server")
                     .autocorrectionDisabled()
@@ -75,10 +82,13 @@ struct SettingsView: View {
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
                     #endif
-                    .onSubmit { Task { await modelStore.loadModels() } }
+                    .onSubmit {
+                        Task { await refreshOllamaModels() }
+                    }
             }
+            ollamaStatusRow
             Button {
-                Task { await modelStore.loadModels() }
+                Task { await refreshOllamaModels() }
             } label: {
                 HStack {
                     Image(systemName: "arrow.clockwise")
@@ -86,12 +96,8 @@ struct SettingsView: View {
                         .frame(width: 24)
                     Text("Refresh Models")
                     Spacer()
-                    if modelStore.isLoading {
+                    if modelStore.isLoading || isRefreshingOllama {
                         ProgressView()
-                    } else {
-                        Text("\(modelStore.ollamaModelCount) available")
-                            .font(LumenType.caption)
-                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -102,6 +108,34 @@ struct SettingsView: View {
         } footer: {
             Text("Ollama must be running on your local network. Default is http://localhost:11434")
         }
+    }
+
+    private var ollamaStatusRow: some View {
+        HStack(alignment: .top, spacing: LumenSpacing.sm) {
+            Image(systemName: ollamaStatusIconName)
+                .foregroundStyle(ollamaStatusColor)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Status")
+                    .font(LumenType.body)
+                Text(modelStore.ollamaConnectionStatus.title)
+                    .font(LumenType.caption)
+                    .foregroundStyle(ollamaStatusColor)
+                if let detail = modelStore.ollamaStatusMessage {
+                    Text(detail)
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Ollama status")
+        .accessibilityValue(modelStore.ollamaConnectionStatus.title)
+        .accessibilityHint(modelStore.ollamaStatusMessage ?? "Shows whether the configured Ollama server is reachable")
     }
 
     private var appleIntelligenceSection: some View {
@@ -240,6 +274,49 @@ struct SettingsView: View {
 }
 
 // MARK: - Bundle helpers
+
+private extension SettingsView {
+    func persistOllamaURLIfNeeded() {
+        let normalized = ollamaURLDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+        let targetURL = normalized.isEmpty ? "http://localhost:11434" : normalized
+        guard targetURL != appStore.ollamaServerURL else { return }
+        appStore.saveOllamaURL(targetURL)
+        ollamaURLDraft = appStore.ollamaServerURL
+    }
+
+    func refreshOllamaModels() async {
+        isRefreshingOllama = true
+        persistOllamaURLIfNeeded()
+        await modelStore.loadModels()
+        isRefreshingOllama = false
+    }
+
+    var ollamaStatusColor: Color {
+        switch modelStore.ollamaConnectionStatus {
+        case .available:
+            return .green
+        case .checking:
+            return .secondary
+        case .disabled:
+            return .secondary
+        case .unavailable:
+            return .orange
+        }
+    }
+
+    var ollamaStatusIconName: String {
+        switch modelStore.ollamaConnectionStatus {
+        case .available:
+            return "checkmark.circle.fill"
+        case .checking:
+            return "arrow.trianglehead.clockwise"
+        case .disabled:
+            return "pause.circle"
+        case .unavailable:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+}
 
 private extension Bundle {
     var appVersion: String { infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0" }

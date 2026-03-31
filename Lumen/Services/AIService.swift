@@ -33,18 +33,18 @@ actor AIService {
     }
 
     func listAllModels() async -> [AIModel] {
-        var models: [AIModel] = []
-        if await foundationModelsProvider.checkAvailability() {
-            if let fmModels = try? await foundationModelsProvider.listModels() {
-                models.append(contentsOf: fmModels)
-            }
-        }
-        if await ollamaProvider.checkAvailability() {
-            if let ollamaModels = try? await ollamaProvider.listModels() {
-                models.append(contentsOf: ollamaModels)
-            }
-        }
-        return models
+        let foundationModels = await listFoundationModels()
+        let ollamaModels = (try? await listOllamaModels()) ?? []
+        return foundationModels + ollamaModels
+    }
+
+    func listFoundationModels() async -> [AIModel] {
+        guard await foundationModelsProvider.checkAvailability() else { return [] }
+        return (try? await foundationModelsProvider.listModels()) ?? []
+    }
+
+    func listOllamaModels() async throws -> [AIModel] {
+        try await ollamaProvider.listModels()
     }
 
     func chat(
@@ -84,4 +84,3 @@ actor AIService {
         return nil
     }
 }
-

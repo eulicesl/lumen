@@ -33,6 +33,9 @@ struct ModelPickerView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
+            .refreshable {
+                await modelStore.refreshModels()
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -113,7 +116,11 @@ struct ModelPickerView: View {
             ContentUnavailableView {
                 Label("No Models Available", systemImage: "cpu")
             } description: {
-                Text("Make sure Ollama is running, or that Apple Intelligence is enabled in Settings.")
+                Text(emptyStateMessage)
+            } actions: {
+                Button("Try Again") {
+                    Task { await modelStore.refreshModels() }
+                }
             }
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
@@ -128,6 +135,13 @@ struct ModelPickerView: View {
 
     private var appleModels: [AIModel] {
         modelStore.availableModels.filter { $0.providerType == .foundationModels }
+    }
+
+    private var emptyStateMessage: String {
+        if let lastError = modelStore.lastError {
+            return "\(lastError) You can try again after confirming your Ollama server settings."
+        }
+        return "Make sure Ollama is running, or that Apple Intelligence is enabled in Settings."
     }
 }
 

@@ -66,10 +66,11 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
   - Status: Done
 - [ ] Improved user-facing error surfaces + retry paths.  
   - Priority: P1  
-  - Status: Not Started
-- [ ] Network reachability/status indicator for Ollama connectivity.  
+  - Status: In Progress
+  - Notes: Model refresh failures now surface inline status and explicit retry actions; chat send failures still need broader recovery UX.
+- [x] Network reachability/status indicator for Ollama connectivity.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
 
 ## Sprint Mapping
 - Sprint 01: Completed P0 parity trio (edit/regenerate, full-text search, doc uploads)

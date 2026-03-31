@@ -52,22 +52,33 @@ actor OllamaProvider: AIProvider {
     func listModels() async throws -> [AIModel] {
         let tagsURL = baseURL.appendingPathComponent("api/tags")
         var request = URLRequest(url: tagsURL)
+        request.timeoutInterval = 5
         addAuthHeaders(to: &request)
-        let (data, response) = try await session.data(for: request)
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw AIProviderError.invalidResponse("Failed to list models")
-        }
-        let decoded = try JSONDecoder().decode(OllamaTagsResponse.self, from: data)
-        return decoded.models.map { ollamaModel in
-            AIModel(
-                id: "ollama.\(ollamaModel.name)",
-                name: ollamaModel.name,
-                providerType: .ollama,
-                supportsImages: ollamaModel.name.lowercased().contains("llava") ||
-                                ollamaModel.name.lowercased().contains("vision"),
-                supportsStreaming: true
-            )
+        do {
+            let (data, response) = try await session.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw AIProviderError.invalidResponse("No HTTP response from /api/tags.")
+            }
+            guard httpResponse.statusCode == 200 else {
+                throw AIProviderError.invalidResponse("HTTP \(httpResponse.statusCode) from /api/tags.")
+            }
+            let decoded = try JSONDecoder().decode(OllamaTagsResponse.self, from: data)
+            return decoded.models.map { ollamaModel in
+                AIModel(
+                    id: "ollama.\(ollamaModel.name)",
+                    name: ollamaModel.name,
+                    providerType: .ollama,
+                    supportsImages: ollamaModel.name.lowercased().contains("llava") ||
+                                    ollamaModel.name.lowercased().contains("vision"),
+                    supportsStreaming: true
+                )
+            }
+        } catch let error as AIProviderError {
+            throw error
+        } catch let error as URLError {
+            throw AIProviderError.networkError(error)
+        } catch {
+            throw AIProviderError.invalidResponse(error.localizedDescription)
         }
     }
 
@@ -116,8 +127,12 @@ actor OllamaProvider: AIProvider {
                     continuation.finish()
                 } catch is CancellationError {
                     continuation.finish(throwing: AIProviderError.cancelled)
-                } catch {
+                } catch let error as AIProviderError {
                     continuation.finish(throwing: error)
+                } catch let error as URLError {
+                    continuation.finish(throwing: AIProviderError.networkError(error))
+                } catch {
+                    continuation.finish(throwing: AIProviderError.invalidResponse(error.localizedDescription))
                 }
             }
         }
