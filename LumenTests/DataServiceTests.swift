@@ -186,6 +186,82 @@ extension MockAIProvider {
     }
 }
 
+@Suite("ConversationSearchEngine")
+struct ConversationSearchEngineTests {
+
+    @Test("Search returns message-level matches from history")
+    func messageLevelMatches() {
+        let matchingMessage = ChatMessage.userMessage(
+            "We should ship the neutron launch checklist today."
+        )
+        let conversation = Conversation(
+            title: "Launch Prep",
+            messages: [
+                ChatMessage.assistantMessage("Status noted."),
+                matchingMessage
+            ]
+        )
+
+        let results = ConversationSearchEngine.search("neutron", in: [conversation])
+
+        #expect(results.contains(where: {
+            $0.section == .messages && $0.matchedMessageID == matchingMessage.id
+        }))
+    }
+
+    @Test("Search ignores system messages")
+    func ignoresSystemMessages() {
+        let conversation = Conversation(
+            title: "Hidden Prompt",
+            messages: [
+                ChatMessage.systemMessage("internal neutron guidance"),
+                ChatMessage.assistantMessage("Visible reply")
+            ]
+        )
+
+        let results = ConversationSearchEngine.search("neutron", in: [conversation])
+
+        #expect(results.isEmpty)
+    }
+
+    @Test("Search includes a conversation hit and message hit when both match")
+    func titleAndMessageMatchesCanCoexist() {
+        let matchingMessage = ChatMessage.assistantMessage(
+            "Orbit planning is on track."
+        )
+        let conversation = Conversation(
+            title: "Orbit Review",
+            messages: [matchingMessage]
+        )
+
+        let results = ConversationSearchEngine.search("orbit", in: [conversation])
+
+        #expect(results.contains(where: {
+            $0.section == .conversations && $0.id == conversation.id
+        }))
+        #expect(results.contains(where: {
+            $0.section == .messages && $0.matchedMessageID == matchingMessage.id
+        }))
+    }
+
+    @Test("Search excerpts center the matched text")
+    func excerptsHighlightTheMatchContext() throws {
+        let message = ChatMessage.assistantMessage(
+            "Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda."
+        )
+        let conversation = Conversation(
+            title: "Greek",
+            messages: [message]
+        )
+
+        let results = ConversationSearchEngine.search("theta", in: [conversation])
+        let excerpt = try #require(results.first?.subtitle)
+
+        #expect(excerpt.contains("theta"))
+        #expect(!excerpt.hasPrefix("Alpha beta gamma"))
+    }
+}
+
 @Suite("ConversationEditEngine")
 struct ConversationEditEngineTests {
 
