@@ -31,6 +31,34 @@ enum LumenAnimation {
     static let interactive = Animation.spring(duration: 0.2, bounce: 0.1)
 }
 
+enum LumenMotion {
+    static func animation(_ animation: Animation, reduceMotion: Bool) -> Animation? {
+        reduceMotion ? nil : animation
+    }
+
+    static func perform(
+        _ animation: Animation = LumenAnimation.standard,
+        reduceMotion: Bool,
+        _ updates: () -> Void
+    ) {
+        if reduceMotion {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction, updates)
+        } else {
+            withAnimation(animation, updates)
+        }
+    }
+
+    static func moveTransition(edge: Edge, reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .move(edge: edge).combined(with: .opacity)
+    }
+
+    static func scaleTransition(reduceMotion: Bool) -> AnyTransition {
+        reduceMotion ? .opacity : .scale.combined(with: .opacity)
+    }
+}
+
 enum LumenType {
     static let messageBody    = Font.body
     static let messageCaption = Font.caption

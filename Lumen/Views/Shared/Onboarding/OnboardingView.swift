@@ -45,8 +45,8 @@ private let onboardingPages: [OnboardingPage] = [
 
 struct OnboardingView: View {
     @Binding var hasSeenOnboarding: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var currentPage = 0
-    @State private var dragOffset: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -74,7 +74,10 @@ struct OnboardingView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
-        .animation(.easeInOut(duration: 0.35), value: currentPage)
+        .animation(
+            LumenMotion.animation(.easeInOut(duration: 0.35), reduceMotion: reduceMotion),
+            value: currentPage
+        )
     }
 
     private func pageView(_ page: OnboardingPage) -> some View {
@@ -89,11 +92,7 @@ struct OnboardingView: View {
                         .fill(page.symbolColor.opacity(0.06))
                         .frame(width: 180, height: 180)
 
-                    Image(systemName: page.symbol)
-                        .font(.system(size: 64, weight: .light))
-                        .foregroundStyle(page.symbolColor)
-                        .symbolEffect(.pulse.byLayer, options: .repeating)
-                        .accessibilityHidden(true)
+                    onboardingSymbol(for: page)
                 }
 
                 VStack(spacing: LumenSpacing.md) {
@@ -134,7 +133,9 @@ struct OnboardingView: View {
                     Spacer()
 
                     Button {
-                        withAnimation { currentPage += 1 }
+                        LumenMotion.perform(reduceMotion: reduceMotion) {
+                            currentPage += 1
+                        }
                         HapticEngine.impact(.light)
                     } label: {
                         Label("Next", systemImage: "arrow.right")
@@ -170,7 +171,10 @@ struct OnboardingView: View {
                 Capsule()
                     .fill(i == currentPage ? Color.accentColor : Color.secondary.opacity(0.3))
                     .frame(width: i == currentPage ? 24 : 8, height: 8)
-                    .animation(.spring(duration: 0.3), value: currentPage)
+                    .animation(
+                        LumenMotion.animation(.spring(duration: 0.3), reduceMotion: reduceMotion),
+                        value: currentPage
+                    )
             }
         }
         .accessibilityElement()
@@ -189,12 +193,29 @@ struct OnboardingView: View {
             endPoint: .bottom
         )
         .ignoresSafeArea()
-        .animation(.easeInOut(duration: 0.4), value: currentPage)
+        .animation(
+            LumenMotion.animation(.easeInOut(duration: 0.4), reduceMotion: reduceMotion),
+            value: currentPage
+        )
     }
 
     private func completeOnboarding() {
-        withAnimation(.easeOut(duration: 0.3)) {
+        LumenMotion.perform(.easeOut(duration: 0.3), reduceMotion: reduceMotion) {
             hasSeenOnboarding = true
+        }
+    }
+
+    @ViewBuilder
+    private func onboardingSymbol(for page: OnboardingPage) -> some View {
+        let symbol = Image(systemName: page.symbol)
+            .font(.system(size: 64, weight: .light))
+            .foregroundStyle(page.symbolColor)
+            .accessibilityHidden(true)
+
+        if reduceMotion {
+            symbol
+        } else {
+            symbol.symbolEffect(.pulse.byLayer, options: .repeating)
         }
     }
 }

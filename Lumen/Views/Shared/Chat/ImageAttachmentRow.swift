@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct ImageAttachmentRow: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var images: [UIImage]
     var onOCR: ((UIImage) -> Void)? = nil
 
@@ -18,7 +19,7 @@ struct ImageAttachmentRow: View {
             }
             .frame(height: 96)
             .background(.bar)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .transition(LumenMotion.moveTransition(edge: .bottom, reduceMotion: reduceMotion))
         }
     }
 

@@ -6,6 +6,7 @@ struct iPadContentView: View {
     @Environment(AppStore.self) private var appStore
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @SceneStorage("scene.ipadColumnVisibility") private var restoredColumnVisibility = "all"
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
@@ -20,7 +21,7 @@ struct iPadContentView: View {
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
+                            LumenMotion.perform(.easeInOut(duration: 0.2), reduceMotion: reduceMotion) {
                                 columnVisibility = columnVisibility == .all ? .detailOnly : .all
                             }
                         } label: {

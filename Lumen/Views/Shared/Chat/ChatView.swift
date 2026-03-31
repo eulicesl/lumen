@@ -3,6 +3,7 @@ import SwiftUI
 struct ChatView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var scrollProxy: ScrollViewProxy?
     @State private var isAtBottom = true
     @State private var showingComparison = false
@@ -28,7 +29,10 @@ struct ChatView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color(.systemBackground))
-        .animation(LumenAnimation.standard, value: showsScrollToBottomButton)
+        .animation(
+            LumenMotion.animation(LumenAnimation.standard, reduceMotion: reduceMotion),
+            value: showsScrollToBottomButton
+        )
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -161,11 +165,7 @@ struct ChatView: View {
 
     private var emptyMessagesPrompt: some View {
         VStack(spacing: LumenSpacing.xl) {
-            Image(systemName: "sparkle")
-                .font(.system(size: 56))
-                .foregroundStyle(.secondary)
-                .symbolRenderingMode(.hierarchical)
-                .symbolEffect(.pulse.wholeSymbol)
+            emptyPromptSymbol
 
             VStack(spacing: LumenSpacing.sm) {
                 Text("What can I help with?")
@@ -230,7 +230,7 @@ struct ChatView: View {
         .padding(.bottom, LumenSpacing.xl)
         .accessibilityLabel("Scroll to latest message")
         .accessibilityHint("Jumps to the newest message in the conversation")
-        .transition(.move(edge: .trailing).combined(with: .opacity))
+        .transition(LumenMotion.moveTransition(edge: .trailing, reduceMotion: reduceMotion))
     }
 
     private var starterPrompts: [SavedPrompt] {
@@ -245,7 +245,7 @@ struct ChatView: View {
 
     private func scrollToBottom(animated: Bool = true) {
         if animated {
-            withAnimation(LumenAnimation.standard) {
+            LumenMotion.perform(LumenAnimation.standard, reduceMotion: reduceMotion) {
                 scrollProxy?.scrollTo("bottom", anchor: .bottom)
             }
         } else {
@@ -255,11 +255,25 @@ struct ChatView: View {
 
     private func scrollToMessage(_ messageID: UUID, animated: Bool = true) {
         if animated {
-            withAnimation(LumenAnimation.standard) {
+            LumenMotion.perform(LumenAnimation.standard, reduceMotion: reduceMotion) {
                 scrollProxy?.scrollTo(messageID, anchor: .center)
             }
         } else {
             scrollProxy?.scrollTo(messageID, anchor: .center)
+        }
+    }
+
+    @ViewBuilder
+    private var emptyPromptSymbol: some View {
+        let symbol = Image(systemName: "sparkle")
+            .font(.system(size: 56))
+            .foregroundStyle(.secondary)
+            .symbolRenderingMode(.hierarchical)
+
+        if reduceMotion {
+            symbol
+        } else {
+            symbol.symbolEffect(.pulse.wholeSymbol)
         }
     }
 }

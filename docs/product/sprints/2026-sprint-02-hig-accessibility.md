@@ -11,11 +11,11 @@ Raise baseline Apple-platform quality by completing high-impact HIG/accessibilit
 - Dynamic Type/accessibility semantics audit for key interaction points.
 
 ## Acceptance Criteria
-- [ ] Settings primary screen uses large title style.
+- [x] Settings primary screen uses large title style.
 - [x] Pull-to-refresh available where users expect live refresh.
   - Notes: Implemented on conversation history and the model picker surfaces.
 - [x] Relaunch restores last active context for conversation/session state.
-- [ ] Symbol animations respect Reduce Motion settings.
+- [x] Symbol animations and major transitions respect Reduce Motion settings.
 - [ ] Critical controls expose labels/hints/values for assistive tech.
 
 ## Verification

@@ -59,7 +59,10 @@ struct LumenButton: View {
             .modifier(LumenButtonBackground(style: style))
             .scaleEffect(isPressed && !reduceMotion ? 0.96 : 1.0)
             .opacity(isEnabled ? 1.0 : 0.45)
-            .animation(LumenAnimation.snappy, value: isPressed)
+            .animation(
+                LumenMotion.animation(LumenAnimation.snappy, reduceMotion: reduceMotion),
+                value: isPressed
+            )
         }
         .buttonStyle(.plain)
         .onLongPressGesture(

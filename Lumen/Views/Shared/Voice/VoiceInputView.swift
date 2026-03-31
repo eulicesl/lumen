@@ -4,6 +4,7 @@ import SwiftUI
 struct VoiceInputView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var isRecording = false
     @State private var transcript = ""
@@ -102,7 +103,7 @@ struct VoiceInputView: View {
         VStack(spacing: LumenSpacing.lg) {
             if isRecording {
                 VoiceWaveformView(isAnimating: true, barCount: 7)
-                    .transition(.opacity.combined(with: .scale))
+                    .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
             }
 
             HStack(spacing: LumenSpacing.xxl) {
@@ -145,7 +146,10 @@ struct VoiceInputView: View {
         }
         .padding(.horizontal, LumenSpacing.xl)
         .padding(.vertical, LumenSpacing.lg)
-        .animation(LumenAnimation.standard, value: isRecording)
+        .animation(
+            LumenMotion.animation(LumenAnimation.standard, reduceMotion: reduceMotion),
+            value: isRecording
+        )
     }
 
     // MARK: - Actions

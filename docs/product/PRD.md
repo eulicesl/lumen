@@ -7,7 +7,7 @@
 ## 1) Objective
 Lumen is a privacy-first, native Apple-platform AI assistant targeting feature parity with core ChatGPT and Claude workflows while preserving Apple-grade design quality, accessibility, and performance.
 
-## 2) Current State Snapshot (code-verified on `main` @ `b1b04f2`)
+## 2) Current State Snapshot (code-verified on `main` @ `5e2a136`)
 ### Completed / no longer backlog
 - iPhone conversation picker uses `.sheet` (no longer `fullScreenCover`).
 - Success confirmation haptic on response completion is implemented.
@@ -15,6 +15,9 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 - Full-text search across message history is implemented.
 - Local document import supports PDF and text-based files.
 - Scroll-to-bottom affordance for long conversations is implemented.
+- Empty-chat starter prompts are implemented.
+- Settings uses large-title presentation on iOS.
+- Reduce Motion is respected across the major symbol-heavy and transition-heavy surfaces.
 
 ### Remaining top gaps
 #### P0
@@ -22,9 +25,7 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 - Accessibility labels/hints/values audit for critical controls.
 
 #### P1
-- Settings primary screen should use large title mode.
-- Reduce Motion behavior completion across symbol-heavy views.
-- Starter prompts/suggested replies for empty chats.
+- Copy feedback UX for code blocks and message copy actions.
 
 ### Current behavior to preserve while closing parity gaps
 - Preserve the shipped latest-turn regenerate flow while improving adjacent UX.
