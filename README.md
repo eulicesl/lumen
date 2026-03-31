@@ -47,6 +47,7 @@ xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Sim
 - Ship from `main` or a `release/*` branch cut from `main`.
 - Every shipped build must map to a commit SHA.
 - Use the checklist in `TESTFLIGHT_RELEASE_PROCESS.md` before any TestFlight release.
+- Use `docs/release/APP_STORE_SUBMISSION_CHECKLIST.md` before App Store submission.
 
 ## Product and design docs
 - Product PRD (execution): `docs/product/PRD.md`
@@ -54,3 +55,5 @@ xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Sim
 - Sprint micro PRDs: `docs/product/sprints/`
 - Design doc target path / current pointer: `docs/design/design.md`
 - Portfolio authorship note: `docs/PORTFOLIO_AUTHORSHIP.md`
+- App Store submission checklist: `docs/release/APP_STORE_SUBMISSION_CHECKLIST.md`
+- Release readiness status: `docs/release/RELEASE_READINESS.md`

@@ -48,6 +48,7 @@ Record for every release:
 - Upload only from the approved release commit.
 - Attach clear tester-facing release notes.
 - If a build is bad, expire it quickly and cut a patch build.
+- Before App Store submission, complete `docs/release/APP_STORE_SUBMISSION_CHECKLIST.md`.
 
 ## Post-upload QA
 After upload processes in TestFlight:

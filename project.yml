@@ -50,8 +50,6 @@ targets:
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_NSRemindersUsageDescription: Lumen uses Reminders to create and manage tasks.
-        INFOPLIST_KEY_NSCalendarsUsageDescription: Lumen uses Calendar to create and manage events.
         INFOPLIST_KEY_NSPhotoLibraryUsageDescription: Lumen uses your photo library for image analysis.
         INFOPLIST_KEY_NSCameraUsageDescription: Lumen uses your camera for image analysis.
     scheme:
