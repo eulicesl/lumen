@@ -16,6 +16,7 @@ final class ChatStore {
     var pendingImageData: [Data] = []
     var agentModeEnabled: Bool = false
     var agentEvents: [AgentEvent] = []
+    var editingMessageID: UUID?
     var focusedMessageID: UUID?
 
     private let aiService = AIService.shared
@@ -58,6 +59,7 @@ final class ChatStore {
         _ conversation: Conversation,
         focusingOn messageID: UUID?
     ) async {
+        self.editingMessageID = nil
         selectedConversation = conversation
         focusedMessageID = messageID
         do {
@@ -72,8 +74,34 @@ final class ChatStore {
         }
     }
 
+    // MARK: - Message editing
+
+    var isEditingMessage: Bool { editingMessageID != nil }
+
+    var editingMessagePreview: String? {
+        guard let editingMessageID else { return nil }
+        return messages
+            .first(where: { $0.id == editingMessageID })?
+            .content
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func beginEditing(_ message: ChatMessage) {
+        guard message.isUser, !message.hasImages else { return }
+        editingMessageID = message.id
+        inputText = message.content
+        pendingImageData = []
+    }
+
+    func cancelEditing() {
+        self.editingMessageID = nil
+        inputText = ""
+        pendingImageData = []
+    }
+
     func createNewConversation() async {
         do {
+            editingMessageID = nil
             let id = try await dataService.createConversation()
             let new = try await dataService.fetchConversation(id: id)
             if let conv = new {
@@ -95,13 +123,13 @@ final class ChatStore {
         guard let idx = messages.firstIndex(of: message) else { return }
 
         let messagesToKeep = Array(messages[...idx])
-        let branchTitle = "Branch: \(String(conversation.title.prefix(35)))"
 
         do {
-            let newID = try await dataService.createConversation(title: branchTitle)
-            for msg in messagesToKeep {
-                try await dataService.addMessage(msg, to: newID)
-            }
+            let newID = try await dataService.createConversation(
+                title: branchTitle(for: conversation),
+                systemPrompt: conversation.systemPrompt
+            )
+            try await dataService.addMessages(messagesToKeep, to: newID)
             guard let newConv = try await dataService.fetchConversation(id: newID) else { return }
             conversations.insert(newConv, at: 0)
             await selectConversation(newConv)
@@ -122,6 +150,16 @@ final class ChatStore {
         guard let conversation = selectedConversation else { return }
         guard let model = currentModel else { return }
 
+        if let editingMessageID {
+            await sendEditedMessage(
+                editingMessageID: editingMessageID,
+                editedText: text,
+                conversation: conversation,
+                model: model
+            )
+            return
+        }
+
         inputText = ""
         pendingImageData = []
         agentEvents = []
@@ -130,46 +168,66 @@ final class ChatStore {
         let userMessage = ChatMessage.userMessage(text, imageData: images.isEmpty ? nil : images)
         messages.append(userMessage)
         try? await dataService.addMessage(userMessage, to: conversation.id)
+        beginStreamingReply(
+            model: model,
+            conversation: conversation,
+            promptText: text
+        )
+    }
 
-        let placeholder = ChatMessage.streamingPlaceholder(model: model)
-        messages.append(placeholder)
+    private func sendEditedMessage(
+        editingMessageID: UUID,
+        editedText: String,
+        conversation: Conversation,
+        model: AIModel
+    ) async {
+        guard let plan = ConversationEditEngine.plan(
+            messages: messages,
+            editingMessageID: editingMessageID,
+            replacementText: editedText
+        ) else {
+            AppStore.shared.activeAlert = AppAlert(
+                title: "Unable to Edit Message",
+                message: "Only completed text user messages can be edited from history."
+            )
+            return
+        }
 
-        conversationState = .generating
-        timeToFirstToken = nil
-        let startTime = Date()
-        let assistantIndex = messages.count - 1
+        inputText = ""
+        pendingImageData = []
+        agentEvents = []
+        self.editingMessageID = nil
 
-        // Build options with memory injection
-        let memoryContext = MemoryStore.shared.contextString
-        let basePrompt = conversation.systemPrompt ?? ""
-        let fullPrompt = [memoryContext, basePrompt].filter { !$0.isEmpty }.joined(separator: "\n\n")
-        let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
-        let context = Array(messages.dropLast())
+        do {
+            let newConversationID = try await dataService.createConversation(
+                title: branchTitle(for: conversation),
+                systemPrompt: conversation.systemPrompt
+            )
+            try await dataService.addMessages(
+                plan.preservedMessages + [plan.editedMessage],
+                to: newConversationID
+            )
 
-        if agentModeEnabled {
-            streamTask = Task { @MainActor in
-                await self.runAgentStream(
-                    context: context,
-                    model: model,
-                    options: options,
-                    assistantIndex: assistantIndex,
-                    startTime: startTime,
-                    conversation: conversation,
-                    promptText: text
-                )
+            guard let branchedConversation = try await dataService.fetchConversation(id: newConversationID) else {
+                throw DataError.conversationNotFound(newConversationID)
             }
-        } else {
-            streamTask = Task { @MainActor in
-                await self.runDirectStream(
-                    context: context,
-                    model: model,
-                    options: options,
-                    assistantIndex: assistantIndex,
-                    startTime: startTime,
-                    conversation: conversation,
-                    promptText: text
-                )
-            }
+
+            conversations.insert(branchedConversation, at: 0)
+            selectedConversation = branchedConversation
+            messages = plan.contextMessages
+
+            HapticEngine.impact(.medium)
+            beginStreamingReply(
+                model: model,
+                conversation: branchedConversation,
+                promptText: editedText
+            )
+        } catch {
+            AppStore.shared.activeAlert = AppAlert(
+                title: "Edit Failed",
+                message: error.localizedDescription
+            )
+            conversationState = .idle
         }
     }
 
@@ -316,34 +374,18 @@ final class ChatStore {
         let startTime = Date()
         let assistantIndex = messages.count - 1
 
-        let memoryContext = MemoryStore.shared.contextString
-        let basePrompt = conversation.systemPrompt ?? ""
-        let fullPrompt = [memoryContext, basePrompt]
-            .filter { !$0.isEmpty }
-            .joined(separator: "\n\n")
-        let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
-
         // Context is everything except the new placeholder
         let context = Array(messages.dropLast())
         let promptText = context.last(where: { $0.isUser })?.content ?? ""
-
-        if agentModeEnabled {
-            streamTask = Task { @MainActor in
-                await self.runAgentStream(
-                    context: context, model: model, options: options,
-                    assistantIndex: assistantIndex, startTime: startTime,
-                    conversation: conversation, promptText: promptText
-                )
-            }
-        } else {
-            streamTask = Task { @MainActor in
-                await self.runDirectStream(
-                    context: context, model: model, options: options,
-                    assistantIndex: assistantIndex, startTime: startTime,
-                    conversation: conversation, promptText: promptText
-                )
-            }
-        }
+        startStream(
+            context: context,
+            model: model,
+            options: chatOptions(for: conversation),
+            assistantIndex: assistantIndex,
+            startTime: startTime,
+            conversation: conversation,
+            promptText: promptText
+        )
     }
 
     // MARK: - Export / Share
@@ -405,6 +447,7 @@ final class ChatStore {
             conversations = []
             selectedConversation = nil
             messages = []
+            editingMessageID = nil
             focusedMessageID = nil
             Task.detached(priority: .background) {
                 await SpotlightService.shared.deleteAll()
@@ -446,5 +489,113 @@ final class ChatStore {
             try await dataService.toggleConversationPin(id: conversation.id)
             await loadConversations()
         } catch {}
+    }
+
+    private func branchTitle(for conversation: Conversation) -> String {
+        "Branch: \(String(conversation.title.prefix(35)))"
+    }
+
+    private func chatOptions(for conversation: Conversation) -> ChatOptions {
+        let memoryContext = MemoryStore.shared.contextString
+        let basePrompt = conversation.systemPrompt ?? ""
+        let fullPrompt = [memoryContext, basePrompt]
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n\n")
+        return ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
+    }
+
+    private func beginStreamingReply(
+        model: AIModel,
+        conversation: Conversation,
+        promptText: String
+    ) {
+        let placeholder = ChatMessage.streamingPlaceholder(model: model)
+        messages.append(placeholder)
+
+        conversationState = .generating
+        timeToFirstToken = nil
+        let startTime = Date()
+        let assistantIndex = messages.count - 1
+        let context = Array(messages.dropLast())
+
+        startStream(
+            context: context,
+            model: model,
+            options: chatOptions(for: conversation),
+            assistantIndex: assistantIndex,
+            startTime: startTime,
+            conversation: conversation,
+            promptText: promptText
+        )
+    }
+
+    private func startStream(
+        context: [ChatMessage],
+        model: AIModel,
+        options: ChatOptions,
+        assistantIndex: Int,
+        startTime: Date,
+        conversation: Conversation,
+        promptText: String
+    ) {
+        if agentModeEnabled {
+            streamTask = Task { @MainActor in
+                await self.runAgentStream(
+                    context: context,
+                    model: model,
+                    options: options,
+                    assistantIndex: assistantIndex,
+                    startTime: startTime,
+                    conversation: conversation,
+                    promptText: promptText
+                )
+            }
+        } else {
+            streamTask = Task { @MainActor in
+                await self.runDirectStream(
+                    context: context,
+                    model: model,
+                    options: options,
+                    assistantIndex: assistantIndex,
+                    startTime: startTime,
+                    conversation: conversation,
+                    promptText: promptText
+                )
+            }
+        }
+    }
+}
+
+struct ConversationEditPlan: Equatable {
+    let preservedMessages: [ChatMessage]
+    let editedMessage: ChatMessage
+
+    var contextMessages: [ChatMessage] {
+        preservedMessages + [editedMessage]
+    }
+}
+
+enum ConversationEditEngine {
+    static func plan(
+        messages: [ChatMessage],
+        editingMessageID: UUID,
+        replacementText: String
+    ) -> ConversationEditPlan? {
+        guard let index = messages.firstIndex(where: { $0.id == editingMessageID }) else {
+            return nil
+        }
+
+        let originalMessage = messages[index]
+        guard originalMessage.isUser, originalMessage.isComplete, !originalMessage.isError, !originalMessage.hasImages else {
+            return nil
+        }
+
+        let preservedMessages = Array(messages[..<index])
+        let editedMessage = ChatMessage.userMessage(replacementText)
+
+        return ConversationEditPlan(
+            preservedMessages: preservedMessages,
+            editedMessage: editedMessage
+        )
     }
 }
