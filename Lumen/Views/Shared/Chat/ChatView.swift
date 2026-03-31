@@ -129,7 +129,7 @@ struct ChatView: View {
                 .coordinateSpace(name: "messageScroll")
                 .scrollDismissesKeyboard(.interactively)
                 .onPreferenceChange(BottomMarkerMaxYKey.self) { maxY in
-                    isAtBottom = maxY <= geo.size.height + 32
+                    isAtBottom = maxY <= geo.size.height + LumenSpacing.xxl
                 }
                 .onAppear {
                     scrollProxy = proxy
