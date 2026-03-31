@@ -1,7 +1,7 @@
 import Foundation
+
 #if canImport(FoundationModels)
 import FoundationModels
-#endif
 
 actor FoundationModelsProvider: AIProvider {
     let id = "foundationModels"
@@ -57,14 +57,6 @@ actor FoundationModelsProvider: AIProvider {
             }
         }
     }
-
-    // MARK: - iOS 26 Foundation Models streaming
-    //
-    // API reference (iOS 26 / WWDC 2025):
-    //   LanguageModelSession(instructions:)            – session with optional system instructions
-    //   session.streamResponse(to: String) -> ...     – streams LanguageModelStreamedResponse
-    //   response.text                                 – the partial accumulated text per fragment
-    //   SystemLanguageModel.default.isAvailable       – availability gate
 
     @available(iOS 26.0, macOS 26.0, *)
     private func streamWithFoundationModels(
@@ -211,3 +203,32 @@ actor FoundationModelsProvider: AIProvider {
         }
     }
 }
+#else
+actor FoundationModelsProvider: AIProvider {
+    let id = "foundationModels"
+    let displayName = "Apple Intelligence"
+    let providerType: AIProviderType = .foundationModels
+
+    func checkAvailability() async -> Bool { false }
+
+    func listModels() async throws -> [AIModel] {
+        throw AIProviderError.unavailable(
+            "Apple Intelligence requires the Foundation Models framework."
+        )
+    }
+
+    func chat(
+        messages: [ChatMessage],
+        model: AIModel,
+        options: ChatOptions
+    ) -> AsyncThrowingStream<ChatToken, Error> {
+        AsyncThrowingStream { continuation in
+            continuation.finish(
+                throwing: AIProviderError.unavailable(
+                    "Apple Intelligence requires iOS 26 or macOS 26."
+                )
+            )
+        }
+    }
+}
+#endif

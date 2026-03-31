@@ -39,27 +39,13 @@ struct GlassContainer<Content: View>: View {
     var body: some View {
         if #available(iOS 26.0, macOS 26.0, *) {
             GlassEffectContainer {
-                content
-                    .padding(padding)
-                    .glassEffect(glassStyle, in: clipShapeView)
+                glassContent
             }
         } else {
             content
                 .padding(padding)
                 .background(.regularMaterial, in: clipShapeView)
                 .clipShape(clipShapeView)
-        }
-    }
-
-    @available(iOS 26.0, macOS 26.0, *)
-    private var glassStyle: Glass {
-        switch style {
-        case .regular:
-            return .regular
-        case .interactive:
-            return .regular.interactive()
-        case .prominent:
-            return .regular.tint(.accentColor)
         }
     }
 
@@ -71,6 +57,25 @@ struct GlassContainer<Content: View>: View {
             AnyShape(Capsule())
         case .roundedRectangle(let radius):
             AnyShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+        }
+    }
+
+    @available(iOS 26.0, macOS 26.0, *)
+    @ViewBuilder
+    private var glassContent: some View {
+        switch style {
+        case .regular:
+            content
+                .padding(padding)
+                .glassEffect(.regular, in: clipShapeView)
+        case .interactive:
+            content
+                .padding(padding)
+                .glassEffect(.regular.interactive(), in: clipShapeView)
+        case .prominent:
+            content
+                .padding(padding)
+                .glassEffect(.regular.tint(.accentColor), in: clipShapeView)
         }
     }
 }
@@ -94,6 +99,7 @@ extension View {
         }
     }
 }
+
 
 #Preview {
     ZStack {
