@@ -168,15 +168,24 @@ struct SearchView: View {
 
         isSearching = true
 
-        searchTask = Task { @MainActor in
+        searchTask = Task {
             try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }
 
-            results = ConversationSearchEngine.search(
-                trimmedQuery,
-                in: chatStore.conversations
-            )
-            isSearching = false
+            let conversations = await MainActor.run { chatStore.conversations }
+            let searchResults = await Task.detached(priority: .userInitiated) {
+                ConversationSearchEngine.search(
+                    trimmedQuery,
+                    in: conversations
+                )
+            }.value
+
+            guard !Task.isCancelled else { return }
+
+            await MainActor.run {
+                results = searchResults
+                isSearching = false
+            }
         }
     }
 
@@ -197,111 +206,6 @@ struct SearchView: View {
             appStore.selectedTab = .chat
             dismiss()
         }
-    }
-}
-
-// MARK: - Supporting types
-
-struct ConversationSearchResult: Identifiable {
-    let id: UUID
-    let section: SearchSection
-    let title: String
-    let subtitle: String
-    let conversation: Conversation
-    let matchedMessageID: UUID?
-
-    var symbolName: String {
-        matchedMessageID == nil ? LumenIcon.chat : "text.bubble"
-    }
-}
-
-enum SearchSection: CaseIterable {
-    case conversations, messages
-
-    var label: String {
-        switch self {
-        case .conversations: return "Conversations"
-        case .messages:      return "Messages"
-        }
-    }
-}
-
-enum ConversationSearchEngine {
-    static let maxMessageMatchesPerConversation = 5
-
-    static func search(
-        _ rawQuery: String,
-        in conversations: [Conversation]
-    ) -> [ConversationSearchResult] {
-        let query = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return [] }
-
-        let normalizedQuery = query.lowercased()
-        var results: [ConversationSearchResult] = []
-
-        for conversation in conversations {
-            if conversation.title.lowercased().contains(normalizedQuery) {
-                results.append(
-                    ConversationSearchResult(
-                        id: conversation.id,
-                        section: .conversations,
-                        title: conversation.title,
-                        subtitle: conversation.preview.isEmpty ? "No messages" : conversation.preview,
-                        conversation: conversation,
-                        matchedMessageID: nil
-                    )
-                )
-            }
-
-            let messageMatches = conversation.messages
-                .filter { !$0.isSystem && !$0.content.isEmpty }
-                .filter { $0.content.lowercased().contains(normalizedQuery) }
-                .prefix(maxMessageMatchesPerConversation)
-
-            for message in messageMatches {
-                results.append(
-                    ConversationSearchResult(
-                        id: message.id,
-                        section: .messages,
-                        title: "\(conversation.title) · \(message.role.displayName)",
-                        subtitle: highlightedExcerpt(
-                            from: message.content,
-                            around: normalizedQuery
-                        ),
-                        conversation: conversation,
-                        matchedMessageID: message.id
-                    )
-                )
-            }
-        }
-
-        return results
-    }
-
-    static func highlightedExcerpt(
-        from text: String,
-        around normalizedQuery: String
-    ) -> String {
-        let lower = text.lowercased()
-        guard let range = lower.range(of: normalizedQuery) else {
-            return String(text.prefix(80))
-        }
-
-        let start = lower.index(
-            range.lowerBound,
-            offsetBy: -20,
-            limitedBy: lower.startIndex
-        ) ?? lower.startIndex
-        let end = lower.index(
-            range.upperBound,
-            offsetBy: 60,
-            limitedBy: lower.endIndex
-        ) ?? lower.endIndex
-        let slice = String(text[start..<end])
-
-        return (start > lower.startIndex ? "…" : "")
-            + slice
-            + (end < lower.endIndex ? "…" : "")
     }
 }
 
