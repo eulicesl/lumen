@@ -110,16 +110,13 @@ final class ChatStore {
         guard let idx = messages.firstIndex(of: message) else { return }
 
         let messagesToKeep = Array(messages[...idx])
-        let branchTitle = "Branch: \(String(conversation.title.prefix(35)))"
 
         do {
             let newID = try await dataService.createConversation(
-                title: branchTitle,
+                title: branchTitle(for: conversation),
                 systemPrompt: conversation.systemPrompt
             )
-            for msg in messagesToKeep {
-                try await dataService.addMessage(msg, to: newID)
-            }
+            try await dataService.addMessages(messagesToKeep, to: newID)
             guard let newConv = try await dataService.fetchConversation(id: newID) else { return }
             conversations.insert(newConv, at: 0)
             await selectConversation(newConv)
@@ -157,47 +154,11 @@ final class ChatStore {
         let userMessage = ChatMessage.userMessage(text, imageData: images.isEmpty ? nil : images)
         messages.append(userMessage)
         try? await dataService.addMessage(userMessage, to: conversation.id)
-
-        let placeholder = ChatMessage.streamingPlaceholder(model: model)
-        messages.append(placeholder)
-
-        conversationState = .generating
-        timeToFirstToken = nil
-        let startTime = Date()
-        let assistantIndex = messages.count - 1
-
-        // Build options with memory injection
-        let memoryContext = MemoryStore.shared.contextString
-        let basePrompt = conversation.systemPrompt ?? ""
-        let fullPrompt = [memoryContext, basePrompt].filter { !$0.isEmpty }.joined(separator: "\n\n")
-        let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
-        let context = Array(messages.dropLast())
-
-        if agentModeEnabled {
-            streamTask = Task { @MainActor in
-                await self.runAgentStream(
-                    context: context,
-                    model: model,
-                    options: options,
-                    assistantIndex: assistantIndex,
-                    startTime: startTime,
-                    conversation: conversation,
-                    promptText: text
-                )
-            }
-        } else {
-            streamTask = Task { @MainActor in
-                await self.runDirectStream(
-                    context: context,
-                    model: model,
-                    options: options,
-                    assistantIndex: assistantIndex,
-                    startTime: startTime,
-                    conversation: conversation,
-                    promptText: text
-                )
-            }
-        }
+        beginStreamingReply(
+            model: model,
+            conversation: conversation,
+            promptText: text
+        )
     }
 
     private func sendEditedMessage(
@@ -223,17 +184,15 @@ final class ChatStore {
         agentEvents = []
         self.editingMessageID = nil
 
-        let branchTitle = "Branch: \(String(conversation.title.prefix(35)))"
-
         do {
             let newConversationID = try await dataService.createConversation(
-                title: branchTitle,
+                title: branchTitle(for: conversation),
                 systemPrompt: conversation.systemPrompt
             )
-            for preservedMessage in plan.preservedMessages {
-                try await dataService.addMessage(preservedMessage, to: newConversationID)
-            }
-            try await dataService.addMessage(plan.editedMessage, to: newConversationID)
+            try await dataService.addMessages(
+                plan.preservedMessages + [plan.editedMessage],
+                to: newConversationID
+            )
 
             guard let branchedConversation = try await dataService.fetchConversation(id: newConversationID) else {
                 throw DataError.conversationNotFound(newConversationID)
@@ -244,48 +203,11 @@ final class ChatStore {
             messages = plan.contextMessages
 
             HapticEngine.impact(.medium)
-
-            let placeholder = ChatMessage.streamingPlaceholder(model: model)
-            messages.append(placeholder)
-
-            conversationState = .generating
-            timeToFirstToken = nil
-            let startTime = Date()
-            let assistantIndex = messages.count - 1
-
-            let memoryContext = MemoryStore.shared.contextString
-            let basePrompt = branchedConversation.systemPrompt ?? ""
-            let fullPrompt = [memoryContext, basePrompt]
-                .filter { !$0.isEmpty }
-                .joined(separator: "\n\n")
-            let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
-            let context = Array(messages.dropLast())
-
-            if agentModeEnabled {
-                streamTask = Task { @MainActor in
-                    await self.runAgentStream(
-                        context: context,
-                        model: model,
-                        options: options,
-                        assistantIndex: assistantIndex,
-                        startTime: startTime,
-                        conversation: branchedConversation,
-                        promptText: editedText
-                    )
-                }
-            } else {
-                streamTask = Task { @MainActor in
-                    await self.runDirectStream(
-                        context: context,
-                        model: model,
-                        options: options,
-                        assistantIndex: assistantIndex,
-                        startTime: startTime,
-                        conversation: branchedConversation,
-                        promptText: editedText
-                    )
-                }
-            }
+            beginStreamingReply(
+                model: model,
+                conversation: branchedConversation,
+                promptText: editedText
+            )
         } catch {
             AppStore.shared.activeAlert = AppAlert(
                 title: "Edit Failed",
@@ -438,34 +360,18 @@ final class ChatStore {
         let startTime = Date()
         let assistantIndex = messages.count - 1
 
-        let memoryContext = MemoryStore.shared.contextString
-        let basePrompt = conversation.systemPrompt ?? ""
-        let fullPrompt = [memoryContext, basePrompt]
-            .filter { !$0.isEmpty }
-            .joined(separator: "\n\n")
-        let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
-
         // Context is everything except the new placeholder
         let context = Array(messages.dropLast())
         let promptText = context.last(where: { $0.isUser })?.content ?? ""
-
-        if agentModeEnabled {
-            streamTask = Task { @MainActor in
-                await self.runAgentStream(
-                    context: context, model: model, options: options,
-                    assistantIndex: assistantIndex, startTime: startTime,
-                    conversation: conversation, promptText: promptText
-                )
-            }
-        } else {
-            streamTask = Task { @MainActor in
-                await self.runDirectStream(
-                    context: context, model: model, options: options,
-                    assistantIndex: assistantIndex, startTime: startTime,
-                    conversation: conversation, promptText: promptText
-                )
-            }
-        }
+        startStream(
+            context: context,
+            model: model,
+            options: chatOptions(for: conversation),
+            assistantIndex: assistantIndex,
+            startTime: startTime,
+            conversation: conversation,
+            promptText: promptText
+        )
     }
 
     // MARK: - Export / Share
@@ -568,6 +474,80 @@ final class ChatStore {
             try await dataService.toggleConversationPin(id: conversation.id)
             await loadConversations()
         } catch {}
+    }
+
+    private func branchTitle(for conversation: Conversation) -> String {
+        "Branch: \(String(conversation.title.prefix(35)))"
+    }
+
+    private func chatOptions(for conversation: Conversation) -> ChatOptions {
+        let memoryContext = MemoryStore.shared.contextString
+        let basePrompt = conversation.systemPrompt ?? ""
+        let fullPrompt = [memoryContext, basePrompt]
+            .filter { !$0.isEmpty }
+            .joined(separator: "\n\n")
+        return ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
+    }
+
+    private func beginStreamingReply(
+        model: AIModel,
+        conversation: Conversation,
+        promptText: String
+    ) {
+        let placeholder = ChatMessage.streamingPlaceholder(model: model)
+        messages.append(placeholder)
+
+        conversationState = .generating
+        timeToFirstToken = nil
+        let startTime = Date()
+        let assistantIndex = messages.count - 1
+        let context = Array(messages.dropLast())
+
+        startStream(
+            context: context,
+            model: model,
+            options: chatOptions(for: conversation),
+            assistantIndex: assistantIndex,
+            startTime: startTime,
+            conversation: conversation,
+            promptText: promptText
+        )
+    }
+
+    private func startStream(
+        context: [ChatMessage],
+        model: AIModel,
+        options: ChatOptions,
+        assistantIndex: Int,
+        startTime: Date,
+        conversation: Conversation,
+        promptText: String
+    ) {
+        if agentModeEnabled {
+            streamTask = Task { @MainActor in
+                await self.runAgentStream(
+                    context: context,
+                    model: model,
+                    options: options,
+                    assistantIndex: assistantIndex,
+                    startTime: startTime,
+                    conversation: conversation,
+                    promptText: promptText
+                )
+            }
+        } else {
+            streamTask = Task { @MainActor in
+                await self.runDirectStream(
+                    context: context,
+                    model: model,
+                    options: options,
+                    assistantIndex: assistantIndex,
+                    startTime: startTime,
+                    conversation: conversation,
+                    promptText: promptText
+                )
+            }
+        }
     }
 }
 

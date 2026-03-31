@@ -73,6 +73,22 @@ struct DataServiceTests {
         #expect(messages.isEmpty)
     }
 
+    @Test("Batch add messages preserves order")
+    func batchAddMessages() async throws {
+        let service = DataService.forTesting()
+        let conversationID = try await service.createConversation(title: "Batch Message Test")
+        let messagesToInsert = [
+            ChatMessage.userMessage("First"),
+            ChatMessage.assistantMessage("Second"),
+            ChatMessage.userMessage("Third")
+        ]
+
+        try await service.addMessages(messagesToInsert, to: conversationID)
+
+        let fetched = try await service.fetchMessages(for: conversationID)
+        #expect(fetched.map(\.content) == ["First", "Second", "Third"])
+    }
+
     @Test("Toggle conversation pin status")
     func toggleConversationPin() async throws {
         let service = DataService.forTesting()
