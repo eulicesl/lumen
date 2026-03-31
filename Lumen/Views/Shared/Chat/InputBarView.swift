@@ -105,7 +105,6 @@ struct InputBarView: View {
         .padding(.horizontal, LumenSpacing.md)
         .padding(.top, LumenSpacing.xs)
     }
-    }
 
     // MARK: - Media buttons (iOS only)
 
@@ -265,6 +264,13 @@ struct InputBarView: View {
         #endif
     }
 
+    private func cancelEditing() {
+        chatStore.cancelEditing()
+        #if os(iOS)
+        selectedImages = []
+        #endif
+    }
+
     private func handleDocumentImport(_ result: Result<[URL], Error>) {
         switch result {
         case .success(let urls):
@@ -306,13 +312,6 @@ struct InputBarView: View {
 
     private func removeDocument(_ document: ImportedDocument) {
         chatStore.pendingDocuments.removeAll { $0.id == document.id }
-    }
-
-    private func cancelEditing() {
-        chatStore.cancelEditing()
-        #if os(iOS)
-        selectedImages = []
-        #endif
     }
 
     #if os(iOS)
