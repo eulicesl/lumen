@@ -29,22 +29,22 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
   - Status: Not Started
 
 ## ChatGPT Core Parity
-- [ ] True message edit with branch-aware regeneration timeline.  
+- [x] True message edit with branch-aware regeneration timeline.  
   - Priority: P0  
-  - Status: Not Started
-- [ ] Full-text search across message history.  
+  - Status: Done
+- [x] Full-text search across message history.  
   - Priority: P0  
-  - Status: Not Started
+  - Status: Done
   - Notes: Implement against the existing hydrated conversation/message model first; add indexing only if profiling shows it is necessary.
-- [ ] File upload pipeline (PDF/text/code/docs), not image-only.  
+- [x] File upload pipeline (PDF/text/code/docs), not image-only.  
   - Priority: P0  
-  - Status: Not Started
+  - Status: Done
 - [ ] Starter prompts/suggested replies for empty chat states.  
   - Priority: P1  
   - Status: Not Started
-- [ ] Scroll-to-bottom affordance for long conversations.  
+- [x] Scroll-to-bottom affordance for long conversations.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
 - [ ] Copy feedback UX for code blocks and message copy actions.  
   - Priority: P1  
   - Status: Not Started
@@ -72,11 +72,11 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
   - Status: Not Started
 
 ## Sprint Mapping
-- Sprint 01: P0 parity trio (edit/regenerate, full-text search, doc uploads)
+- Sprint 01: Completed P0 parity trio (edit/regenerate, full-text search, doc uploads)
 - Sprint 02: HIG + accessibility fundamentals
-- Sprint 03: UX parity polish (suggestions, scroll affordance, copy feedback, thinking UX)
+- Sprint 03: UX parity polish (suggestions, copy feedback, thinking UX)
 - Sprint 04: Security + reliability (Keychain, network state, retry UX)
 
 ## Execution Notes
-- Preserve current regenerate behavior for the most recent assistant response while extending the model to support edit-from-history.
-- Preserve the existing user-message "Edit & Resend" affordance as the transitional baseline, not the end state.
+- Preserve current regenerate behavior for the most recent assistant response while improving adjacent chat UX.
+- Preserve the shipped user-message edit-from-history flow rather than regressing to a simpler resend-only model.

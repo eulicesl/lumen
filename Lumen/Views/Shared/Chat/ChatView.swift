@@ -11,17 +11,24 @@ struct ChatView: View {
     var showsConversationTools: Bool = true
 
     var body: some View {
-        VStack(spacing: 0) {
-            if chatStore.selectedConversation == nil {
-                emptyConversationPrompt
-            } else if chatStore.messages.isEmpty && chatStore.conversationState != .generating {
-                emptyMessagesPrompt
-            } else {
-                messageList
+        ZStack(alignment: .bottomTrailing) {
+            VStack(spacing: 0) {
+                if chatStore.selectedConversation == nil {
+                    emptyConversationPrompt
+                } else if chatStore.messages.isEmpty && chatStore.conversationState != .generating {
+                    emptyMessagesPrompt
+                } else {
+                    messageList
+                }
+            }
+
+            if showsScrollToBottomButton {
+                scrollToBottomButton
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(Color(.systemBackground))
+        .animation(LumenAnimation.standard, value: showsScrollToBottomButton)
         .navigationTitle(chatStore.selectedConversation?.title ?? "Lumen")
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -106,12 +113,24 @@ struct ChatView: View {
                         Color.clear
                             .frame(height: 1)
                             .id("bottom")
+                            .background(
+                                GeometryReader { marker in
+                                    Color.clear.preference(
+                                        key: BottomMarkerMaxYKey.self,
+                                        value: marker.frame(in: .named("messageScroll")).maxY
+                                    )
+                                }
+                            )
                     }
                     .frame(minHeight: geo.size.height - LumenSpacing.md, alignment: .bottom)
                     .padding(.top, LumenSpacing.sm)
                     .padding(.bottom, LumenSpacing.sm)
                 }
+                .coordinateSpace(name: "messageScroll")
                 .scrollDismissesKeyboard(.interactively)
+                .onPreferenceChange(BottomMarkerMaxYKey.self) { maxY in
+                    isAtBottom = maxY <= geo.size.height + LumenSpacing.xxl
+                }
                 .onAppear {
                     scrollProxy = proxy
                     if let focusedMessageID = chatStore.focusedMessageID {
@@ -168,6 +187,28 @@ struct ChatView: View {
 
     // MARK: - Helpers
 
+    private var showsScrollToBottomButton: Bool {
+        !isAtBottom && chatStore.messages.count > 1
+    }
+
+    private var scrollToBottomButton: some View {
+        Button {
+            chatStore.focusedMessageID = nil
+            scrollToBottom()
+        } label: {
+            Image(systemName: "arrow.down.circle.fill")
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(.white, Color.accentColor)
+                .shadow(color: .black.opacity(0.16), radius: 12, y: 4)
+        }
+        .buttonStyle(.plain)
+        .padding(.trailing, LumenSpacing.lg)
+        .padding(.bottom, LumenSpacing.xl)
+        .accessibilityLabel("Scroll to latest message")
+        .accessibilityHint("Jumps to the newest message in the conversation")
+        .transition(.move(edge: .trailing).combined(with: .opacity))
+    }
+
     private func scrollToBottom(animated: Bool = true) {
         if animated {
             withAnimation(LumenAnimation.standard) {
@@ -186,6 +227,14 @@ struct ChatView: View {
         } else {
             scrollProxy?.scrollTo(messageID, anchor: .center)
         }
+    }
+}
+
+private struct BottomMarkerMaxYKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

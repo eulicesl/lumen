@@ -1,5 +1,7 @@
 # Micro PRD — Sprint 01: Core P0 Parity
 
+**Status:** Delivered on `main`
+
 ## Goal
 Deliver the three highest-impact parity blockers: message edit/regenerate correctness, full-text search, and document uploads.
 
@@ -14,10 +16,10 @@ Deliver the three highest-impact parity blockers: message edit/regenerate correc
 - Advanced voice mode.
 
 ## Acceptance Criteria
-- [ ] User can edit a past user message and regenerate from that point.
-- [ ] Search returns matches from message history, not just conversation metadata.
-- [ ] Users can attach at least PDF + plain text + source files and send successfully.
-- [ ] Error states for unsupported/oversized files are user-friendly.
+- [x] User can edit a past user message and regenerate from that point.
+- [x] Search returns matches from message history, not just conversation metadata.
+- [x] Users can attach at least PDF + plain text + source files and send successfully.
+- [x] Error states for unsupported/oversized files are user-friendly.
 
 ## Engineering Notes
 - Touch points: `MessageBubbleView`, `ChatStore`, `SearchView`, `ChatView`, `DataService`, `InputBarView`, `ChatMessage`, file extraction service.
@@ -30,5 +32,5 @@ Deliver the three highest-impact parity blockers: message edit/regenerate correc
 
 ## Verification
 - Build succeeds for iOS target.
-- Unit tests for search and edited-message timeline behavior.
-- Manual scenario checks for mixed text + file attachments.
+- Unit tests cover search, edited-message timeline behavior, and document prompt composition.
+- Manual scenario checks are still recommended for mixed text + file attachments and long-thread navigation.
