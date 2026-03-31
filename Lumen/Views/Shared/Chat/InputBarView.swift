@@ -108,7 +108,6 @@ struct InputBarView: View {
         .padding(.horizontal, LumenSpacing.md)
         .padding(.top, LumenSpacing.xs)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Last response failed")
         .accessibilityHint("Retries the most recent assistant response")
     }
 

@@ -384,11 +384,8 @@ final class ChatStore {
 
         HapticEngine.impact(.medium)
         agentEvents = []
-
-        let context = messages
-        let promptText = context.last(where: { $0.isUser })?.content ?? ""
-        restartStream(
-            context: context,
+        let promptText = messages.last(where: { $0.isUser })?.content ?? ""
+        beginStreamingReply(
             model: model,
             conversation: conversation,
             promptText: promptText
@@ -403,11 +400,8 @@ final class ChatStore {
         messages.removeLast()
         agentEvents = []
         HapticEngine.impact(.medium)
-
-        let context = messages
-        let promptText = context.last(where: { $0.isUser })?.content ?? ""
-        restartStream(
-            context: context,
+        let promptText = messages.last(where: { $0.isUser })?.content ?? ""
+        beginStreamingReply(
             model: model,
             conversation: conversation,
             promptText: promptText
