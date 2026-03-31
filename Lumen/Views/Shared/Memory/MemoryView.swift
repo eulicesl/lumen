@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MemoryView: View {
     @Environment(MemoryStore.self) private var memoryStore
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showingAddSheet = false
     @State private var editingItem: MemoryItem? = nil
     @State private var selectedCategory: MemoryCategory? = nil
@@ -141,6 +142,10 @@ struct MemoryView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture { editingItem = item }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(item.content)
+        .accessibilityValue(memoryRowAccessibilityValue(item))
+        .accessibilityHint("Double-tap to edit. Swipe for enable or delete actions.")
         .swipeActions(edge: .leading) {
             Button {
                 memoryStore.toggleActive(item)
@@ -165,13 +170,12 @@ struct MemoryView: View {
         Section {
             VStack(spacing: LumenSpacing.md) {
                 Image(systemName: "brain.head.profile")
-                    .font(.system(size: 40))
+                    .font(.largeTitle)
                     .foregroundStyle(.quaternary)
                 Text("No memories yet")
-                    .font(LumenType.body)
-                    .foregroundStyle(.secondary)
+                    .font(.title3.weight(.semibold))
                 Text("Add facts about yourself so Lumen can personalize every conversation.")
-                    .font(LumenType.caption)
+                    .font(dynamicTypeSize.isAccessibilitySize ? LumenType.body : LumenType.caption)
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.center)
                 Button("Add First Memory") { showingAddSheet = true }
@@ -208,6 +212,14 @@ struct MemoryView: View {
         f.unitsStyle = .abbreviated
         return f
     }
+
+    private func memoryRowAccessibilityValue(_ item: MemoryItem) -> String {
+        let status = item.isActive ? "On" : "Off"
+        if let used = item.lastUsedAt {
+            return "\(item.category.rawValue). \(status). Used \(relativeFormatter.localizedString(for: used, relativeTo: .now))."
+        }
+        return "\(item.category.rawValue). \(status)."
+    }
 }
 
 // MARK: - Add memory sheet
@@ -224,6 +236,8 @@ struct AddMemoryView: View {
                 Section("Remember that…") {
                     TextEditor(text: $content)
                         .frame(minHeight: 80)
+                        .accessibilityLabel("Memory content")
+                        .accessibilityHint("Enter the fact or preference Lumen should remember")
                 }
                 Section("Category") {
                     Picker("Category", selection: $category) {
@@ -279,6 +293,8 @@ struct EditMemoryView: View {
                 Section("Memory") {
                     TextEditor(text: $content)
                         .frame(minHeight: 80)
+                        .accessibilityLabel("Memory content")
+                        .accessibilityHint("Edit the fact or preference Lumen should remember")
                 }
                 Section("Category") {
                     Picker("Category", selection: $category) {

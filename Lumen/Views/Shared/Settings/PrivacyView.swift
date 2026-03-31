@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PrivacyView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         NavigationStack {
@@ -27,16 +28,17 @@ struct PrivacyView: View {
 
     private var heroSection: some View {
         Section {
-            HStack(spacing: LumenSpacing.md) {
-                Image(systemName: "lock.shield.fill")
-                    .font(.system(size: 40))
-                    .foregroundStyle(.green)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Privacy First by Design")
-                        .font(.system(size: 18, weight: .semibold))
-                    Text("Lumen processes everything locally. Nothing is sent to the cloud.")
-                        .font(LumenType.body)
-                        .foregroundStyle(.secondary)
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: LumenSpacing.md) {
+                        heroIcon
+                        heroCopy
+                    }
+                } else {
+                    HStack(spacing: LumenSpacing.md) {
+                        heroIcon
+                        heroCopy
+                    }
                 }
             }
             .padding(.vertical, LumenSpacing.sm)
@@ -141,6 +143,7 @@ struct PrivacyView: View {
                 .foregroundStyle(iconColor)
                 .frame(width: 24)
                 .padding(.top, 2)
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
@@ -151,8 +154,25 @@ struct PrivacyView: View {
             }
         }
         .padding(.vertical, LumenSpacing.xs)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(title): \(detail)")
+    }
+
+    private var heroIcon: some View {
+        Image(systemName: "lock.shield.fill")
+            .font(.largeTitle)
+            .foregroundStyle(.green)
+            .accessibilityHidden(true)
+    }
+
+    private var heroCopy: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Privacy First by Design")
+                .font(.title3.weight(.semibold))
+            Text("Lumen processes everything locally. Nothing is sent to the cloud.")
+                .font(LumenType.body)
+                .foregroundStyle(.secondary)
+        }
     }
 }
 

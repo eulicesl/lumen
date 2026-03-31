@@ -47,6 +47,8 @@ struct ModelPickerView: View {
                         Image(systemName: "arrow.clockwise")
                     }
                     .disabled(modelStore.isLoading)
+                    .accessibilityLabel("Refresh models")
+                    .accessibilityHint("Checks local providers again and reloads the model list")
                 }
             }
             .task { await modelStore.loadModels() }
@@ -89,6 +91,10 @@ struct ModelPickerView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(model.displayName)
+        .accessibilityValue(modelRowAccessibilityValue(model))
+        .accessibilityHint("Selects this model for the current conversation")
     }
 
     // MARK: - Empty / loading
@@ -142,6 +148,17 @@ struct ModelPickerView: View {
             return "\(lastError) You can try again after confirming your Ollama server settings."
         }
         return "Make sure Ollama is running, or that Apple Intelligence is enabled in Settings."
+    }
+
+    private func modelRowAccessibilityValue(_ model: AIModel) -> String {
+        var parts = [model.providerType == .foundationModels ? "Apple Intelligence" : "Ollama"]
+        if let context = model.contextLength {
+            parts.append("\(context / 1000)K context")
+        }
+        if chatStore.currentModel?.id == model.id {
+            parts.append("Selected")
+        }
+        return parts.joined(separator: ". ")
     }
 }
 

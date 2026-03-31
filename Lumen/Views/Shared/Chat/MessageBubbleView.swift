@@ -44,6 +44,7 @@ struct MessageBubbleView: View {
                         .font(LumenType.caption)
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, LumenSpacing.xs)
+                        .accessibilityHidden(true)
                 }
             }
 
@@ -135,9 +136,9 @@ struct MessageBubbleView: View {
                     .font(LumenType.messageBody)
                     .foregroundStyle(Color.white)
                     .textSelection(.enabled)
-                    .fixedSize(horizontal: true, vertical: false)
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.sm)
+                    .frame(maxWidth: maxBubbleWidth, alignment: .trailing)
             )
         } else {
             return AnyView(
@@ -263,6 +264,9 @@ private struct MessageAccessibilityActions: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(accessibilityLabel)
+            .accessibilityValue(accessibilityValue)
             .accessibilityHint(baseHint)
             .accessibilityAction(named: Text("Copy"), onCopy)
             .accessibilityAction(named: Text("Save to Memory"), onSaveToMemory)
@@ -281,6 +285,32 @@ private struct MessageAccessibilityActions: ViewModifier {
                 name: "Edit & Resend",
                 action: onEdit
             )
+    }
+
+    private var accessibilityLabel: String {
+        if message.isError {
+            return "Assistant response failed"
+        }
+
+        if message.isStreaming {
+            return "Assistant is responding"
+        }
+
+        return message.isUser ? "You said" : "Assistant replied"
+    }
+
+    private var accessibilityValue: String {
+        if message.isError {
+            return message.content
+        }
+
+        if message.isUser {
+            let value = message.content.documentAwareDisplayText.trimmingCharacters(in: .whitespacesAndNewlines)
+            return value.isEmpty ? "Empty message" : value
+        }
+
+        let value = message.content.stripThinkBlocks().trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? "No spoken content" : value
     }
 
     private var baseHint: String {
