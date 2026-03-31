@@ -7,6 +7,8 @@ struct MacContentView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(MemoryStore.self) private var memoryStore
+    @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
+    @SceneStorage("scene.macColumnVisibility") private var restoredColumnVisibility = "automatic"
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
 
     var body: some View {
@@ -50,6 +52,33 @@ struct MacContentView: View {
                 .environment(modelStore)
                 .environment(memoryStore)
         }
+        .task {
+            restoreColumnVisibility()
+            await restoreSceneSelectionIfNeeded()
+        }
+        .onChange(of: chatStore.conversations.count) {
+            Task { await restoreSceneSelectionIfNeeded() }
+        }
+        .onChange(of: chatStore.selectedConversation?.id.uuidString) {
+            restoredConversationID = chatStore.selectedConversation?.id.uuidString
+        }
+        .onChange(of: columnVisibility) {
+            restoredColumnVisibility = columnVisibility.sceneStorageValue
+        }
+    }
+}
+
+private extension MacContentView {
+    func restoreSceneSelectionIfNeeded() async {
+        let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
+        await chatStore.restoreSelectedConversation(id: restoredID)
+    }
+
+    func restoreColumnVisibility() {
+        columnVisibility = NavigationSplitViewVisibility(
+            sceneStorageValue: restoredColumnVisibility,
+            fallback: .automatic
+        )
     }
 }
 
@@ -62,4 +91,3 @@ struct MacContentView: View {
         .frame(width: 900, height: 600)
 }
 #endif
-

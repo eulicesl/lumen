@@ -24,9 +24,9 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [ ] Pull-to-refresh for conversations and model list.  
   - Priority: P1  
   - Status: Not Started
-- [ ] Scene state restoration (selected conversation/context/tab).  
+- [x] Scene state restoration (selected conversation/context/tab).  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
 
 ## ChatGPT Core Parity
 - [x] True message edit with branch-aware regeneration timeline.  

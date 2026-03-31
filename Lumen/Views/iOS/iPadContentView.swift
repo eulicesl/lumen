@@ -6,6 +6,8 @@ struct iPadContentView: View {
     @Environment(AppStore.self) private var appStore
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
+    @SceneStorage("scene.ipadColumnVisibility") private var restoredColumnVisibility = "all"
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
 
     var body: some View {
@@ -34,6 +36,33 @@ struct iPadContentView: View {
                 .environment(chatStore)
                 .environment(modelStore)
         }
+        .task {
+            restoreColumnVisibility()
+            await restoreSceneSelectionIfNeeded()
+        }
+        .onChange(of: chatStore.conversations.count) {
+            Task { await restoreSceneSelectionIfNeeded() }
+        }
+        .onChange(of: chatStore.selectedConversation?.id.uuidString) {
+            restoredConversationID = chatStore.selectedConversation?.id.uuidString
+        }
+        .onChange(of: columnVisibility) {
+            restoredColumnVisibility = columnVisibility.sceneStorageValue
+        }
+    }
+}
+
+private extension iPadContentView {
+    func restoreSceneSelectionIfNeeded() async {
+        let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
+        await chatStore.restoreSelectedConversation(id: restoredID)
+    }
+
+    func restoreColumnVisibility() {
+        columnVisibility = NavigationSplitViewVisibility(
+            sceneStorageValue: restoredColumnVisibility,
+            fallback: .all
+        )
     }
 }
 
@@ -44,4 +73,3 @@ struct iPadContentView: View {
         .environment(ModelStore.shared)
 }
 #endif
-

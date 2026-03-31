@@ -7,6 +7,7 @@ struct MainTabView: View {
     @Environment(ModelStore.self) private var modelStore
     @Environment(LibraryStore.self) private var libraryStore
 
+    @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
 
@@ -108,6 +109,15 @@ struct MainTabView: View {
             .environment(modelStore)
             .environment(libraryStore)
         }
+        .task {
+            await restoreSceneSelectionIfNeeded()
+        }
+        .onChange(of: chatStore.conversations.count) {
+            Task { await restoreSceneSelectionIfNeeded() }
+        }
+        .onChange(of: chatStore.selectedConversation?.id.uuidString) {
+            restoredConversationID = chatStore.selectedConversation?.id.uuidString
+        }
     }
 }
 
@@ -115,6 +125,39 @@ private enum iPhoneQuickPanel: String, Identifiable {
     case voice, library, search
 
     var id: String { rawValue }
+}
+
+private extension MainTabView {
+    func restoreSceneSelectionIfNeeded() async {
+        let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
+        await chatStore.restoreSelectedConversation(id: restoredID)
+    }
+}
+
+extension NavigationSplitViewVisibility {
+    init(sceneStorageValue: String, fallback: NavigationSplitViewVisibility) {
+        switch sceneStorageValue {
+        case "all":
+            self = .all
+        case "detailOnly":
+            self = .detailOnly
+        case "automatic":
+            self = .automatic
+        default:
+            self = fallback
+        }
+    }
+
+    var sceneStorageValue: String {
+        switch self {
+        case .all:
+            return "all"
+        case .detailOnly:
+            return "detailOnly"
+        default:
+            return "automatic"
+        }
+    }
 }
 
 private struct ModelPickerChip: View {

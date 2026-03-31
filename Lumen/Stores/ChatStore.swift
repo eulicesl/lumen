@@ -76,6 +76,22 @@ final class ChatStore {
         }
     }
 
+    func restoreSelectedConversation(id: UUID?) async {
+        guard !conversations.isEmpty else { return }
+
+        if let id,
+           let conversation = conversations.first(where: { $0.id == id }) {
+            if selectedConversation?.id != id {
+                await selectConversation(conversation)
+            }
+            return
+        }
+
+        if selectedConversation == nil, let firstConversation = conversations.first {
+            await selectConversation(firstConversation)
+        }
+    }
+
     // MARK: - Message editing
 
     var isEditingMessage: Bool { editingMessageID != nil }
