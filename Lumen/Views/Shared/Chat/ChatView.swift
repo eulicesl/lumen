@@ -180,7 +180,9 @@ struct ChatView: View {
                 }
             }
 
-            starterPromptSection
+            if !starterPrompts.isEmpty {
+                starterPromptSection
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .padding(.top, 96)
@@ -232,16 +234,7 @@ struct ChatView: View {
     }
 
     private var starterPrompts: [SavedPrompt] {
-        let titles = [
-            "Improve my writing",
-            "Review my code",
-            "Brainstorm ideas",
-            "Action plan"
-        ]
-
-        return titles.compactMap { title in
-            SavedPrompt.builtIns.first(where: { $0.title == title })
-        }
+        SavedPrompt.starterPrompts
     }
 
     private func applyStarterPrompt(_ prompt: SavedPrompt) {

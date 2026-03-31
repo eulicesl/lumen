@@ -60,6 +60,19 @@ struct SavedPrompt: Identifiable, Hashable, Sendable, Codable {
 // MARK: - Built-in prompt library
 
 extension SavedPrompt {
+    static let featuredStarterPromptTitles = [
+        "Improve my writing",
+        "Review my code",
+        "Brainstorm ideas",
+        "Action plan"
+    ]
+
+    static var starterPrompts: [SavedPrompt] {
+        featuredStarterPromptTitles.compactMap { title in
+            builtIns.first(where: { $0.title == title })
+        }
+    }
+
     static let builtIns: [SavedPrompt] = [
         // Writing
         SavedPrompt(title: "Improve my writing",
