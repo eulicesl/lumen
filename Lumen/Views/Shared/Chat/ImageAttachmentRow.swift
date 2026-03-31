@@ -47,6 +47,8 @@ struct ImageAttachmentRow: View {
                         Label("Remove", systemImage: "trash")
                     }
                 }
+                .accessibilityLabel("Attached image \(index + 1)")
+                .accessibilityHint("Shows an attached image for the current message")
 
             Button {
                 images.remove(at: index)
@@ -58,6 +60,8 @@ struct ImageAttachmentRow: View {
             }
             .buttonStyle(.plain)
             .offset(x: 6, y: -6)
+            .accessibilityLabel("Remove attached image \(index + 1)")
+            .accessibilityHint("Removes this image from the message")
         }
     }
 }
@@ -81,6 +85,8 @@ struct PhotoPickerButton: View {
                 .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Attach photos")
+        .accessibilityHint("Opens the photo picker to attach images")
         .onChange(of: pickerItems) {
             Task { await loadImages() }
         }
@@ -117,6 +123,8 @@ struct CameraButton: View {
                 .frame(width: 36, height: 36)
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Take photo")
+        .accessibilityHint("Opens the camera to capture an image")
         .sheet(isPresented: $showingCamera) {
             CameraPickerView(image: $capturedImage)
                 .ignoresSafeArea()

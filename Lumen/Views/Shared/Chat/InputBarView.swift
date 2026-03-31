@@ -124,6 +124,7 @@ struct InputBarView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Attach Photo")
+        .accessibilityHint("Adds images to the current message")
         .onChange(of: pickerItems) { Task { await loadPickerImages() } }
         .disabled(chatStore.conversationState == .generating)
     }
@@ -142,6 +143,7 @@ struct InputBarView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Attach Document")
+        .accessibilityHint("Import PDF, text, or source files into the current message")
         .disabled(chatStore.conversationState == .generating)
     }
 
@@ -162,6 +164,8 @@ struct InputBarView: View {
                 #endif
             }
             .disabled(chatStore.selectedConversation == nil)
+            .accessibilityLabel(chatStore.isEditingMessage ? "Edit message" : "Message composer")
+            .accessibilityHint("Enter a prompt or question for the selected conversation")
     }
 
     // MARK: - Send / Stop button
@@ -179,6 +183,7 @@ struct InputBarView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
+        .accessibilityHint(isRecording ? "Stops voice transcription and keeps the current text" : "Starts dictation into the message composer")
         .disabled(chatStore.conversationState == .generating)
     }
     #else
@@ -196,6 +201,8 @@ struct InputBarView: View {
                         .background(Color.red.opacity(0.12), in: Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Stop generating response")
+                .accessibilityHint("Stops the assistant response in progress")
                 .transition(.scale.combined(with: .opacity))
             } else {
                 if canSend {
@@ -207,6 +214,8 @@ struct InputBarView: View {
                             .background(Color.white, in: Circle())
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel(chatStore.isEditingMessage ? "Send edited message in new branch" : "Send message")
+                    .accessibilityHint(sendButtonAccessibilityHint)
                     .transition(.scale.combined(with: .opacity))
                 } else {
                     #if os(iOS)
@@ -219,6 +228,7 @@ struct InputBarView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("Start voice mode")
+                    .accessibilityHint("Begins voice input when there is no text to send")
                     .transition(.scale.combined(with: .opacity))
                     #else
                     EmptyView()
@@ -239,6 +249,18 @@ struct InputBarView: View {
             && chatStore.selectedConversation != nil
             && chatStore.currentModel != nil
             && chatStore.conversationState != .generating
+    }
+
+    private var sendButtonAccessibilityHint: String {
+        if chatStore.isEditingMessage {
+            return "Creates a new branch from the edited message and regenerates the response"
+        }
+
+        if !chatStore.pendingDocuments.isEmpty || !chatStore.pendingImageData.isEmpty {
+            return "Sends the current text and attachments"
+        }
+
+        return "Sends the current message"
     }
 
     private func sendMessage() {
@@ -393,6 +415,7 @@ private struct DocumentAttachmentRow: View {
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 28, height: 28)
                 .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(document.fileName)
@@ -414,6 +437,8 @@ private struct DocumentAttachmentRow: View {
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)
+            .accessibilityLabel("Remove \(document.fileName)")
+            .accessibilityHint("Removes this document from the message")
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.sm)
@@ -425,6 +450,7 @@ private struct DocumentAttachmentRow: View {
             RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
                 .strokeBorder(.separator, lineWidth: 0.5)
         )
+        .accessibilityElement(children: .combine)
     }
 }
 

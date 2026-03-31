@@ -124,6 +124,8 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("Opens this conversation")
     }
 
     @ViewBuilder
@@ -153,6 +155,8 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(result.matchedMessageID == nil ? "Opens this conversation" : "Opens this conversation and jumps to the matching message")
     }
 
     // MARK: - Search logic

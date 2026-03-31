@@ -27,6 +27,16 @@ struct MessageBubbleView: View {
                 if !message.content.isEmpty || message.isStreaming {
                     bubbleContent
                         .contextMenu { contextMenuItems }
+                        .modifier(
+                            MessageAccessibilityActions(
+                                message: message,
+                                onCopy: copyMessage,
+                                onSaveToMemory: saveToMemory,
+                                onBranch: { showingBranchConfirm = true },
+                                onSpeak: speakMessage,
+                                onEdit: { chatStore.beginEditing(message) }
+                            )
+                        )
                 }
 
                 if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
@@ -59,13 +69,7 @@ struct MessageBubbleView: View {
     @ViewBuilder
     private var contextMenuItems: some View {
         Button {
-            let copiedContent = message.isUser ? message.content.documentAwareDisplayText : message.content
-            #if os(iOS)
-            UIPasteboard.general.string = copiedContent
-            #elseif os(macOS)
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(copiedContent, forType: .string)
-            #endif
+            copyMessage()
         } label: {
             Label("Copy", systemImage: "doc.on.doc")
         }
@@ -210,6 +214,16 @@ struct MessageBubbleView: View {
 
     // MARK: - Actions
 
+    private func copyMessage() {
+        let copiedContent = message.isUser ? message.content.documentAwareDisplayText : message.content
+        #if os(iOS)
+        UIPasteboard.general.string = copiedContent
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(copiedContent, forType: .string)
+        #endif
+    }
+
     private func speakMessage() {
         let text = mainContent.isEmpty ? message.content : mainContent
         let utterance = AVSpeechUtterance(string: text)
@@ -236,6 +250,45 @@ struct MessageBubbleView: View {
         #else
         return 600
         #endif
+    }
+}
+
+private struct MessageAccessibilityActions: ViewModifier {
+    let message: ChatMessage
+    let onCopy: () -> Void
+    let onSaveToMemory: () -> Void
+    let onBranch: () -> Void
+    let onSpeak: () -> Void
+    let onEdit: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .accessibilityHint(baseHint)
+            .accessibilityAction(named: Text("Copy"), onCopy)
+            .accessibilityAction(named: Text("Save to Memory"), onSaveToMemory)
+            .messageAction(
+                isEnabled: message.isComplete && !message.isError,
+                name: "Branch from Here",
+                action: onBranch
+            )
+            .messageAction(
+                isEnabled: message.isAssistant && !message.content.isEmpty,
+                name: "Speak",
+                action: onSpeak
+            )
+            .messageAction(
+                isEnabled: message.isUser && !message.content.isEmpty && !message.hasImages,
+                name: "Edit & Resend",
+                action: onEdit
+            )
+    }
+
+    private var baseHint: String {
+        if message.isStreaming {
+            return "Custom actions are available for copying or saving this message"
+        }
+
+        return "Open custom actions for copy, save, and message actions"
     }
 }
 
@@ -270,6 +323,15 @@ private struct BubbleBackground: ViewModifier {
 private extension View {
     func bubbleBackground(isUser: Bool, isError: Bool) -> some View {
         modifier(BubbleBackground(isUser: isUser, isError: isError))
+    }
+
+    @ViewBuilder
+    func messageAction(isEnabled: Bool, name: String, action: @escaping () -> Void) -> some View {
+        if isEnabled {
+            accessibilityAction(named: Text(name), action)
+        } else {
+            self
+        }
     }
 }
 
