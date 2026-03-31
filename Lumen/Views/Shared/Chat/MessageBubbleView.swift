@@ -86,9 +86,9 @@ struct MessageBubbleView: View {
             }
         }
 
-        if message.isUser && !message.content.isEmpty {
+        if message.isUser && !message.content.isEmpty && !message.hasImages {
             Button {
-                chatStore.inputText = message.content
+                chatStore.beginEditing(message)
             } label: {
                 Label("Edit & Resend", systemImage: "pencil")
             }

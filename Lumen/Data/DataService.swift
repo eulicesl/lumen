@@ -127,11 +127,20 @@ actor DataService {
         guard let conversation = try modelContext.fetch(descriptor).first else {
             throw DataError.conversationNotFound(conversationID)
         }
-        let messageSD = MessageSD.from(message)
-        messageSD.conversation = conversation
-        modelContext.insert(messageSD)
-        conversation.updatedAt = Date()
-        try modelContext.save()
+        try addMessages([message], to: conversationID, using: modelContext, conversation: conversation)
+    }
+
+    func addMessages(_ messages: [ChatMessage], to conversationID: UUID) throws {
+        guard !messages.isEmpty else { return }
+
+        let modelContext = makeContext()
+        let predicate = #Predicate<ConversationSD> { $0.id == conversationID }
+        let descriptor = FetchDescriptor<ConversationSD>(predicate: predicate)
+        guard let conversation = try modelContext.fetch(descriptor).first else {
+            throw DataError.conversationNotFound(conversationID)
+        }
+
+        try addMessages(messages, to: conversationID, using: modelContext, conversation: conversation)
     }
 
     func updateMessage(id: UUID, content: String, isComplete: Bool = true, tokenCount: Int? = nil) throws {
@@ -185,6 +194,27 @@ actor DataService {
         let descriptor = FetchDescriptor<AIModelSD>(predicate: predicate)
         guard let model = try modelContext.fetch(descriptor).first else { return }
         modelContext.delete(model)
+        try modelContext.save()
+    }
+
+    private func addMessages(
+        _ messages: [ChatMessage],
+        to conversationID: UUID,
+        using modelContext: ModelContext,
+        conversation: ConversationSD
+    ) throws {
+        var previousCreatedAt: Date?
+        for message in messages {
+            let messageSD = MessageSD.from(message)
+            if let previousCreatedAt,
+               messageSD.createdAt <= previousCreatedAt {
+                messageSD.createdAt = previousCreatedAt.addingTimeInterval(0.001)
+            }
+            messageSD.conversation = conversation
+            modelContext.insert(messageSD)
+            previousCreatedAt = messageSD.createdAt
+        }
+        conversation.updatedAt = Date()
         try modelContext.save()
     }
 }

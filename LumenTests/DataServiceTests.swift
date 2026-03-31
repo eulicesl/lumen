@@ -73,6 +73,22 @@ struct DataServiceTests {
         #expect(messages.isEmpty)
     }
 
+    @Test("Batch add messages preserves order")
+    func batchAddMessages() async throws {
+        let service = DataService.forTesting()
+        let conversationID = try await service.createConversation(title: "Batch Message Test")
+        let messagesToInsert = [
+            ChatMessage.userMessage("First"),
+            ChatMessage.assistantMessage("Second"),
+            ChatMessage.userMessage("Third")
+        ]
+
+        try await service.addMessages(messagesToInsert, to: conversationID)
+
+        let fetched = try await service.fetchMessages(for: conversationID)
+        #expect(fetched.map(\.content) == ["First", "Second", "Third"])
+    }
+
     @Test("Toggle conversation pin status")
     func toggleConversationPin() async throws {
         let service = DataService.forTesting()
@@ -167,6 +183,135 @@ extension MockAIProvider {
     }
     func setShouldThrowError(_ value: Bool) {
         self.shouldThrowError = value
+    }
+}
+
+@Suite("ConversationSearchEngine")
+struct ConversationSearchEngineTests {
+
+    @Test("Search returns message-level matches from history")
+    func messageLevelMatches() {
+        let matchingMessage = ChatMessage.userMessage(
+            "We should ship the neutron launch checklist today."
+        )
+        let conversation = Conversation(
+            title: "Launch Prep",
+            messages: [
+                ChatMessage.assistantMessage("Status noted."),
+                matchingMessage
+            ]
+        )
+
+        let results = ConversationSearchEngine.search("neutron", in: [conversation])
+
+        #expect(results.contains(where: {
+            $0.section == .messages && $0.matchedMessageID == matchingMessage.id
+        }))
+    }
+
+    @Test("Search ignores system messages")
+    func ignoresSystemMessages() {
+        let conversation = Conversation(
+            title: "Hidden Prompt",
+            messages: [
+                ChatMessage.systemMessage("internal neutron guidance"),
+                ChatMessage.assistantMessage("Visible reply")
+            ]
+        )
+
+        let results = ConversationSearchEngine.search("neutron", in: [conversation])
+
+        #expect(results.isEmpty)
+    }
+
+    @Test("Search includes a conversation hit and message hit when both match")
+    func titleAndMessageMatchesCanCoexist() {
+        let matchingMessage = ChatMessage.assistantMessage(
+            "Orbit planning is on track."
+        )
+        let conversation = Conversation(
+            title: "Orbit Review",
+            messages: [matchingMessage]
+        )
+
+        let results = ConversationSearchEngine.search("orbit", in: [conversation])
+
+        #expect(results.contains(where: {
+            $0.section == .conversations && $0.id == conversation.id
+        }))
+        #expect(results.contains(where: {
+            $0.section == .messages && $0.matchedMessageID == matchingMessage.id
+        }))
+    }
+
+    @Test("Search excerpts center the matched text")
+    func excerptsHighlightTheMatchContext() throws {
+        let message = ChatMessage.assistantMessage(
+            "Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda."
+        )
+        let conversation = Conversation(
+            title: "Greek",
+            messages: [message]
+        )
+
+        let results = ConversationSearchEngine.search("theta", in: [conversation])
+        let excerpt = try #require(results.first?.subtitle)
+
+        #expect(excerpt.contains("theta"))
+        #expect(!excerpt.hasPrefix("Alpha beta gamma"))
+    }
+}
+
+@Suite("ConversationEditEngine")
+struct ConversationEditEngineTests {
+
+    @Test("Edit plan preserves only messages before the edited turn")
+    func preservesHistoryBeforeEditPoint() throws {
+        let firstUser = ChatMessage.userMessage("Original question")
+        let firstAssistant = ChatMessage.assistantMessage("Original answer")
+        let editedUser = ChatMessage.userMessage("Needs revision")
+        let laterAssistant = ChatMessage.assistantMessage("Later answer")
+
+        let plan = try #require(
+            ConversationEditEngine.plan(
+                messages: [firstUser, firstAssistant, editedUser, laterAssistant],
+                editingMessageID: editedUser.id,
+                replacementText: "Revised question"
+            )
+        )
+
+        #expect(plan.preservedMessages.map(\.id) == [firstUser.id, firstAssistant.id])
+        #expect(plan.editedMessage.content == "Revised question")
+        #expect(plan.contextMessages.count == 3)
+    }
+
+    @Test("Edit plan rejects assistant messages")
+    func rejectsAssistantMessages() {
+        let assistant = ChatMessage.assistantMessage("Cannot edit assistant")
+
+        let plan = ConversationEditEngine.plan(
+            messages: [assistant],
+            editingMessageID: assistant.id,
+            replacementText: "Replacement"
+        )
+
+        #expect(plan == nil)
+    }
+
+    @Test("Edit plan rejects user messages with images")
+    func rejectsImageMessages() {
+        let userWithImage = ChatMessage.userMessage(
+            "Look at this",
+            imageData: [Data([0x01])]
+        )
+
+        let plan = ConversationEditEngine.plan(
+            messages: [userWithImage],
+            editingMessageID: userWithImage.id,
+            replacementText: "Replacement"
+        )
+
+        #expect(plan == nil)
     }
 }
 

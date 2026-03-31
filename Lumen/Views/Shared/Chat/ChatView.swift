@@ -74,10 +74,18 @@ struct ChatView: View {
             }
         }
         .onChange(of: chatStore.messages.count) {
-            scrollToBottom()
+            if let focusedMessageID = chatStore.focusedMessageID {
+                scrollToMessage(focusedMessageID)
+            } else {
+                scrollToBottom()
+            }
         }
         .onChange(of: chatStore.messages.last?.content) {
             if isAtBottom { scrollToBottom() }
+        }
+        .onChange(of: chatStore.focusedMessageID) {
+            guard let focusedMessageID = chatStore.focusedMessageID else { return }
+            scrollToMessage(focusedMessageID)
         }
     }
 
@@ -91,6 +99,9 @@ struct ChatView: View {
                         ForEach(chatStore.messages) { message in
                             MessageBubbleView(message: message)
                                 .padding(.horizontal, LumenSpacing.md)
+                                .searchFocusChrome(
+                                    isFocused: chatStore.focusedMessageID == message.id
+                                )
                         }
                         Color.clear
                             .frame(height: 1)
@@ -103,7 +114,11 @@ struct ChatView: View {
                 .scrollDismissesKeyboard(.interactively)
                 .onAppear {
                     scrollProxy = proxy
-                    scrollToBottom(animated: false)
+                    if let focusedMessageID = chatStore.focusedMessageID {
+                        scrollToMessage(focusedMessageID, animated: false)
+                    } else {
+                        scrollToBottom(animated: false)
+                    }
                 }
             }
         }
@@ -160,6 +175,36 @@ struct ChatView: View {
             }
         } else {
             scrollProxy?.scrollTo("bottom", anchor: .bottom)
+        }
+    }
+
+    private func scrollToMessage(_ messageID: UUID, animated: Bool = true) {
+        if animated {
+            withAnimation(LumenAnimation.standard) {
+                scrollProxy?.scrollTo(messageID, anchor: .center)
+            }
+        } else {
+            scrollProxy?.scrollTo(messageID, anchor: .center)
+        }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func searchFocusChrome(isFocused: Bool) -> some View {
+        if isFocused {
+            self
+                .padding(.vertical, LumenSpacing.xxs)
+                .background(
+                    RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+                        .fill(Color.accentColor.opacity(0.08))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
+                        .strokeBorder(Color.accentColor.opacity(0.18), lineWidth: 1)
+                )
+        } else {
+            self
         }
     }
 }
