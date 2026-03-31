@@ -24,7 +24,6 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 #### P1
 - Settings primary screen should use large title mode.
 - Pull-to-refresh on conversation/model surfaces.
-- Scene state restoration (`@SceneStorage`) for core context.
 - Reduce Motion behavior completion across symbol-heavy views.
 - Starter prompts/suggested replies for empty chats.
 

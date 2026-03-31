@@ -7,6 +7,8 @@ struct MacContentView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(MemoryStore.self) private var memoryStore
+    @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
+    @SceneStorage("scene.macColumnVisibility") private var restoredColumnVisibility = "automatic"
     @State private var columnVisibility: NavigationSplitViewVisibility = .automatic
 
     var body: some View {
@@ -50,6 +52,48 @@ struct MacContentView: View {
                 .environment(modelStore)
                 .environment(memoryStore)
         }
+        .task {
+            restoreColumnVisibility()
+            await restoreSceneSelectionIfNeeded()
+        }
+        .onChange(of: chatStore.conversations.map { $0.id.uuidString }) {
+            Task { await restoreSceneSelectionIfNeeded() }
+        }
+        .onChange(of: chatStore.selectedConversation?.id.uuidString) {
+            restoredConversationID = chatStore.selectedConversation?.id.uuidString
+        }
+        .onChange(of: columnVisibility) {
+            restoredColumnVisibility = sceneStorageValue(for: columnVisibility)
+        }
+    }
+}
+
+private extension MacContentView {
+    func restoreSceneSelectionIfNeeded() async {
+        let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
+        await chatStore.restoreSelectedConversation(id: restoredID)
+    }
+
+    func restoreColumnVisibility() {
+        switch restoredColumnVisibility {
+        case "all":
+            columnVisibility = .all
+        case "detailOnly":
+            columnVisibility = .detailOnly
+        default:
+            columnVisibility = .automatic
+        }
+    }
+
+    func sceneStorageValue(for visibility: NavigationSplitViewVisibility) -> String {
+        switch visibility {
+        case .all:
+            return "all"
+        case .detailOnly:
+            return "detailOnly"
+        default:
+            return "automatic"
+        }
     }
 }
 
@@ -62,4 +106,3 @@ struct MacContentView: View {
         .frame(width: 900, height: 600)
 }
 #endif
-

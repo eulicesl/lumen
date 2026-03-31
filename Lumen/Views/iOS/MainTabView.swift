@@ -7,6 +7,7 @@ struct MainTabView: View {
     @Environment(ModelStore.self) private var modelStore
     @Environment(LibraryStore.self) private var libraryStore
 
+    @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
 
@@ -108,6 +109,15 @@ struct MainTabView: View {
             .environment(modelStore)
             .environment(libraryStore)
         }
+        .task {
+            await restoreSceneSelectionIfNeeded()
+        }
+        .onChange(of: chatStore.conversations.map { $0.id.uuidString }) {
+            Task { await restoreSceneSelectionIfNeeded() }
+        }
+        .onChange(of: chatStore.selectedConversation?.id.uuidString) {
+            restoredConversationID = chatStore.selectedConversation?.id.uuidString
+        }
     }
 }
 
@@ -115,6 +125,13 @@ private enum iPhoneQuickPanel: String, Identifiable {
     case voice, library, search
 
     var id: String { rawValue }
+}
+
+private extension MainTabView {
+    func restoreSceneSelectionIfNeeded() async {
+        let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
+        await chatStore.restoreSelectedConversation(id: restoredID)
+    }
 }
 
 private struct ModelPickerChip: View {
