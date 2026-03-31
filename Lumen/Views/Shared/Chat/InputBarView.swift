@@ -28,6 +28,10 @@ struct InputBarView: View {
     var body: some View {
         @Bindable var bindableChat = chatStore
         VStack(spacing: LumenSpacing.xs) {
+            if chatStore.isEditingMessage {
+                editBanner
+            }
+
             #if os(iOS)
             ImageAttachmentRow(images: $selectedImages, onOCR: { image in
                 Task { await performOCR(on: image) }
@@ -52,6 +56,40 @@ struct InputBarView: View {
         .padding(.top, 4)
         .background(.bar)
         .onChange(of: selectedImages) { syncPendingImages() }
+        .onChange(of: chatStore.editingMessageID) {
+            if chatStore.isEditingMessage {
+                inputFocused = true
+                selectedImages = []
+            }
+        }
+    }
+
+    private var editBanner: some View {
+        HStack(spacing: LumenSpacing.sm) {
+            Image(systemName: "arrow.branch")
+                .foregroundStyle(Color.accentColor)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Editing earlier message in a new branch")
+                    .font(LumenType.footnote.weight(.semibold))
+                if let preview = chatStore.editingMessagePreview, !preview.isEmpty {
+                    Text(preview)
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer()
+
+            Button("Cancel") {
+                cancelEditing()
+            }
+            .font(LumenType.caption.weight(.semibold))
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, LumenSpacing.md)
+        .padding(.top, LumenSpacing.xs)
     }
 
     // MARK: - Media buttons (iOS only)
@@ -132,7 +170,7 @@ struct InputBarView: View {
             } else {
                 if canSend {
                     Button { sendMessage() } label: {
-                        Image(systemName: LumenIcon.send)
+                        Image(systemName: chatStore.isEditingMessage ? "arrow.branch" : LumenIcon.send)
                             .font(.system(size: 16, weight: .semibold))
                             .foregroundStyle(Color.black)
                             .frame(width: 32, height: 32)
@@ -192,6 +230,13 @@ struct InputBarView: View {
             }
             chatStore.pendingImageData = result
         }
+        #endif
+    }
+
+    private func cancelEditing() {
+        chatStore.cancelEditing()
+        #if os(iOS)
+        selectedImages = []
         #endif
     }
 

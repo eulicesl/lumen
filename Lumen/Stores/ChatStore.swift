@@ -16,6 +16,7 @@ final class ChatStore {
     var pendingImageData: [Data] = []
     var agentModeEnabled: Bool = false
     var agentEvents: [AgentEvent] = []
+    var editingMessageID: UUID?
 
     private let aiService = AIService.shared
     private let dataService = DataService.shared
@@ -50,6 +51,7 @@ final class ChatStore {
     }
 
     func selectConversation(_ conversation: Conversation) async {
+        self.editingMessageID = nil
         selectedConversation = conversation
         do {
             let loaded = try await dataService.fetchMessages(for: conversation.id)
@@ -59,8 +61,34 @@ final class ChatStore {
         }
     }
 
+    // MARK: - Message editing
+
+    var isEditingMessage: Bool { editingMessageID != nil }
+
+    var editingMessagePreview: String? {
+        guard let editingMessageID else { return nil }
+        return messages
+            .first(where: { $0.id == editingMessageID })?
+            .content
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func beginEditing(_ message: ChatMessage) {
+        guard message.isUser, !message.hasImages else { return }
+        editingMessageID = message.id
+        inputText = message.content
+        pendingImageData = []
+    }
+
+    func cancelEditing() {
+        self.editingMessageID = nil
+        inputText = ""
+        pendingImageData = []
+    }
+
     func createNewConversation() async {
         do {
+            editingMessageID = nil
             let id = try await dataService.createConversation()
             let new = try await dataService.fetchConversation(id: id)
             if let conv = new {
@@ -85,7 +113,10 @@ final class ChatStore {
         let branchTitle = "Branch: \(String(conversation.title.prefix(35)))"
 
         do {
-            let newID = try await dataService.createConversation(title: branchTitle)
+            let newID = try await dataService.createConversation(
+                title: branchTitle,
+                systemPrompt: conversation.systemPrompt
+            )
             for msg in messagesToKeep {
                 try await dataService.addMessage(msg, to: newID)
             }
@@ -108,6 +139,16 @@ final class ChatStore {
         guard !text.isEmpty || !images.isEmpty else { return }
         guard let conversation = selectedConversation else { return }
         guard let model = currentModel else { return }
+
+        if let editingMessageID {
+            await sendEditedMessage(
+                editingMessageID: editingMessageID,
+                editedText: text,
+                conversation: conversation,
+                model: model
+            )
+            return
+        }
 
         inputText = ""
         pendingImageData = []
@@ -156,6 +197,101 @@ final class ChatStore {
                     promptText: text
                 )
             }
+        }
+    }
+
+    private func sendEditedMessage(
+        editingMessageID: UUID,
+        editedText: String,
+        conversation: Conversation,
+        model: AIModel
+    ) async {
+        guard let plan = ConversationEditEngine.plan(
+            messages: messages,
+            editingMessageID: editingMessageID,
+            replacementText: editedText
+        ) else {
+            AppStore.shared.activeAlert = AppAlert(
+                title: "Unable to Edit Message",
+                message: "Only completed text user messages can be edited from history."
+            )
+            return
+        }
+
+        inputText = ""
+        pendingImageData = []
+        agentEvents = []
+        self.editingMessageID = nil
+
+        let branchTitle = "Branch: \(String(conversation.title.prefix(35)))"
+
+        do {
+            let newConversationID = try await dataService.createConversation(
+                title: branchTitle,
+                systemPrompt: conversation.systemPrompt
+            )
+            for preservedMessage in plan.preservedMessages {
+                try await dataService.addMessage(preservedMessage, to: newConversationID)
+            }
+            try await dataService.addMessage(plan.editedMessage, to: newConversationID)
+
+            guard let branchedConversation = try await dataService.fetchConversation(id: newConversationID) else {
+                throw DataError.conversationNotFound(newConversationID)
+            }
+
+            conversations.insert(branchedConversation, at: 0)
+            selectedConversation = branchedConversation
+            messages = plan.contextMessages
+
+            HapticEngine.impact(.medium)
+
+            let placeholder = ChatMessage.streamingPlaceholder(model: model)
+            messages.append(placeholder)
+
+            conversationState = .generating
+            timeToFirstToken = nil
+            let startTime = Date()
+            let assistantIndex = messages.count - 1
+
+            let memoryContext = MemoryStore.shared.contextString
+            let basePrompt = branchedConversation.systemPrompt ?? ""
+            let fullPrompt = [memoryContext, basePrompt]
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n\n")
+            let options = ChatOptions(systemPrompt: fullPrompt.isEmpty ? nil : fullPrompt)
+            let context = Array(messages.dropLast())
+
+            if agentModeEnabled {
+                streamTask = Task { @MainActor in
+                    await self.runAgentStream(
+                        context: context,
+                        model: model,
+                        options: options,
+                        assistantIndex: assistantIndex,
+                        startTime: startTime,
+                        conversation: branchedConversation,
+                        promptText: editedText
+                    )
+                }
+            } else {
+                streamTask = Task { @MainActor in
+                    await self.runDirectStream(
+                        context: context,
+                        model: model,
+                        options: options,
+                        assistantIndex: assistantIndex,
+                        startTime: startTime,
+                        conversation: branchedConversation,
+                        promptText: editedText
+                    )
+                }
+            }
+        } catch {
+            AppStore.shared.activeAlert = AppAlert(
+                title: "Edit Failed",
+                message: error.localizedDescription
+            )
+            conversationState = .idle
         }
     }
 
@@ -391,6 +527,7 @@ final class ChatStore {
             conversations = []
             selectedConversation = nil
             messages = []
+            editingMessageID = nil
             Task.detached(priority: .background) {
                 await SpotlightService.shared.deleteAll()
                 WidgetSharedStore.save([])
@@ -431,5 +568,39 @@ final class ChatStore {
             try await dataService.toggleConversationPin(id: conversation.id)
             await loadConversations()
         } catch {}
+    }
+}
+
+struct ConversationEditPlan: Equatable {
+    let preservedMessages: [ChatMessage]
+    let editedMessage: ChatMessage
+
+    var contextMessages: [ChatMessage] {
+        preservedMessages + [editedMessage]
+    }
+}
+
+enum ConversationEditEngine {
+    static func plan(
+        messages: [ChatMessage],
+        editingMessageID: UUID,
+        replacementText: String
+    ) -> ConversationEditPlan? {
+        guard let index = messages.firstIndex(where: { $0.id == editingMessageID }) else {
+            return nil
+        }
+
+        let originalMessage = messages[index]
+        guard originalMessage.isUser, originalMessage.isComplete, !originalMessage.isError, !originalMessage.hasImages else {
+            return nil
+        }
+
+        let preservedMessages = Array(messages[..<index])
+        let editedMessage = ChatMessage.userMessage(replacementText)
+
+        return ConversationEditPlan(
+            preservedMessages: preservedMessages,
+            editedMessage: editedMessage
+        )
     }
 }
