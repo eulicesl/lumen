@@ -187,3 +187,38 @@ private final class InMemorySecretStore: SecretStore {
         storage.removeValue(forKey: key)
     }
 }
+
+@Suite("ModelStore reliability")
+struct ModelStoreReliabilityTests {
+
+    @Test("Network failures produce a user-facing Ollama status message")
+    func ollamaNetworkErrorMessage() {
+        let message = ModelStore.ollamaErrorMessage(
+            for: AIProviderError.networkError(URLError(.cannotConnectToHost)),
+            urlString: "http://mac-studio.local:11434"
+        )
+
+        #expect(message.contains("mac-studio.local"))
+        #expect(message.contains("Can't reach Ollama"))
+    }
+
+    @Test("Timed-out Ollama requests mention reachability guidance")
+    func ollamaTimeoutMessage() {
+        let message = ModelStore.ollamaErrorMessage(
+            for: AIProviderError.networkError(URLError(.timedOut)),
+            urlString: "http://localhost:11434"
+        )
+
+        #expect(message.contains("Timed out"))
+        #expect(message.contains("reachable"))
+    }
+
+    @Test("Available status reports the model count")
+    func availableStatusTitle() {
+        let status = OllamaConnectionStatus.available(modelCount: 3)
+
+        #expect(status.title == "3 models available")
+        #expect(status.detail == "Connected to your local Ollama server.")
+        #expect(status.isAvailable)
+    }
+}
