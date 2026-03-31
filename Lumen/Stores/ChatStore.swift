@@ -365,6 +365,13 @@ final class ChatStore {
         messages.last?.isComplete == true
     }
 
+    var canRetryLastResponse: Bool {
+        messages.last?.isError == true &&
+        selectedConversation != nil &&
+        currentModel != nil &&
+        !conversationState.isGenerating
+    }
+
     func regenerate() async {
         guard canRegenerate else { return }
         guard let lastAssistant = messages.last, lastAssistant.isAssistant else { return }
@@ -377,25 +384,25 @@ final class ChatStore {
 
         HapticEngine.impact(.medium)
         agentEvents = []
-
-        // Add a fresh streaming placeholder — do NOT re-append the user message
-        let placeholder = ChatMessage.streamingPlaceholder(model: model)
-        messages.append(placeholder)
-
-        conversationState = .generating
-        timeToFirstToken = nil
-        let startTime = Date()
-        let assistantIndex = messages.count - 1
-
-        // Context is everything except the new placeholder
-        let context = Array(messages.dropLast())
-        let promptText = context.last(where: { $0.isUser })?.content ?? ""
-        startStream(
-            context: context,
+        let promptText = messages.last(where: { $0.isUser })?.content ?? ""
+        beginStreamingReply(
             model: model,
-            options: chatOptions(for: conversation),
-            assistantIndex: assistantIndex,
-            startTime: startTime,
+            conversation: conversation,
+            promptText: promptText
+        )
+    }
+
+    func retryLastResponse() async {
+        guard canRetryLastResponse else { return }
+        guard let conversation = selectedConversation else { return }
+        guard let model = currentModel else { return }
+
+        messages.removeLast()
+        agentEvents = []
+        HapticEngine.impact(.medium)
+        let promptText = messages.last(where: { $0.isUser })?.content ?? ""
+        beginStreamingReply(
+            model: model,
             conversation: conversation,
             promptText: promptText
         )
@@ -523,6 +530,21 @@ final class ChatStore {
         conversation: Conversation,
         promptText: String
     ) {
+        let context = messages
+        restartStream(
+            context: context,
+            model: model,
+            conversation: conversation,
+            promptText: promptText
+        )
+    }
+
+    private func restartStream(
+        context: [ChatMessage],
+        model: AIModel,
+        conversation: Conversation,
+        promptText: String
+    ) {
         let placeholder = ChatMessage.streamingPlaceholder(model: model)
         messages.append(placeholder)
 
@@ -530,7 +552,6 @@ final class ChatStore {
         timeToFirstToken = nil
         let startTime = Date()
         let assistantIndex = messages.count - 1
-        let context = Array(messages.dropLast())
 
         startStream(
             context: context,
