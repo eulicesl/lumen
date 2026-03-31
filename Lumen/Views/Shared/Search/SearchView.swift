@@ -1,12 +1,13 @@
 import SwiftUI
 
 struct SearchView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
 
     @State private var query = ""
     @State private var searchTask: Task<Void, Never>?
-    @State private var results: [SearchResult] = []
+    @State private var results: [ConversationSearchResult] = []
     @State private var isSearching = false
 
     var body: some View {
@@ -24,7 +25,11 @@ struct SearchView: View {
             }
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.large)
-            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search conversations…")
+            .searchable(
+                text: $query,
+                placement: .navigationBarDrawer(displayMode: .always),
+                prompt: "Search conversations and messages…"
+            )
             .onChange(of: query) { runSearch() }
         }
     }
@@ -122,12 +127,12 @@ struct SearchView: View {
     }
 
     @ViewBuilder
-    private func searchResultRow(_ result: SearchResult) -> some View {
+    private func searchResultRow(_ result: ConversationSearchResult) -> some View {
         Button {
-            selectConversation(result.conversation)
+            openSearchResult(result)
         } label: {
             HStack(spacing: LumenSpacing.md) {
-                Image(systemName: result.section == .conversations ? LumenIcon.chat : "text.bubble")
+                Image(systemName: result.symbolName)
                     .foregroundStyle(.secondary)
                     .frame(width: 20)
                 VStack(alignment: .leading, spacing: LumenSpacing.xxs) {
@@ -154,82 +159,52 @@ struct SearchView: View {
 
     private func runSearch() {
         searchTask?.cancel()
-        guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty else {
             results = []
             isSearching = false
             return
         }
 
         isSearching = true
-        let q = query.lowercased()
 
         searchTask = Task {
             try? await Task.sleep(for: .milliseconds(200))
             guard !Task.isCancelled else { return }
 
-            var found: [SearchResult] = []
+            let conversations = await MainActor.run { chatStore.conversations }
+            let searchResults = await Task.detached(priority: .userInitiated) {
+                ConversationSearchEngine.search(
+                    trimmedQuery,
+                    in: conversations
+                )
+            }.value
 
-            for conversation in chatStore.conversations {
-                if conversation.title.lowercased().contains(q) {
-                    found.append(SearchResult(
-                        id: conversation.id,
-                        section: .conversations,
-                        title: conversation.title,
-                        subtitle: conversation.preview.isEmpty ? "No messages" : conversation.preview,
-                        conversation: conversation
-                    ))
-                } else if conversation.preview.lowercased().contains(q) {
-                    found.append(SearchResult(
-                        id: conversation.id,
-                        section: .messages,
-                        title: conversation.title,
-                        subtitle: highlightedExcerpt(conversation.preview, around: q),
-                        conversation: conversation
-                    ))
-                }
-            }
+            guard !Task.isCancelled else { return }
 
-            if !Task.isCancelled {
-                results = found
+            await MainActor.run {
+                results = searchResults
                 isSearching = false
             }
         }
-    }
-
-    private func highlightedExcerpt(_ text: String, around query: String) -> String {
-        let lower = text.lowercased()
-        guard let range = lower.range(of: query) else { return String(text.prefix(80)) }
-        let start = max(lower.startIndex, lower.index(range.lowerBound, offsetBy: -20, limitedBy: lower.startIndex) ?? lower.startIndex)
-        let end = min(lower.endIndex, lower.index(range.upperBound, offsetBy: 60, limitedBy: lower.endIndex) ?? lower.endIndex)
-        let slice = String(text[start..<end])
-        return (start > lower.startIndex ? "…" : "") + slice + (end < lower.endIndex ? "…" : "")
     }
 
     private func selectConversation(_ conversation: Conversation) {
         Task {
             await chatStore.selectConversation(conversation)
             appStore.selectedTab = .chat
+            dismiss()
         }
     }
-}
 
-// MARK: - Supporting types
-
-private struct SearchResult: Identifiable {
-    let id: UUID
-    let section: SearchSection
-    let title: String
-    let subtitle: String
-    let conversation: Conversation
-}
-
-private enum SearchSection: CaseIterable {
-    case conversations, messages
-
-    var label: String {
-        switch self {
-        case .conversations: return "Conversations"
-        case .messages:      return "Messages"
+    private func openSearchResult(_ result: ConversationSearchResult) {
+        Task {
+            await chatStore.selectConversation(
+                result.conversation,
+                focusingOn: result.matchedMessageID
+            )
+            appStore.selectedTab = .chat
+            dismiss()
         }
     }
 }

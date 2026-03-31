@@ -16,6 +16,7 @@ final class ChatStore {
     var pendingImageData: [Data] = []
     var agentModeEnabled: Bool = false
     var agentEvents: [AgentEvent] = []
+    var focusedMessageID: UUID?
 
     private let aiService = AIService.shared
     private let dataService = DataService.shared
@@ -50,12 +51,24 @@ final class ChatStore {
     }
 
     func selectConversation(_ conversation: Conversation) async {
+        await selectConversation(conversation, focusingOn: nil)
+    }
+
+    func selectConversation(
+        _ conversation: Conversation,
+        focusingOn messageID: UUID?
+    ) async {
         selectedConversation = conversation
+        focusedMessageID = messageID
         do {
             let loaded = try await dataService.fetchMessages(for: conversation.id)
             messages = loaded
+            if let messageID, !loaded.contains(where: { $0.id == messageID }) {
+                focusedMessageID = nil
+            }
         } catch {
             messages = []
+            focusedMessageID = nil
         }
     }
 
@@ -112,6 +125,7 @@ final class ChatStore {
         inputText = ""
         pendingImageData = []
         agentEvents = []
+        focusedMessageID = nil
 
         let userMessage = ChatMessage.userMessage(text, imageData: images.isEmpty ? nil : images)
         messages.append(userMessage)
@@ -391,6 +405,7 @@ final class ChatStore {
             conversations = []
             selectedConversation = nil
             messages = []
+            focusedMessageID = nil
             Task.detached(priority: .background) {
                 await SpotlightService.shared.deleteAll()
                 WidgetSharedStore.save([])
