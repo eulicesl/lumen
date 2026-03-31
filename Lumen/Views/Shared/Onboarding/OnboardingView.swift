@@ -93,11 +93,12 @@ struct OnboardingView: View {
                         .font(.system(size: 64, weight: .light))
                         .foregroundStyle(page.symbolColor)
                         .symbolEffect(.pulse.byLayer, options: .repeating)
+                        .accessibilityHidden(true)
                 }
 
                 VStack(spacing: LumenSpacing.md) {
                     Text(page.title)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
                         .multilineTextAlignment(.center)
 
                     Text(page.subtitle)
@@ -128,6 +129,7 @@ struct OnboardingView: View {
                     }
                     .font(LumenType.body)
                     .foregroundStyle(.secondary)
+                    .accessibilityHint("Skips onboarding and opens the app")
 
                     Spacer()
 
@@ -137,12 +139,13 @@ struct OnboardingView: View {
                     } label: {
                         Label("Next", systemImage: "arrow.right")
                             .labelStyle(.titleAndIcon)
-                            .font(.system(size: 17, weight: .semibold))
+                            .font(LumenType.headline.weight(.semibold))
                             .foregroundStyle(.white)
                             .padding(.horizontal, LumenSpacing.xl)
                             .padding(.vertical, LumenSpacing.md)
                             .background(Color.accentColor, in: Capsule())
                     }
+                    .accessibilityHint("Moves to the next onboarding page")
                 }
             } else {
                 Button {
@@ -150,12 +153,13 @@ struct OnboardingView: View {
                     completeOnboarding()
                 } label: {
                     Text("Get Started")
-                        .font(.system(size: 17, weight: .semibold))
+                        .font(LumenType.headline.weight(.semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, LumenSpacing.md)
                         .background(Color.accentColor, in: RoundedRectangle(cornerRadius: LumenRadius.lg))
                 }
+                .accessibilityHint("Completes onboarding and opens the app")
             }
         }
     }
@@ -169,6 +173,8 @@ struct OnboardingView: View {
                     .animation(.spring(duration: 0.3), value: currentPage)
             }
         }
+        .accessibilityElement()
+        .accessibilityLabel("Page \(currentPage + 1) of \(onboardingPages.count)")
     }
 
     // MARK: - Background

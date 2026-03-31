@@ -26,7 +26,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayMode(.large)
             #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -66,7 +66,10 @@ struct SettingsView: View {
                 Image(systemName: LumenIcon.ollama)
                     .foregroundStyle(.secondary)
                     .frame(width: 24)
+                    .accessibilityHidden(true)
                 TextField("http://localhost:11434", text: bindableApp.ollamaServerURL)
+                    .accessibilityLabel("Ollama server URL")
+                    .accessibilityHint("Enter the base URL for your local Ollama server")
                     .autocorrectionDisabled()
                     #if os(iOS)
                     .keyboardType(.URL)
@@ -93,6 +96,7 @@ struct SettingsView: View {
                 }
             }
             .foregroundStyle(.primary)
+            .accessibilityHint("Refreshes the model list from the configured Ollama server")
         } header: {
             Label("Ollama Server", systemImage: LumenIcon.ollama)
         } footer: {
@@ -147,8 +151,10 @@ struct SettingsView: View {
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 }
             }
+            .accessibilityHint("Opens memory settings")
         } header: {
             Label("Intelligence", systemImage: "sparkles")
         } footer: {
@@ -178,8 +184,10 @@ struct SettingsView: View {
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 }
             }
+            .accessibilityHint("Opens agent mode settings")
         } footer: {
             Text("When enabled, Lumen can call tools (calculator, date/time, encoders) mid-conversation.")
         }

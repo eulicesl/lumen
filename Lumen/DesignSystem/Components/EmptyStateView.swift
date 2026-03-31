@@ -25,11 +25,12 @@ struct EmptyStateView: View {
                         .font(.system(size: 40, weight: .light))
                         .foregroundStyle(symbolColor.opacity(0.7))
                         .symbolEffect(.pulse.byLayer, options: .repeating)
+                        .accessibilityHidden(true)
                 }
 
                 VStack(spacing: LumenSpacing.sm) {
                     Text(title)
-                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .font(.system(.title2, design: .rounded, weight: .semibold))
                         .multilineTextAlignment(.center)
 
                     Text(subtitle)
