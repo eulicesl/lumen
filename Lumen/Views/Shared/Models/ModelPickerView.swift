@@ -91,7 +91,7 @@ struct ModelPickerView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(model.displayName)
         .accessibilityValue(modelRowAccessibilityValue(model))
         .accessibilityHint("Selects this model for the current conversation")

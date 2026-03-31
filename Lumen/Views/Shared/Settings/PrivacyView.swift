@@ -154,7 +154,7 @@ struct PrivacyView: View {
             }
         }
         .padding(.vertical, LumenSpacing.xs)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(title): \(detail)")
     }
 

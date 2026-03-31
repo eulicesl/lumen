@@ -264,7 +264,7 @@ private struct MessageAccessibilityActions: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .accessibilityElement(children: .combine)
+            .accessibilityElement(children: .ignore)
             .accessibilityLabel(accessibilityLabel)
             .accessibilityValue(accessibilityValue)
             .accessibilityHint(baseHint)

@@ -124,7 +124,7 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(conversation.title)
         .accessibilityValue(conversationRowAccessibilityValue(conversation))
         .accessibilityHint("Opens this conversation")
@@ -157,7 +157,7 @@ struct SearchView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(result.title)
         .accessibilityValue(searchResultAccessibilityValue(result))
         .accessibilityHint(result.matchedMessageID == nil ? "Opens this conversation" : "Opens this conversation and jumps to the matching message")
@@ -217,15 +217,27 @@ struct SearchView: View {
     }
 
     private func conversationRowAccessibilityValue(_ conversation: Conversation) -> String {
-        let preview = conversation.preview.trimmingCharacters(in: .whitespacesAndNewlines)
-        if preview.isEmpty {
-            return "Updated \(conversation.updatedAt.relativeFormatted)"
+        var parts = [String]()
+        if conversation.isPinned {
+            parts.append("Pinned")
         }
-        return "\(preview). Updated \(conversation.updatedAt.relativeFormatted)"
+
+        let preview = conversation.preview.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !preview.isEmpty {
+            parts.append(preview)
+        }
+        parts.append("Updated \(conversation.updatedAt.relativeFormatted)")
+        return parts.joined(separator: ". ")
     }
 
     private func searchResultAccessibilityValue(_ result: ConversationSearchResult) -> String {
-        "\(result.subtitle). Updated \(result.conversation.updatedAt.relativeFormatted)"
+        var parts = [result.matchedMessageID == nil ? "Conversation match" : "Message match"]
+        if result.conversation.isPinned {
+            parts.append("Pinned")
+        }
+        parts.append(result.subtitle)
+        parts.append("Updated \(result.conversation.updatedAt.relativeFormatted)")
+        return parts.joined(separator: ". ")
     }
 }
 

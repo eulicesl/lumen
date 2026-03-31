@@ -142,7 +142,7 @@ struct MemoryView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture { editingItem = item }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(item.content)
         .accessibilityValue(memoryRowAccessibilityValue(item))
         .accessibilityHint("Double-tap to edit. Swipe for enable or delete actions.")
