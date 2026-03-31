@@ -4,89 +4,164 @@ struct MainTabView: View {
 
     @Environment(AppStore.self) private var appStore
     @Environment(ChatStore.self) private var chatStore
+    @Environment(ModelStore.self) private var modelStore
+    @Environment(LibraryStore.self) private var libraryStore
+
     @State private var showingConversationList = false
+    @State private var activePanel: iPhoneQuickPanel?
 
     var body: some View {
-        @Bindable var store = appStore
-        TabView(selection: $store.selectedTab) {
-            Tab("Chat", systemImage: LumenIcon.chat, value: LumenTab.chat) {
-                ChatTabRoot(showingConversationList: $showingConversationList)
-            }
+        @Bindable var bindableStore = appStore
 
-            Tab("Voice", systemImage: LumenIcon.voice, value: LumenTab.voice) {
-                VoiceInputView()
-            }
-
-            Tab("Library", systemImage: LumenIcon.library, value: LumenTab.library) {
-                PromptLibraryView()
-            }
-
-            Tab("Search", systemImage: LumenIcon.search, value: LumenTab.search, role: .search) {
-                SearchView()
-            }
-
-            Tab("Settings", systemImage: LumenIcon.settings, value: LumenTab.settings) {
-                NavigationStack {
-                    SettingsStoreView()
-                }
-            }
-        }
-        .applyiOS26TabChrome(using: store.selectedTab, showChatAccessory: !showingConversationList)
-        .toolbarColorScheme(.dark, for: .tabBar)
-        .background(Color(.systemBackground))
-    }
-}
-
-private struct ChatTabRoot: View {
-    @Binding var showingConversationList: Bool
-    @Environment(ChatStore.self) private var chatStore
-
-    var body: some View {
         NavigationStack {
-            ChatView()
+            ChatView(showsConversationTools: true)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) {
                         Button {
                             showingConversationList = true
                         } label: {
-                            Image(systemName: "sidebar.left")
+                            Image(systemName: "line.3.horizontal")
                         }
-                        .accessibilityLabel("Show Conversations")
+                        .accessibilityLabel("Open history")
+                    }
+
+                    ToolbarItem(placement: .principal) {
+                        ModelPickerChip()
+                    }
+
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        Button {
+                            Task { await chatStore.createNewConversation() }
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("New chat")
+
+                        Menu {
+                            Button {
+                                activePanel = .voice
+                            } label: {
+                                Label("Voice", systemImage: LumenIcon.voice)
+                            }
+
+                            Button {
+                                activePanel = .library
+                            } label: {
+                                Label("Library", systemImage: LumenIcon.library)
+                            }
+
+                            Button {
+                                activePanel = .search
+                            } label: {
+                                Label("Search", systemImage: LumenIcon.search)
+                            }
+
+                            Divider()
+
+                            Button {
+                                appStore.showingSettings = true
+                            } label: {
+                                Label("Settings", systemImage: LumenIcon.settings)
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Open tools menu")
                     }
                 }
-                .chatComposerFallbackInset()
+                .safeAreaInset(edge: .bottom) {
+                    ChatComposerChrome()
+                }
         }
-        .fullScreenCover(isPresented: $showingConversationList) {
+        .sheet(isPresented: $showingConversationList) {
             ConversationPickerView()
+                .environment(appStore)
                 .environment(chatStore)
+        }
+        .sheet(item: $activePanel) { panel in
+            NavigationStack {
+                switch panel {
+                case .voice:
+                    VoiceInputView()
+                        .navigationTitle("Voice")
+                case .library:
+                    PromptLibraryView()
+                        .navigationTitle("Library")
+                case .search:
+                    SearchView()
+                        .navigationTitle("Search")
+                }
+            }
+            .environment(appStore)
+            .environment(chatStore)
+            .environment(modelStore)
+            .environment(libraryStore)
+        }
+        .sheet(isPresented: $bindableStore.showingSettings) {
+            NavigationStack {
+                SettingsStoreView(showsDoneButton: true)
+            }
+            .environment(appStore)
+            .environment(chatStore)
+            .environment(modelStore)
+            .environment(libraryStore)
+        }
+    }
+}
+
+private enum iPhoneQuickPanel: String, Identifiable {
+    case voice, library, search
+
+    var id: String { rawValue }
+}
+
+private struct ModelPickerChip: View {
+    @Environment(ChatStore.self) private var chatStore
+    @Environment(ModelStore.self) private var modelStore
+
+    var body: some View {
+        Menu {
+            ForEach(modelStore.availableModels, id: \.id) { model in
+                Button {
+                    modelStore.selectModel(model)
+                } label: {
+                    HStack {
+                        Text(model.displayName)
+                        if chatStore.currentModel?.id == model.id {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Text(chatStore.currentModel?.shortName ?? "Model")
+                    .font(.subheadline.weight(.medium))
+                Image(systemName: "chevron.down")
+                    .font(.caption2)
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .liquidCapsuleChrome()
+        }
+        .task {
+            if modelStore.availableModels.isEmpty {
+                await modelStore.loadModels()
+            }
         }
     }
 }
 
 private extension View {
     @ViewBuilder
-    func applyiOS26TabChrome(using selectedTab: LumenTab, showChatAccessory: Bool) -> some View {
+    func liquidCapsuleChrome() -> some View {
         if #available(iOS 26.0, *) {
-            self
-                .tabBarMinimizeBehavior(.onScrollDown)
-                .tabViewBottomAccessory {
-                    if selectedTab == .chat && showChatAccessory {
-                        ChatComposerChrome()
-                    }
-                }
+            self.glassEffect(.regular.interactive(), in: Capsule())
         } else {
-            self
-        }
-    }
-
-    @ViewBuilder
-    func chatComposerFallbackInset() -> some View {
-        if #available(iOS 26.0, *) {
-            self
-        } else {
-            self.safeAreaInset(edge: .bottom) {
-                ChatComposerChrome()
-            }
+            self.background(.thinMaterial, in: Capsule())
         }
     }
 }
@@ -116,7 +191,18 @@ private struct ChatComposerChrome: View {
         .accessibilityLabel("Regenerate response")
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.xs)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        .liquidRegenerateSurface()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func liquidRegenerateSurface() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        } else {
+            self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+        }
     }
 }
 
@@ -134,7 +220,6 @@ private struct ConversationPickerView: View {
                     }
                 }
         }
-        .interactiveDismissDisabled(false)
     }
 }
 

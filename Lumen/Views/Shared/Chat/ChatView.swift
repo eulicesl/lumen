@@ -8,6 +8,8 @@ struct ChatView: View {
     @State private var showingComparison = false
     @State private var showingSystemPrompt = false
 
+    var showsConversationTools: Bool = true
+
     var body: some View {
         VStack(spacing: 0) {
             if chatStore.selectedConversation == nil {
@@ -25,37 +27,39 @@ struct ChatView: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .toolbar {
-            if let conv = chatStore.selectedConversation {
+            if showsConversationTools {
+                if let conv = chatStore.selectedConversation {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showingSystemPrompt = true
+                        } label: {
+                            Image(systemName: "brain.head.profile")
+                                .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
+                        }
+                        .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
+                        .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                    }
+                }
+
+                if !chatStore.exportText.isEmpty {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ShareLink(item: chatStore.exportText) {
+                            Image(systemName: LumenIcon.share)
+                        }
+                        .help("Share conversation")
+                        .accessibilityLabel("Share conversation")
+                    }
+                }
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        showingSystemPrompt = true
+                        showingComparison = true
                     } label: {
-                        Image(systemName: "brain.head.profile")
-                            .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
+                        Image(systemName: "arrow.left.arrow.right.circle")
                     }
-                    .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
-                    .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                    .help("Compare Models")
+                    .accessibilityLabel("Compare Models")
                 }
-            }
-
-            if !chatStore.exportText.isEmpty {
-                ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(item: chatStore.exportText) {
-                        Image(systemName: LumenIcon.share)
-                    }
-                    .help("Share conversation")
-                    .accessibilityLabel("Share conversation")
-                }
-            }
-
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingComparison = true
-                } label: {
-                    Image(systemName: "arrow.left.arrow.right.circle")
-                }
-                .help("Compare Models")
-                .accessibilityLabel("Compare Models")
             }
         }
         .sheet(isPresented: $showingComparison) {

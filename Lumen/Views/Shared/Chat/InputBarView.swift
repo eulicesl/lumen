@@ -1,10 +1,20 @@
 import SwiftUI
 import PhotosUI
 
+private extension View {
+    @ViewBuilder
+    func liquidComposerSurface() -> some View {
+        if #available(iOS 26.0, *) {
+            self.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        } else {
+            self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        }
+    }
+}
+
 struct InputBarView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
-    @State private var showingModelPicker = false
     @FocusState private var inputFocused: Bool
 
     #if os(iOS)
@@ -29,99 +39,55 @@ struct InputBarView: View {
                 #if os(iOS)
                 mediaButtons
                 #endif
-                modelChip
                 inputField(bindableChat: $bindableChat)
+                voiceButton
                 sendButton
             }
             .padding(.horizontal, LumenSpacing.md)
             .padding(.vertical, LumenSpacing.sm)
-            .padding(.bottom, LumenSpacing.xs)
+            .liquidComposerSurface()
+            .padding(.horizontal, LumenSpacing.sm)
+            .padding(.bottom, 4)
         }
-        .padding(.top, LumenSpacing.xs)
+        .padding(.top, 4)
         .background(.bar)
         .onChange(of: selectedImages) { syncPendingImages() }
-        .sheet(isPresented: $showingModelPicker) {
-            ModelPickerView()
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
     }
 
     // MARK: - Media buttons (iOS only)
 
     #if os(iOS)
     private var mediaButtons: some View {
-        HStack(spacing: LumenSpacing.xs) {
-            PhotosPicker(
-                selection: $pickerItems,
-                maxSelectionCount: 4,
-                matching: .images
-            ) {
-                Image(systemName: LumenIcon.photo)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Attach Photo")
-            .onChange(of: pickerItems) { Task { await loadPickerImages() } }
-            .disabled(chatStore.conversationState == .generating)
-
-            Button { toggleVoice() } label: {
-                Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundStyle(isRecording ? Color.red : Color.secondary)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-                    .symbolEffect(.pulse, isActive: isRecording)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
-            .disabled(chatStore.conversationState == .generating)
-        }
-    }
-    #endif
-
-    // MARK: - Model chip
-
-    private var modelChip: some View {
-        Button {
-            showingModelPicker = true
-        } label: {
-            HStack(spacing: LumenSpacing.xxs) {
-                Image(systemName: chatStore.currentModel?.providerType == .foundationModels
-                      ? LumenIcon.appleIntelligence : LumenIcon.ollama)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(chatStore.currentModel?.shortName ?? "Model")
-                    .font(LumenType.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.system(size: 8, weight: .semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(.horizontal, LumenSpacing.sm)
-            .padding(.vertical, LumenSpacing.xs)
-            .background(.thinMaterial, in: Capsule())
+        PhotosPicker(
+            selection: $pickerItems,
+            maxSelectionCount: 4,
+            matching: .images
+        ) {
+            Image(systemName: "plus")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 34, height: 34)
+                .background(Color.secondary.opacity(0.12), in: Circle())
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("Attach Photo")
+        .onChange(of: pickerItems) { Task { await loadPickerImages() } }
         .disabled(chatStore.conversationState == .generating)
     }
+    #endif
 
     // MARK: - Input field
 
     @ViewBuilder
     private func inputField(bindableChat: Bindable<ChatStore>) -> some View {
-        TextField("Message", text: bindableChat.inputText, axis: .vertical)
+        TextField("Ask anything", text: bindableChat.inputText, axis: .vertical)
             .font(LumenType.messageBody)
             .lineLimit(1...8)
             .focused($inputFocused)
             .submitLabel(.send)
-            .padding(.horizontal, LumenSpacing.sm)
+            .padding(.horizontal, LumenSpacing.xs)
             .padding(.vertical, LumenSpacing.xs)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.input, style: .continuous))
             .onSubmit {
                 #if os(iOS)
                 sendMessage()
@@ -132,6 +98,25 @@ struct InputBarView: View {
 
     // MARK: - Send / Stop button
 
+    #if os(iOS)
+    private var voiceButton: some View {
+        Button { toggleVoice() } label: {
+            Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(isRecording ? Color.red : Color.secondary)
+                .frame(width: 32, height: 32)
+                .background(Color.secondary.opacity(0.10), in: Circle())
+                .contentShape(Rectangle())
+                .symbolEffect(.pulse, isActive: isRecording)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
+        .disabled(chatStore.conversationState == .generating)
+    }
+    #else
+    private var voiceButton: some View { EmptyView() }
+    #endif
+
     private var sendButton: some View {
         Group {
             if chatStore.conversationState == .generating {
@@ -139,22 +124,38 @@ struct InputBarView: View {
                     Image(systemName: LumenIcon.stop)
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.red)
-                        .frame(width: 36, height: 36)
+                        .frame(width: 34, height: 34)
                         .background(Color.red.opacity(0.12), in: Circle())
                 }
                 .buttonStyle(.plain)
                 .transition(.scale.combined(with: .opacity))
             } else {
-                Button { sendMessage() } label: {
-                    Image(systemName: LumenIcon.send)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(canSend ? Color.accentColor : Color.secondary)
-                        .frame(width: 36, height: 36)
-                        .background(canSend ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.08), in: Circle())
+                if canSend {
+                    Button { sendMessage() } label: {
+                        Image(systemName: LumenIcon.send)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.black)
+                            .frame(width: 32, height: 32)
+                            .background(Color.white, in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    #if os(iOS)
+                    Button { toggleVoice() } label: {
+                        Image(systemName: "waveform")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(Color.white)
+                            .frame(width: 32, height: 32)
+                            .background(Color.white.opacity(0.16), in: Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Start voice mode")
+                    .transition(.scale.combined(with: .opacity))
+                    #else
+                    EmptyView()
+                    #endif
                 }
-                .buttonStyle(.plain)
-                .disabled(!canSend)
-                .transition(.scale.combined(with: .opacity))
             }
         }
         .animation(LumenAnimation.interactive, value: chatStore.conversationState == .generating)
@@ -246,12 +247,6 @@ struct InputBarView: View {
         chatStore.inputText += prefix + text
     }
     #endif
-}
-
-// MARK: - LumenRadius input
-
-private extension LumenRadius {
-    static var input: CGFloat { 14 }
 }
 
 #Preview {
