@@ -21,9 +21,10 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [ ] Settings primary page large title mode.  
   - Priority: P1  
   - Status: Not Started
-- [ ] Pull-to-refresh for conversations and model list.  
+- [x] Pull-to-refresh for conversations and model list.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
+  - Notes: Conversation history refresh is implemented in the sidebar, and model refresh is available from the model picker.
 - [x] Scene state restoration (selected conversation/context/tab).  
   - Priority: P1  
   - Status: Done
