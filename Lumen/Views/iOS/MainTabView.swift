@@ -202,7 +202,7 @@ private extension View {
     @ViewBuilder
     func liquidCapsuleChrome() -> some View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: Capsule())
+            self.glassCard(radius: LumenRadius.full, interactive: true)
         } else {
             self.background(.thinMaterial, in: Capsule())
         }
@@ -242,7 +242,7 @@ private extension View {
     @ViewBuilder
     func liquidRegenerateSurface() -> some View {
         if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+            self.glassCard(radius: LumenRadius.md, interactive: true)
         } else {
             self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
         }
