@@ -11,7 +11,7 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
   - Status: Done
 - [ ] Dynamic Type audit and scaling completeness.  
   - Priority: P0  
-  - Status: Not Started
+  - Status: In Progress
 - [ ] Accessibility labels/hints/values audit for all critical controls.  
   - Priority: P0  
   - Status: In Progress
@@ -46,9 +46,10 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [x] Scroll-to-bottom affordance for long conversations.  
   - Priority: P1  
   - Status: Done
-- [ ] Copy feedback UX for code blocks and message copy actions.  
+- [x] Copy feedback UX for code blocks and message copy actions.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
+  - Notes: Code blocks swap to a temporary "Copied" state, and message copy actions show an inline confirmation badge after copying.
 
 ## Claude Core Parity
 - [ ] Enhanced thinking UX (streaming/distinctive reasoning display).  

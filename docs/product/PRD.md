@@ -16,6 +16,7 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 - Local document import supports PDF and text-based files.
 - Scroll-to-bottom affordance for long conversations is implemented.
 - Empty-chat starter prompts are implemented.
+- Copy actions provide immediate visual feedback for messages and code blocks.
 - Settings uses large-title presentation on iOS.
 - Reduce Motion is respected across the major symbol-heavy and transition-heavy surfaces.
 
@@ -23,9 +24,6 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 #### P0
 - Dynamic Type audit and scaling completeness.
 - Accessibility labels/hints/values audit for critical controls.
-
-#### P1
-- Copy feedback UX for code blocks and message copy actions.
 
 ### Current behavior to preserve while closing parity gaps
 - Preserve the shipped latest-turn regenerate flow while improving adjacent UX.

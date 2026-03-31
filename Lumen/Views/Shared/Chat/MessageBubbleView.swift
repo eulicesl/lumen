@@ -9,6 +9,8 @@ struct MessageBubbleView: View {
     @Environment(ChatStore.self) private var chatStore
     @State private var thinkingExpanded = false
     @State private var showingBranchConfirm = false
+    @State private var showingCopyFeedback = false
+    @State private var copyFeedbackTask: Task<Void, Never>?
     @State private var speechSynthesizer = AVSpeechSynthesizer()
 
     var body: some View {
@@ -37,6 +39,10 @@ struct MessageBubbleView: View {
                                 onEdit: { chatStore.beginEditing(message) }
                             )
                         )
+                }
+
+                if showingCopyFeedback {
+                    copyFeedbackBadge
                 }
 
                 if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
@@ -223,6 +229,8 @@ struct MessageBubbleView: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(copiedContent, forType: .string)
         #endif
+        HapticEngine.impact(.light)
+        showCopyConfirmation()
     }
 
     private func speakMessage() {
@@ -251,6 +259,39 @@ struct MessageBubbleView: View {
         #else
         return 600
         #endif
+    }
+
+    private var copyFeedbackBadge: some View {
+        Label("Copied", systemImage: "checkmark")
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(.green)
+            .padding(.horizontal, LumenSpacing.sm)
+            .padding(.vertical, LumenSpacing.xxs)
+            .background(
+                Capsule()
+                    .fill(Color(.secondarySystemBackground))
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(Color.green.opacity(0.18), lineWidth: 1)
+            )
+            .transition(.opacity.combined(with: .move(edge: message.isUser ? .trailing : .leading)))
+            .accessibilityLabel("Copied")
+    }
+
+    private func showCopyConfirmation() {
+        copyFeedbackTask?.cancel()
+
+        withAnimation(LumenAnimation.fade) {
+            showingCopyFeedback = true
+        }
+
+        copyFeedbackTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 1_200_000_000)
+            withAnimation(LumenAnimation.fade) {
+                showingCopyFeedback = false
+            }
+        }
     }
 }
 

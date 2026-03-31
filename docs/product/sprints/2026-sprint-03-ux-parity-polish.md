@@ -10,9 +10,9 @@ Improve daily usability and parity polish across chat interactions.
 - Improved thinking/reasoning UX presentation.
 
 ## Acceptance Criteria
-- [ ] Empty states offer actionable starter suggestions.
-- [ ] Down-scroll FAB appears appropriately and returns user to newest message.
-- [ ] Copy actions provide immediate visual confirmation.
+- [x] Empty states offer actionable starter suggestions.
+- [x] Down-scroll FAB appears appropriately and returns user to newest message.
+- [x] Copy actions provide immediate visual confirmation.
 - [ ] Thinking UI is visually distinct and understandable.
 
 ## Verification
