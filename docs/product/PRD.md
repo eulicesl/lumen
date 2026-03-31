@@ -7,16 +7,19 @@
 ## 1) Objective
 Lumen is a privacy-first, native Apple-platform AI assistant targeting feature parity with core ChatGPT and Claude workflows while preserving Apple-grade design quality, accessibility, and performance.
 
-## 2) Current State Snapshot (code-verified on `main` @ `741bdd9`)
+## 2) Current State Snapshot (code-verified on `main` @ `b1b04f2`)
 ### Completed / no longer backlog
 - iPhone conversation picker uses `.sheet` (no longer `fullScreenCover`).
 - Success confirmation haptic on response completion is implemented.
+- True branch-aware edit/regenerate from message history is implemented.
+- Full-text search across message history is implemented.
+- Local document import supports PDF and text-based files.
+- Scroll-to-bottom affordance for long conversations is implemented.
 
 ### Remaining top gaps
 #### P0
-- True message edit + regenerate from edit point (branch-aware).
-- Full-text search over message history (not just title/preview), using the current hydrated conversation/message model before introducing indexing complexity.
-- Document uploads beyond images (PDF/text/code/docs).
+- Dynamic Type audit and scaling completeness.
+- Accessibility labels/hints/values audit for critical controls.
 
 #### P1
 - Settings primary screen should use large title mode.
@@ -24,10 +27,11 @@ Lumen is a privacy-first, native Apple-platform AI assistant targeting feature p
 - Scene state restoration (`@SceneStorage`) for core context.
 - Reduce Motion behavior completion across symbol-heavy views.
 - Move Ollama bearer token persistence from `UserDefaults` to Keychain.
+- Starter prompts/suggested replies for empty chats.
 
 ### Current behavior to preserve while closing parity gaps
-- Regenerate is already implemented for the most recent assistant reply and should remain intact while edit-from-history is added.
-- User messages already expose a lightweight "Edit & Resend" affordance; parity work should evolve this into true edit-from-point behavior rather than replace it with a weaker flow.
+- Preserve the shipped latest-turn regenerate flow while improving adjacent UX.
+- Preserve the shipped branch-aware edit-from-history behavior while layering follow-on parity work such as suggestions and artifacts.
 
 ## 3) Product Principles
 1. Privacy by default (local/on-device and user-controlled infra).
