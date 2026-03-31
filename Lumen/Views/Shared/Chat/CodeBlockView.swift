@@ -3,6 +3,9 @@ import SwiftUI
 struct CodeBlockView: View {
     let language: String
     let code: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var didCopyCode = false
+    @State private var copyResetTask: Task<Void, Never>?
 
     private var displayLanguage: String {
         language.isEmpty ? "plaintext" : language.lowercased()
@@ -35,13 +38,14 @@ struct CodeBlockView: View {
             Spacer()
 
             Button(action: copyCode) {
-                Label("Copy code", systemImage: "doc.on.doc")
+                Label(copyButtonTitle, systemImage: copyButtonIcon)
                     .font(.caption2)
-                    .foregroundStyle(Color(white: 0.55))
+                    .foregroundStyle(copyButtonColor)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Copy code")
             .accessibilityHint("Copies the full code block")
+            .accessibilityValue(didCopyCode ? "Copied" : "Ready to copy")
         }
         .padding(.horizontal, LumenSpacing.sm)
         .padding(.vertical, LumenSpacing.xs)
@@ -71,6 +75,39 @@ struct CodeBlockView: View {
         NSPasteboard.general.setString(code, forType: .string)
         #endif
         HapticEngine.impact(.light)
+        showCopyConfirmation()
+    }
+
+    private var copyButtonTitle: String {
+        didCopyCode ? "Copied" : "Copy code"
+    }
+
+    private var copyButtonIcon: String {
+        didCopyCode ? "checkmark" : "doc.on.doc"
+    }
+
+    private var copyButtonColor: Color {
+        didCopyCode ? .green : Color(white: 0.55)
+    }
+
+    private func showCopyConfirmation() {
+        copyResetTask?.cancel()
+        LumenMotion.perform(LumenAnimation.fade, reduceMotion: reduceMotion) {
+            didCopyCode = true
+        }
+
+        copyResetTask = Task { @MainActor in
+            do {
+                try await Task.sleep(nanoseconds: 1_200_000_000)
+            } catch {
+                return
+            }
+
+            guard !Task.isCancelled else { return }
+            LumenMotion.perform(LumenAnimation.fade, reduceMotion: reduceMotion) {
+                didCopyCode = false
+            }
+        }
     }
 }
 
