@@ -39,9 +39,9 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [x] File upload pipeline (PDF/text/code/docs), not image-only.  
   - Priority: P0  
   - Status: Done
-- [ ] Starter prompts/suggested replies for empty chat states.  
+- [x] Starter prompts/suggested replies for empty chat states.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
 - [x] Scroll-to-bottom affordance for long conversations.  
   - Priority: P1  
   - Status: Done
@@ -61,9 +61,9 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
   - Status: Not Started
 
 ## Security / Reliability
-- [ ] Ollama bearer token moved from `UserDefaults` to Keychain + migration.  
+- [x] Ollama bearer token moved from `UserDefaults` to Keychain + migration.  
   - Priority: P1  
-  - Status: Not Started
+  - Status: Done
 - [ ] Improved user-facing error surfaces + retry paths.  
   - Priority: P1  
   - Status: Not Started
