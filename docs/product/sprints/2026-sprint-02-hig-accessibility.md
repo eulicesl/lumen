@@ -13,6 +13,7 @@ Raise baseline Apple-platform quality by completing high-impact HIG/accessibilit
 ## Acceptance Criteria
 - [ ] Settings primary screen uses large title style.
 - [x] Pull-to-refresh available where users expect live refresh.
+  - Notes: Implemented on conversation history and the model picker surfaces.
 - [x] Relaunch restores last active context for conversation/session state.
 - [ ] Symbol animations respect Reduce Motion settings.
 - [ ] Critical controls expose labels/hints/values for assistive tech.

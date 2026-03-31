@@ -126,10 +126,7 @@ struct ConversationListView: View {
             }
         }
         .task {
-            await chatStore.loadConversations()
-            if chatStore.conversations.isEmpty {
-                await chatStore.createNewConversation()
-            }
+            await refreshConversations()
         }
     }
 
