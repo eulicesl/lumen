@@ -19,6 +19,9 @@ struct CodeBlockView: View {
             RoundedRectangle(cornerRadius: LumenRadius.sm)
                 .strokeBorder(Color(white: 0.28), lineWidth: 0.5)
         )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("\(displayLanguage) code block")
+        .accessibilityHint("Contains selectable code and a copy action")
     }
 
     // MARK: - Header
@@ -38,6 +41,7 @@ struct CodeBlockView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Copy code")
+            .accessibilityHint("Copies the full code block")
         }
         .padding(.horizontal, LumenSpacing.sm)
         .padding(.vertical, LumenSpacing.xs)

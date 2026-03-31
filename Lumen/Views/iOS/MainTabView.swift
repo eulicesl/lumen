@@ -24,6 +24,7 @@ struct MainTabView: View {
                             Image(systemName: "line.3.horizontal")
                         }
                         .accessibilityLabel("Open history")
+                        .accessibilityHint("Shows your conversation list")
                     }
 
                     ToolbarItem(placement: .principal) {
@@ -38,6 +39,7 @@ struct MainTabView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("New chat")
+                        .accessibilityHint("Starts a new conversation")
 
                         Menu {
                             Button {
@@ -70,6 +72,7 @@ struct MainTabView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Open tools menu")
+                        .accessibilityHint("Opens voice, library, search, and settings options")
                     }
                 }
                 .safeAreaInset(edge: .bottom) {
@@ -190,6 +193,10 @@ private struct ModelPickerChip: View {
             .padding(.vertical, 5)
             .liquidCapsuleChrome()
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Current model")
+        .accessibilityValue(chatStore.currentModel?.displayName ?? "No model selected")
+        .accessibilityHint("Double-tap to choose a different model")
         .task {
             if modelStore.availableModels.isEmpty {
                 await modelStore.loadModels()

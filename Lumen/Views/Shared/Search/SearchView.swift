@@ -125,6 +125,8 @@ struct SearchView: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(conversation.title)
+        .accessibilityValue(conversationRowAccessibilityValue(conversation))
         .accessibilityHint("Opens this conversation")
     }
 
@@ -156,6 +158,8 @@ struct SearchView: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
+        .accessibilityLabel(result.title)
+        .accessibilityValue(searchResultAccessibilityValue(result))
         .accessibilityHint(result.matchedMessageID == nil ? "Opens this conversation" : "Opens this conversation and jumps to the matching message")
     }
 
@@ -210,6 +214,18 @@ struct SearchView: View {
             appStore.selectedTab = .chat
             dismiss()
         }
+    }
+
+    private func conversationRowAccessibilityValue(_ conversation: Conversation) -> String {
+        let preview = conversation.preview.trimmingCharacters(in: .whitespacesAndNewlines)
+        if preview.isEmpty {
+            return "Updated \(conversation.updatedAt.relativeFormatted)"
+        }
+        return "\(preview). Updated \(conversation.updatedAt.relativeFormatted)"
+    }
+
+    private func searchResultAccessibilityValue(_ result: ConversationSearchResult) -> String {
+        "\(result.subtitle). Updated \(result.conversation.updatedAt.relativeFormatted)"
     }
 }
 
