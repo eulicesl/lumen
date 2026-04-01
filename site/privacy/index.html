@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lumen Privacy Policy</title>
+    <meta
+      name="description"
+      content="Privacy policy for Lumen, a privacy-first native AI assistant for Apple devices."
+    />
+    <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../assets/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="masthead">
+        <a class="brand" href="../">Lumen</a>
+        <nav class="nav" aria-label="Primary">
+          <a href="../privacy/">Privacy</a>
+          <a href="../support/">Support</a>
+          <a href="https://github.com/eulicesl/lumen">GitHub</a>
+        </nav>
+      </header>
+
+      <main class="stack">
+        <section class="hero section">
+          <p class="eyebrow">Privacy Policy</p>
+          <h1>Lumen Privacy Policy</h1>
+          <p class="meta">Last updated: April 1, 2026</p>
+          <p>
+            Lumen is designed as a privacy-first native app. The shipped product
+            does not require an account, does not include analytics, and does not
+            route conversation data through a developer-operated cloud backend.
+          </p>
+        </section>
+
+        <section class="panel section">
+          <h2>Data stored locally</h2>
+          <ul class="list">
+            <li>Conversations and message history</li>
+            <li>Optional memory entries saved for cross-conversation context</li>
+            <li>App preferences and local model configuration</li>
+            <li>Imported document text used to support a conversation</li>
+          </ul>
+          <p>
+            This information is stored using Apple platform storage APIs such as
+            SwiftData and UserDefaults.
+          </p>
+        </section>
+
+        <section class="panel section">
+          <h2>AI processing</h2>
+          <ul class="list">
+            <li>Apple Intelligence or Foundation Models on supported devices</li>
+            <li>User-configured Ollama endpoints in a local environment</li>
+          </ul>
+          <p>
+            When you use Ollama, requests are sent only to the endpoint you
+            configured. In the intended setup, that endpoint is local to your device
+            or to your network, not a developer-operated cloud service.
+          </p>
+        </section>
+
+        <section class="panel section">
+          <h2>Permissions</h2>
+          <ul class="list">
+            <li>Microphone, for voice input you explicitly start</li>
+            <li>Speech Recognition, to transcribe voice input</li>
+            <li>Camera or Photo Library, when you choose to attach an image</li>
+            <li>Files, when you choose to import a document</li>
+          </ul>
+          <p>Permissions are optional and used only for the feature you invoke.</p>
+        </section>
+
+        <section class="panel section">
+          <h2>Data sharing</h2>
+          <p>
+            Lumen does not sell personal data and does not use advertising SDKs or
+            third-party analytics in the shipped app.
+          </p>
+          <p>
+            If you configure Lumen to talk to a service outside your device or local
+            network, you are responsible for that service's privacy and security
+            posture.
+          </p>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span>Support and privacy requests can be initiated from the support page.</span>
+        <span><a href="../support/">Support</a></span>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+name: Public Release Site
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/pages.yml
+      - site/**
+      - docs/legal/PRIVACY_POLICY.md
+      - docs/support/SUPPORT.md
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/pages.yml
+      - site/**
+      - docs/legal/PRIVACY_POLICY.md
+      - docs/support/SUPPORT.md
+  workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: Build Public Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate static site structure
+        run: |
+          test -f site/index.html
+          test -f site/privacy/index.html
+          test -f site/support/index.html
+          test -f site/assets/styles.css
+          test -f site/assets/favicon.svg
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy Public Site
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
