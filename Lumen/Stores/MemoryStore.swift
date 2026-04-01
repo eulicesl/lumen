@@ -5,8 +5,8 @@ import Observation
 @MainActor
 final class MemoryStore {
     static let shared = MemoryStore()
-    private static let maxIndexEntries = 12
-    private static let defaultRelevantLimit = 6
+    private nonisolated static let maxIndexEntries = 12
+    private nonisolated static let defaultRelevantLimit = 6
 
     private(set) var memories: [MemoryItem] = []
     var isEnabled: Bool = true
@@ -72,37 +72,46 @@ final class MemoryStore {
         guard !active.isEmpty else { return [] }
 
         let clampedLimit = max(1, min(limit, active.count))
-        let queryTokens = tokenSet(from: prompt)
+        let normalizedPrompt = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        let queryTokens = tokenSet(from: normalizedPrompt)
+        let canPhraseMatch = normalizedPrompt.count >= 2
 
-        if queryTokens.isEmpty {
+        if queryTokens.isEmpty, !canPhraseMatch {
             return Array(active.prefix(clampedLimit))
         }
 
+        let queryLower = normalizedPrompt.lowercased()
         let scored = active.map { item in
-            let itemTokens = tokenSet(from: item.content)
-            let overlap = queryTokens.intersection(itemTokens).count
             let contentLower = item.content.lowercased()
-            let queryLower = prompt.lowercased()
-            let phraseBoost = (queryLower.count >= 6 && contentLower.contains(queryLower)) ? 4 : 0
+            let itemTokens = tokenSet(from: item.content)
+            let overlap = queryTokens.reduce(into: 0) { count, token in
+                if itemTokens.contains(token) || canSubstringMatch(token, in: contentLower) {
+                    count += 1
+                }
+            }
+            let phraseBoost = (canPhraseMatch && contentLower.contains(queryLower)) ? 4 : 0
             let categoryBoost = item.category == .preference ? 1 : 0
-            return (item, overlap * 3 + phraseBoost + categoryBoost)
+            return (
+                item: item,
+                score: overlap * 3 + phraseBoost + categoryBoost,
+                hasQuerySignal: overlap > 0 || phraseBoost > 0
+            )
         }
 
         let top = scored
             .sorted {
-                if $0.1 == $1.1 {
-                    return ($0.0.lastUsedAt ?? $0.0.createdAt) > ($1.0.lastUsedAt ?? $1.0.createdAt)
+                if $0.score == $1.score {
+                    return ($0.item.lastUsedAt ?? $0.item.createdAt) > ($1.item.lastUsedAt ?? $1.item.createdAt)
                 }
-                return $0.1 > $1.1
+                return $0.score > $1.score
             }
             .prefix(clampedLimit)
-            .map(\.0)
 
-        if top.allSatisfy({ tokenSet(from: $0.content).intersection(queryTokens).isEmpty }) {
+        if top.allSatisfy({ !$0.hasQuerySignal }) {
             return Array(active.prefix(clampedLimit))
         }
 
-        return top
+        return top.map(\.item)
     }
 
     // MARK: - CRUD
@@ -169,16 +178,25 @@ final class MemoryStore {
     }
 
     private func tokenSet(from text: String) -> Set<String> {
-        let cleaned = text
+        let tokens = text
             .lowercased()
-            .replacingOccurrences(of: "[^a-z0-9 ]", with: " ", options: .regularExpression)
-
-        let tokens = cleaned
-            .split(whereSeparator: { $0.isWhitespace })
+            .split(whereSeparator: { !$0.isLetter && !$0.isNumber })
             .map(String.init)
-            .filter { $0.count >= 3 }
+            .filter(shouldIndexToken)
 
         return Set(tokens)
+    }
+
+    private func shouldIndexToken(_ token: String) -> Bool {
+        token.count >= 2 || token.unicodeScalars.contains(where: { !$0.isASCII })
+    }
+
+    private func canSubstringMatch(_ token: String, in contentLower: String) -> Bool {
+        guard token.count > 2 || token.unicodeScalars.contains(where: { !$0.isASCII }) else {
+            return false
+        }
+
+        return contentLower.contains(token)
     }
 
     private func truncate(_ text: String, to maxLength: Int) -> String {

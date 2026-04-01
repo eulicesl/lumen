@@ -103,6 +103,42 @@ struct MemoryStoreTests {
         }
     }
 
+    @Test("Relevant memories keep short technical tokens like AI, UI, and Go")
+    func relevantMemoriesSupportShortTechnicalTerms() {
+        let store = MemoryStore.forTesting()
+        store.add(content: "I build AI UI tools in Go for developer workflows", category: .preference)
+        store.add(content: "I want to try a new ramen restaurant this weekend", category: .fact)
+
+        let relevant = store.relevantMemories(for: "Help me improve AI UI architecture in Go", limit: 1)
+
+        #expect(relevant.count == 1)
+        #expect(relevant.first?.content.contains("Go") == true)
+    }
+
+    @Test("Relevant memories support non Latin prompts")
+    func relevantMemoriesSupportNonLatinPrompts() {
+        let store = MemoryStore.forTesting()
+        store.add(content: "私は日本語のUIコピーを好みます", category: .preference)
+        store.add(content: "I want to buy groceries after work", category: .reminder)
+
+        let relevant = store.relevantMemories(for: "日本語 UI を改善したい", limit: 1)
+
+        #expect(relevant.count == 1)
+        #expect(relevant.first?.content.contains("日本語") == true)
+    }
+
+    @Test("Phrase matches survive when token overlap is empty")
+    func phraseMatchesDoNotFallBackToRecency() {
+        let store = MemoryStore.forTesting()
+        store.add(content: "I prefer C# and .NET for desktop utilities", category: .preference)
+        store.add(content: "Remember to buy groceries", category: .reminder)
+
+        let relevant = store.relevantMemories(for: "C#", limit: 1)
+
+        #expect(relevant.count == 1)
+        #expect(relevant.first?.content.contains("C#") == true)
+    }
+
     @Test("activeMemories returns only active items")
     func activeMemoriesFilter() {
         let store = MemoryStore.forTesting()
