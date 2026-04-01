@@ -11,7 +11,7 @@
   --radius-lg: 28px;
   --radius-md: 18px;
   --content: 920px;
-  --font-sans: "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+  --font-sans: system-ui, -apple-system, "Inter", "Segoe UI", sans-serif;
   --font-serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
 }
 
@@ -81,6 +81,7 @@ a:hover {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
 

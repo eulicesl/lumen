@@ -9,7 +9,7 @@ This document tracks the gap between a healthy repository and an actual App Stor
 - App version metadata is now defined intentionally in repository configuration instead of being left as an undocumented default.
 - Draft privacy-policy and support content now exists in-repo and is ready to publish to stable public URLs.
 - Draft App Store metadata, privacy answers, reviewer notes, and screenshot planning now exist in-repo.
-- A GitHub Pages deployment workflow and public-site source now exist for release-facing privacy and support URLs.
+- The repository now includes a GitHub Pages deployment workflow at `.github/workflows/pages.yml` and a public-site source tree at `site/` for release-facing privacy and support URLs.
 - Stale Calendar and Reminders permission strings were removed from project configuration because the current codebase does not use EventKit.
 - Release candidates are expected to carry fresh local validation evidence before submission.
 
