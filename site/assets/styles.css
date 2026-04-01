@@ -215,6 +215,10 @@ p {
   margin-top: 24px;
 }
 
+.stack > .section + .section {
+  margin-top: 0;
+}
+
 .meta {
   font-size: 0.94rem;
   color: var(--muted);
