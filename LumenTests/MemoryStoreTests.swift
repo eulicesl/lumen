@@ -61,7 +61,8 @@ struct MemoryStoreTests {
         store.isEnabled = true
         let ctx = store.contextString
         #expect(ctx.contains("I use Swift"))
-        #expect(ctx.contains("Here is what you know about the user"))
+        #expect(ctx.contains("User memory index (compact)"))
+        #expect(ctx.contains("Most relevant memory hints for this request"))
     }
 
     @Test("Inactive memories excluded from context string")
@@ -71,6 +72,35 @@ struct MemoryStoreTests {
         store.toggleActive(item)
         #expect(store.memories.first?.isActive == false)
         #expect(!store.contextString.contains("Hidden fact"))
+    }
+
+    @Test("Relevant memories prioritize token overlap with prompt")
+    func relevantMemoriesByPrompt() {
+        let store = MemoryStore.forTesting()
+        store.add(content: "I prefer compact Swift syntax and native iOS APIs", category: .preference)
+        store.add(content: "My favorite meal is ramen", category: .fact)
+        store.add(content: "I am planning a hiking trip", category: .context)
+
+        let relevant = store.relevantMemories(for: "Help me improve Swift iOS code quality", limit: 1)
+        #expect(relevant.count == 1)
+        #expect(relevant.first?.content.contains("Swift") == true)
+    }
+
+    @Test("Context string for prompt focuses the relevant section")
+    func promptScopedContext() {
+        let store = MemoryStore.forTesting()
+        store.add(content: "I use Swift every day", category: .fact)
+        store.add(content: "Remember to buy groceries", category: .reminder)
+
+        let ctx = store.contextString(for: "Can you review my Swift code?", relevantLimit: 1)
+        let sections = ctx.components(separatedBy: "Most relevant memory hints for this request:\n")
+        #expect(sections.count == 2)
+
+        if sections.count == 2 {
+            let relevantSection = sections[1].components(separatedBy: "\n\nTreat memory as hints").first ?? ""
+            #expect(relevantSection.contains("Swift"))
+            #expect(!relevantSection.contains("groceries"))
+        }
     }
 
     @Test("activeMemories returns only active items")

@@ -27,6 +27,11 @@ These items cannot be completed purely through repository edits:
 - App Store Connect app record review and privacy questionnaire entry
 - Signed archive upload using the final Apple account and distribution setup
 
+## Ongoing release governance
+
+- Memory relevance roadmap is phase-gated (`docs/product/sprints/2026-sprint-05-memory-relevance.md`).
+- Before any Sprint 05 Phase 2/3 implementation, record a go/no-go decision in the Sprint 05 Decision Log.
+
 ## Submission rule
 
 Do not claim the app is ready for App Store submission until both conditions are true:
