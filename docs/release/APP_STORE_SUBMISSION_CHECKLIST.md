@@ -28,13 +28,13 @@ Treat App Store submission as a release artifact, not a last-minute form fill.
 - [ ] Every declared permission has a real in-app use case
 - [ ] Permission copy is user-readable and specific
 - [ ] App Store privacy answers are prepared from the current implementation
-- [ ] Privacy Policy URL is available for App Store Connect entry (`https://eulicesl.github.io/lumen/privacy/`)
+- [ ] Privacy Policy URL is available for App Store Connect entry (<https://eulicesl.github.io/lumen/privacy/>)
 
 ## App Store Connect metadata
 
 - [ ] App name, subtitle, and description are finalized
 - [ ] Keywords are intentional and not spammy
-- [ ] Support URL is available (`https://eulicesl.github.io/lumen/support/`)
+- [ ] Support URL is available (<https://eulicesl.github.io/lumen/support/>)
 - [ ] Marketing URL is set if desired
 - [ ] Age rating and content declarations are reviewed
 - [ ] Export compliance answers are prepared
