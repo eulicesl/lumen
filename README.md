@@ -63,3 +63,4 @@ xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Sim
 - Screenshot capture plan: `docs/release/SCREENSHOT_CAPTURE_PLAN.md`
 - Privacy policy draft: `docs/legal/PRIVACY_POLICY.md`
 - Support page draft: `docs/support/SUPPORT.md`
+- Public release site source: `site/`
