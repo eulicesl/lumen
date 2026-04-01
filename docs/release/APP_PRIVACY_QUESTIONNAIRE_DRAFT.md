@@ -30,17 +30,24 @@ Expected current answer set for the shipped product:
 ## Why this draft says "No developer-side collection"
 
 Lumen stores conversation and preference data locally on-device for app functionality, but the shipped app does not include a developer-operated cloud backend, analytics pipeline, or ad-tech collection path.
+When the user configures Ollama, app content may be sent to a user-provided or self-hosted endpoint on the user's local network rather than to infrastructure operated by the developer.
 
 ## Permissions to verify against the release binary
 
-- Microphone
-- Speech Recognition
-- Camera
-- Photo Library
-- Files / document import
+The following permissions are currently declared in `Lumen/Resources/Info.plist` and should be verified against the release build:
+
+- Microphone (`NSMicrophoneUsageDescription`)
+- Speech Recognition (`NSSpeechRecognitionUsageDescription`)
+
+The following user-facing capabilities exist in the app and should be verified before final submission:
+
+- Camera: add and verify `NSCameraUsageDescription` if camera capture remains enabled
+- Photo Library: add and verify the appropriate photo-library usage description if photo selection remains enabled
+- Files / document import: verify final document-picker behavior and any required entitlements or reviewer-facing notes
 
 ## Final verification steps
 
 - compare this draft against `Lumen/Resources/PrivacyInfo.xcprivacy`
 - compare this draft against the exact permission prompts in the release build
+- compare this draft against the final `Lumen/Resources/Info.plist` permission strings
 - verify no new SDK or network path was added after this document was written

@@ -13,6 +13,8 @@ Apple references:
 - Screenshot specs: https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/
 - Upload guidance: https://developer.apple.com/help/app-store-connect/manage-app-information/upload-app-previews-and-screenshots
 
+Last verified against Apple documentation: April 1, 2026.
+
 ## Required targets for Lumen
 
 - iPhone: 6.9-inch screenshots
@@ -44,12 +46,14 @@ Apple references:
 
 ## Device sizes from Apple reference
 
-- iPhone 6.9-inch accepted sizes include:
+Apple currently lists multiple accepted resolutions within the same screenshot class for recent device generations. Use any accepted size within the required class, but keep each uploaded screenshot set internally consistent.
+
+- iPhone 6.9-inch accepted sizes currently include:
   - 1290 x 2796 portrait
   - 2796 x 1290 landscape
   - 1320 x 2868 portrait
   - 2868 x 1320 landscape
-- iPad 13-inch accepted sizes include:
+- iPad 13-inch accepted sizes currently include:
   - 2064 x 2752 portrait
   - 2752 x 2064 landscape
   - 2048 x 2732 portrait
