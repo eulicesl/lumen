@@ -48,12 +48,12 @@ Use a tight set that reflects the shipped product:
 
 - local ai
 - private ai
-- ollama
-- apple intelligence
 - ai chat
 - on device ai
 - document chat
 - voice assistant
+- local assistant
+- privacy first
 
 ## What to verify before submission
 
