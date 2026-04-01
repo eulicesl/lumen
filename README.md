@@ -35,12 +35,12 @@ open Lumen.xcodeproj
 ## Validation
 ### Build for simulator
 ```bash
-xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Simulator,name=iPhone 16' build
+xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Simulator,name=<available-simulator>' build
 ```
 
 ### Run tests
 ```bash
-xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Simulator,name=iPhone 16' -skip-testing:LumenUITests test
+xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Simulator,name=<available-simulator>' -skip-testing:LumenUITests test
 ```
 
 ## Release discipline
