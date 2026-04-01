@@ -27,4 +27,6 @@ Publish a stable public support page that includes:
 ## Submission note
 
 App Store Connect requires a public Support URL.
-This repository document is a draft support artifact, not the final hosted support page.
+The hosted support page for the current release flow is:
+
+- https://eulicesl.github.io/lumen/support/
