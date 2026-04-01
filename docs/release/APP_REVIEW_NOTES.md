@@ -14,7 +14,8 @@ Important review context:
 3. The app also supports Ollama. That path requires the user to enter the URL of a separately running Ollama server, such as one hosted on the reviewer's Mac or another machine reachable on the same local network.
 4. If no reachable local model endpoint is configured, parts of the experience that depend on AI generation may not produce a response until the reviewer points the app at Apple Intelligence on supported hardware or at a reachable Ollama server.
 5. Microphone, photo library, camera, and file import permissions are optional and only requested when the reviewer explicitly uses those features.
+6. For the final submission, include either a short demo video or a reviewer-accessible test setup if any part of the review depends on Ollama-specific flows.
 
 ## Suggested shorter version
 
-Lumen supports local AI through Apple Intelligence on supported devices and through a separately running Ollama server reachable on the user's local network. No account is required. If the reviewer does not configure a reachable local model endpoint, AI-generation features may be unavailable. Permissions are optional and only requested when the corresponding feature is used.
+Lumen supports local AI through Apple Intelligence on supported devices and through a separately running Ollama server reachable on the user's local network. No account is required. If the reviewer does not configure a reachable local model endpoint, AI-generation features may be unavailable. Permissions are optional and only requested when the corresponding feature is used. If review depends on Ollama-specific behavior, include a short demo video or a reviewer-accessible test setup.

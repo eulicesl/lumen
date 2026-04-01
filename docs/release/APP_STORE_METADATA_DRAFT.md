@@ -44,16 +44,16 @@ It supports Dynamic Type, accessibility improvements, and reduced-motion behavio
 
 ## Keywords
 
-Use a tight set that reflects the shipped product:
+Start from terms that remain unique after the final subtitle is chosen:
 
-- local ai
-- private ai
-- ai chat
-- on device ai
-- document chat
-- voice assistant
-- local assistant
-- privacy first
+- chatbot
+- documents
+- memory
+- voice
+- images
+- history search
+- productivity
+- local models
 
 ## What to verify before submission
 
