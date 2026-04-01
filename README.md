@@ -64,3 +64,5 @@ xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Sim
 - Privacy policy draft: `docs/legal/PRIVACY_POLICY.md`
 - Support page draft: `docs/support/SUPPORT.md`
 - Public release site source: `site/`
+- Live privacy URL: `https://eulicesl.github.io/lumen/privacy/`
+- Live support URL: `https://eulicesl.github.io/lumen/support/`

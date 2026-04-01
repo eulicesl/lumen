@@ -49,4 +49,6 @@ If you configure Lumen to talk to a service outside your device or local network
 
 ## Contact
 
-Support and privacy requests should be routed through the public support contact or support page published for the release build.
+Support and privacy requests should be routed through the public support page for the release build:
+
+- https://eulicesl.github.io/lumen/support/
