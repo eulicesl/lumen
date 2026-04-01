@@ -30,8 +30,6 @@ targets:
       properties:
         BGTaskSchedulerPermittedIdentifiers:
           - com.lumen.spotlight-index
-        CFBundleShortVersionString: $(MARKETING_VERSION)
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

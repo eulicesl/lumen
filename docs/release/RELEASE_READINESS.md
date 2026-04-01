@@ -9,7 +9,7 @@ This document tracks the gap between a healthy repository and an actual App Stor
 - App version metadata is now defined intentionally in repository configuration instead of being left as an undocumented default.
 - Draft privacy-policy and support content now exists in-repo and is ready to publish to stable public URLs.
 - Stale Calendar and Reminders permission strings were removed from project configuration because the current codebase does not use EventKit.
-- Local validation passes on the current release-readiness branch.
+- Release candidates are expected to carry fresh local validation evidence before submission.
 
 ## Remaining external blockers
 
