@@ -69,7 +69,7 @@ struct PrivacyView: View {
         } header: {
             Label("Your Data", systemImage: "cylinder.fill")
         } footer: {
-            Text("Lumen has no server, no account system, and no analytics. Your data is only ever on your device.")
+            Text("Lumen has no cloud backend, no account system, and no analytics. Your data stays on your device or your local network.")
         }
     }
 
@@ -90,7 +90,7 @@ struct PrivacyView: View {
         } header: {
             Label("AI Models", systemImage: "cpu")
         } footer: {
-            Text("No third-party AI APIs (OpenAI, Anthropic, etc.) are used. All inference is local.")
+            Text("No third-party hosted AI APIs are required by the shipped product. Inference is local to the device or local network.")
         }
     }
 
@@ -123,7 +123,7 @@ struct PrivacyView: View {
 
     private var openSourceSection: some View {
         Section("Open Source") {
-            Link(destination: URL(string: "https://github.com/lumen-ai/lumen")!) {
+            Link(destination: URL(string: "https://github.com/eulicesl/lumen")!) {
                 HStack {
                     Label("View Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
                     Spacer()

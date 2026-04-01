@@ -244,7 +244,7 @@ struct SettingsView: View {
         Section("About") {
             LabeledContent("Version", value: Bundle.main.appVersion)
             LabeledContent("Build", value: Bundle.main.buildNumber)
-            Link(destination: URL(string: "https://github.com/lumen-ai/lumen")!) {
+            Link(destination: URL(string: "https://github.com/eulicesl/lumen")!) {
                 Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
             }
             Button {

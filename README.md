@@ -57,3 +57,5 @@ xcodebuild -project Lumen.xcodeproj -scheme Lumen -destination 'platform=iOS Sim
 - Portfolio authorship note: `docs/PORTFOLIO_AUTHORSHIP.md`
 - App Store submission checklist: `docs/release/APP_STORE_SUBMISSION_CHECKLIST.md`
 - Release readiness status: `docs/release/RELEASE_READINESS.md`
+- Privacy policy draft: `docs/legal/PRIVACY_POLICY.md`
+- Support page draft: `docs/support/SUPPORT.md`
