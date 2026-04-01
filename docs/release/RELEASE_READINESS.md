@@ -6,7 +6,7 @@ This document tracks the gap between a healthy repository and an actual App Stor
 
 - Original-work/authorship position is documented in `README.md` and `docs/PORTFOLIO_AUTHORSHIP.md`.
 - TestFlight and App Store submission checklists exist and are part of the repository workflow.
-- Marketing version and build number now resolve from shared build settings in the main app target.
+- App version metadata is now defined intentionally in repository configuration instead of being left as an undocumented default.
 - Stale Calendar and Reminders permission strings were removed from project configuration because the current codebase does not use EventKit.
 - Local validation passes on the current release-readiness branch.
 

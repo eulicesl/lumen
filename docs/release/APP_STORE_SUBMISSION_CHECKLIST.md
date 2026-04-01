@@ -20,7 +20,7 @@ Treat App Store submission as a release artifact, not a last-minute form fill.
 
 - [ ] Marketing version is intentional
 - [ ] Build number is incremented for the upload
-- [ ] App and widget version/build values resolve from shared build settings
+- [ ] App and widget version/build values are aligned and verified for the release candidate
 
 ## Privacy and permissions
 
