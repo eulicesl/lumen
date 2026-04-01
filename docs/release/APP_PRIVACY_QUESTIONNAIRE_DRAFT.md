@@ -19,9 +19,9 @@ Expected current answer set for the shipped product:
 - Location: No
 - Sensitive Info: No
 - Contacts: No
-- User Content: No developer-side collection
+- User Content: No developer-side collection; user content may be sent to a user-configured local or self-hosted model endpoint
 - Browsing History: No
-- Search History: No developer-side collection
+- Search History: No developer-side collection; search terms remain local unless the user routes requests to a user-configured model endpoint
 - Identifiers: No
 - Purchases: No
 - Usage Data: No analytics collection
