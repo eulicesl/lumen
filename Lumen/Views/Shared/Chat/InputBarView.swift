@@ -21,6 +21,10 @@ struct InputBarView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var inputFocused: Bool
     @State private var showingDocumentImporter = false
+    @ScaledMetric(relativeTo: .body) private var mediaButtonSize = 34
+    @ScaledMetric(relativeTo: .body) private var primaryActionButtonSize = 32
+    @ScaledMetric(relativeTo: .body) private var mediaButtonIconSize = 18
+    @ScaledMetric(relativeTo: .body) private var actionButtonIconSize = 16
 
     #if os(iOS)
     @State private var selectedImages: [UIImage] = []
@@ -115,7 +119,7 @@ struct InputBarView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.top, LumenSpacing.xs)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityHint("Retries the most recent assistant response")
     }
 
@@ -145,6 +149,8 @@ struct InputBarView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.top, LumenSpacing.xs)
+        .accessibilityElement(children: .contain)
+        .accessibilityHint("Cancel editing or send the updated message to create a branch")
     }
 
     // MARK: - Media buttons (iOS only)
@@ -157,9 +163,9 @@ struct InputBarView: View {
             matching: .images
         ) {
             Image(systemName: "plus")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: mediaButtonIconSize, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
+                .frame(width: mediaButtonSize, height: mediaButtonSize)
                 .background(Color.secondary.opacity(0.12), in: Circle())
                 .contentShape(Rectangle())
         }
@@ -176,9 +182,9 @@ struct InputBarView: View {
             showingDocumentImporter = true
         } label: {
             Image(systemName: "doc.badge.plus")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: mediaButtonIconSize, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
+                .frame(width: mediaButtonSize, height: mediaButtonSize)
                 .background(Color.secondary.opacity(0.12), in: Circle())
                 .contentShape(Rectangle())
         }
@@ -230,9 +236,9 @@ struct InputBarView: View {
             if chatStore.conversationState == .generating {
                 Button { chatStore.stopGeneration() } label: {
                     Image(systemName: LumenIcon.stop)
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: mediaButtonIconSize, weight: .semibold))
                         .foregroundStyle(.red)
-                        .frame(width: 34, height: 34)
+                        .frame(width: mediaButtonSize, height: mediaButtonSize)
                         .background(Color.red.opacity(0.12), in: Circle())
                 }
                 .buttonStyle(.plain)
@@ -243,9 +249,9 @@ struct InputBarView: View {
                 if canSend {
                     Button { sendMessage() } label: {
                         Image(systemName: chatStore.isEditingMessage ? "arrow.branch" : LumenIcon.send)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: actionButtonIconSize, weight: .semibold))
                             .foregroundStyle(Color.black)
-                            .frame(width: 32, height: 32)
+                            .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
                             .background(Color.white, in: Circle())
                     }
                     .buttonStyle(.plain)
@@ -256,9 +262,9 @@ struct InputBarView: View {
                     #if os(iOS)
                     Button { toggleVoice() } label: {
                         Image(systemName: "waveform")
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: actionButtonIconSize, weight: .semibold))
                             .foregroundStyle(Color.white)
-                            .frame(width: 32, height: 32)
+                            .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
                             .background(Color.white.opacity(0.16), in: Circle())
                     }
                     .buttonStyle(.plain)
@@ -304,9 +310,9 @@ struct InputBarView: View {
     @ViewBuilder
     private var voiceButtonIcon: some View {
         let icon = Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
-            .font(.system(size: 16, weight: .medium))
+            .font(.system(size: actionButtonIconSize, weight: .medium))
             .foregroundStyle(isRecording ? Color.red : Color.secondary)
-            .frame(width: 32, height: 32)
+            .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
             .background(Color.secondary.opacity(0.10), in: Circle())
             .contentShape(Rectangle())
 
@@ -445,8 +451,11 @@ struct InputBarView: View {
 }
 
 private struct DocumentAttachmentRow: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let documents: [ImportedDocument]
     let onRemove: (ImportedDocument) -> Void
+    @ScaledMetric(relativeTo: .body) private var rowHeight = 88
+    @ScaledMetric(relativeTo: .body) private var documentIconSize = 18
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -458,14 +467,14 @@ private struct DocumentAttachmentRow: View {
             .padding(.horizontal, LumenSpacing.md)
             .padding(.vertical, LumenSpacing.xs)
         }
-        .frame(height: 88)
+        .frame(minHeight: rowHeight)
         .background(.bar)
     }
 
     private func documentChip(_ document: ImportedDocument) -> some View {
         HStack(spacing: LumenSpacing.sm) {
             Image(systemName: "doc.text.fill")
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: documentIconSize, weight: .medium))
                 .foregroundStyle(Color.accentColor)
                 .frame(width: 28, height: 28)
                 .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
@@ -480,7 +489,7 @@ private struct DocumentAttachmentRow: View {
                 Text(document.previewText)
                     .font(LumenType.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
             }
 
             Button {
@@ -504,7 +513,6 @@ private struct DocumentAttachmentRow: View {
             RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
                 .strokeBorder(.separator, lineWidth: 0.5)
         )
-        .accessibilityElement(children: .combine)
     }
 }
 

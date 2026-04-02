@@ -144,6 +144,7 @@ struct SettingsView: View {
                 Image(systemName: LumenIcon.appleIntelligence)
                     .foregroundStyle(.secondary)
                     .frame(width: 24)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Apple Intelligence")
                     Text(modelStore.appleIntelligenceAvailable
@@ -155,7 +156,12 @@ struct SettingsView: View {
                 Spacer()
                 Image(systemName: modelStore.appleIntelligenceAvailable ? "checkmark.circle.fill" : "xmark.circle")
                     .foregroundStyle(modelStore.appleIntelligenceAvailable ? .green : .secondary)
+                    .accessibilityHidden(true)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Apple Intelligence")
+            .accessibilityValue(modelStore.appleIntelligenceAvailable ? "Available on this device" : "Not available on this device")
+            .accessibilityHint("Shows whether Apple Intelligence is available for on-device models")
         } header: {
             Label("Apple Intelligence", systemImage: LumenIcon.appleIntelligence)
         } footer: {
@@ -188,6 +194,8 @@ struct SettingsView: View {
                         .accessibilityHidden(true)
                 }
             }
+            .accessibilityLabel("Memory")
+            .accessibilityValue(memoryAccessibilityValue)
             .accessibilityHint("Opens memory settings")
         } header: {
             Label("Intelligence", systemImage: "sparkles")
@@ -221,6 +229,8 @@ struct SettingsView: View {
                         .accessibilityHidden(true)
                 }
             }
+            .accessibilityLabel("Agent Mode")
+            .accessibilityValue(agentModeAccessibilityValue)
             .accessibilityHint("Opens agent mode settings")
         } footer: {
             Text("When enabled, Lumen can call tools (calculator, date/time, encoders) mid-conversation.")
@@ -315,6 +325,18 @@ private extension SettingsView {
         case .unavailable:
             return "exclamationmark.triangle.fill"
         }
+    }
+
+    var memoryAccessibilityValue: String {
+        guard memoryStore.isEnabled else { return "Disabled" }
+        let count = memoryStore.activeMemories.count
+        return "\(count) active memor\(count == 1 ? "y" : "ies")"
+    }
+
+    var agentModeAccessibilityValue: String {
+        guard chatStore.agentModeEnabled else { return "Disabled" }
+        let toolCount = AgentToolRegistry.all.count
+        return "Active with \(toolCount) tool\(toolCount == 1 ? "" : "s") available"
     }
 }
 

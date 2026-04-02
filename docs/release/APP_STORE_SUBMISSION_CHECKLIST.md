@@ -2,6 +2,8 @@
 
 Treat App Store submission as a release artifact, not a last-minute form fill.
 
+Use `docs/release/PRE_SUBMISSION_AUDIT.md` as the active go/no-go summary for whether the current build should ship.
+
 ## Provenance
 
 - [ ] Release branch or `main` commit is identified

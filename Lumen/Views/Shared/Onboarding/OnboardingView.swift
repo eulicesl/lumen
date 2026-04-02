@@ -47,6 +47,9 @@ struct OnboardingView: View {
     @Binding var hasSeenOnboarding: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var currentPage = 0
+    @ScaledMetric(relativeTo: .largeTitle) private var symbolCoreSize = 64
+    @ScaledMetric(relativeTo: .largeTitle) private var innerCircleSize = 140
+    @ScaledMetric(relativeTo: .largeTitle) private var outerCircleSize = 180
 
     var body: some View {
         VStack(spacing: 0) {
@@ -86,11 +89,11 @@ struct OnboardingView: View {
                 ZStack {
                     Circle()
                         .fill(page.symbolColor.opacity(0.12))
-                        .frame(width: 140, height: 140)
+                        .frame(width: innerCircleSize, height: innerCircleSize)
 
                     Circle()
                         .fill(page.symbolColor.opacity(0.06))
-                        .frame(width: 180, height: 180)
+                        .frame(width: outerCircleSize, height: outerCircleSize)
 
                     onboardingSymbol(for: page)
                 }
@@ -208,7 +211,7 @@ struct OnboardingView: View {
     @ViewBuilder
     private func onboardingSymbol(for page: OnboardingPage) -> some View {
         let symbol = Image(systemName: page.symbol)
-            .font(.system(size: 64, weight: .light))
+            .font(.system(size: symbolCoreSize, weight: .light))
             .foregroundStyle(page.symbolColor)
             .accessibilityHidden(true)
 

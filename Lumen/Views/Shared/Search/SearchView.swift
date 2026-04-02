@@ -81,16 +81,7 @@ struct SearchView: View {
     }
 
     private var emptyResults: some View {
-        VStack(spacing: LumenSpacing.md) {
-            Spacer()
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 48))
-                .foregroundStyle(.quaternary)
-            Text("No results for \"\(query)\"")
-                .font(LumenType.body)
-                .foregroundStyle(.secondary)
-            Spacer()
-        }
+        EmptyStateView.noSearchResults(query: query)
     }
 
     // MARK: - Row views
