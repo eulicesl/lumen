@@ -148,7 +148,7 @@ struct MockAIProviderTests {
     @Test("Mock provider streams response tokens")
     func chatStreaming() async throws {
         let provider = MockAIProvider()
-        let model = AIModel(id: "mock.a", name: "mock-a", providerType: .ollama)
+        let model = AIModel(id: "mock.a", name: "mock-a", providerType: .ollamaLocal)
         let messages = [ChatMessage.userMessage("Hello")]
         var tokens: [ChatToken] = []
         let stream = await provider.chat(messages: messages, model: model, options: .defaults)
@@ -165,7 +165,7 @@ struct MockAIProviderTests {
     func chatThrowsError() async throws {
         let provider = MockAIProvider()
         await provider.setShouldThrowError(true)
-        let model = AIModel(id: "mock.a", name: "mock-a", providerType: .ollama)
+        let model = AIModel(id: "mock.a", name: "mock-a", providerType: .ollamaLocal)
         let messages = [ChatMessage.userMessage("Hello")]
         let stream = await provider.chat(messages: messages, model: model, options: .defaults)
         do {

@@ -11,7 +11,8 @@ enum ReleaseCaptureHarness {
 
         UserDefaults.standard.set(true, forKey: "lumen.onboarding.completed")
         AppStore.shared.saveColorScheme(.dark)
-        AppStore.shared.saveAllowOllama(false)
+        AppStore.shared.saveAllowOllamaLocal(false)
+        AppStore.shared.saveAllowOllamaCloud(false)
         AppStore.shared.showingSettings = false
         AppStore.shared.activeAlert = nil
 
@@ -35,7 +36,8 @@ enum ReleaseCaptureHarness {
         let model = AIModel.appleFoundationModel
         ModelStore.shared.availableModels = [model]
         ModelStore.shared.selectedModel = model
-        ModelStore.shared.ollamaConnectionStatus = .disabled
+        ModelStore.shared.ollamaLocalConnectionStatus = .disabled
+        ModelStore.shared.ollamaCloudConnectionStatus = .disabled
         ChatStore.shared.currentModel = model
         ChatStore.shared.agentModeEnabled = true
     }

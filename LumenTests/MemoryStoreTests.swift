@@ -185,7 +185,7 @@ struct MemoryStoreTests {
 @MainActor
 struct AppStoreSecurityTests {
 
-    @Test("Migrates legacy Ollama bearer token from UserDefaults to secure storage")
+    @Test("Migrates legacy Ollama local bearer token from UserDefaults to secure storage")
     func migratesLegacyToken() {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -195,14 +195,14 @@ struct AppStoreSecurityTests {
         let secretStore = InMemorySecretStore()
         let store = AppStore(userDefaults: defaults, secretStore: secretStore)
 
-        #expect(store.ollamaBearerToken == "legacy-token")
-        #expect(secretStore.storage["ollamaBearerToken"] == "legacy-token")
+        #expect(store.ollamaLocalBearerToken == "legacy-token")
+        #expect(secretStore.storage["ollamaLocalBearerToken"] == "legacy-token")
         #expect(defaults.string(forKey: "ollamaBearerToken") == nil)
 
         defaults.removePersistentDomain(forName: suiteName)
     }
 
-    @Test("Saving Ollama bearer token stores only the secure copy")
+    @Test("Saving Ollama local bearer token stores only the secure copy")
     func savesTokenSecurely() {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -210,29 +210,46 @@ struct AppStoreSecurityTests {
 
         let secretStore = InMemorySecretStore()
         let store = AppStore(userDefaults: defaults, secretStore: secretStore)
-        store.saveOllamaBearerToken("new-token")
+        store.saveOllamaLocalBearerToken("new-token")
 
-        #expect(store.ollamaBearerToken == "new-token")
-        #expect(secretStore.storage["ollamaBearerToken"] == "new-token")
+        #expect(store.ollamaLocalBearerToken == "new-token")
+        #expect(secretStore.storage["ollamaLocalBearerToken"] == "new-token")
         #expect(defaults.string(forKey: "ollamaBearerToken") == nil)
 
         defaults.removePersistentDomain(forName: suiteName)
     }
 
-    @Test("Clearing Ollama bearer token removes the secure copy")
+    @Test("Clearing Ollama local bearer token removes the secure copy")
     func clearsTokenSecurely() {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
 
         let secretStore = InMemorySecretStore()
-        secretStore.storage["ollamaBearerToken"] = "existing-token"
+        secretStore.storage["ollamaLocalBearerToken"] = "existing-token"
 
         let store = AppStore(userDefaults: defaults, secretStore: secretStore)
-        store.saveOllamaBearerToken("")
+        store.saveOllamaLocalBearerToken("")
 
-        #expect(store.ollamaBearerToken.isEmpty)
-        #expect(secretStore.storage["ollamaBearerToken"] == nil)
+        #expect(store.ollamaLocalBearerToken.isEmpty)
+        #expect(secretStore.storage["ollamaLocalBearerToken"] == nil)
+
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    @Test("Saving Ollama Cloud API key stores only the secure copy")
+    func savesCloudKeySecurely() {
+        let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+
+        let secretStore = InMemorySecretStore()
+        let store = AppStore(userDefaults: defaults, secretStore: secretStore)
+        store.saveOllamaCloudAPIKey("cloud-token")
+
+        #expect(store.ollamaCloudAPIKey == "cloud-token")
+        #expect(secretStore.storage["ollamaCloudAPIKey"] == "cloud-token")
+        #expect(defaults.string(forKey: "ollamaCloudAPIKey") == nil)
 
         defaults.removePersistentDomain(forName: suiteName)
     }
@@ -259,9 +276,11 @@ struct ModelStoreReliabilityTests {
 
     @Test("Network failures produce a user-facing Ollama status message")
     func ollamaNetworkErrorMessage() {
-        let message = ModelStore.ollamaErrorMessage(
+        let message = ModelStore.providerErrorMessage(
             for: AIProviderError.networkError(URLError(.cannotConnectToHost)),
-            urlString: "http://mac-studio.local:11434"
+            endpointLabel: "http://mac-studio.local:11434",
+            providerName: "Ollama Local",
+            reachabilityHint: "Check that the server is running and reachable on your local network."
         )
 
         #expect(message.contains("mac-studio.local"))
@@ -270,9 +289,11 @@ struct ModelStoreReliabilityTests {
 
     @Test("Timed-out Ollama requests mention reachability guidance")
     func ollamaTimeoutMessage() {
-        let message = ModelStore.ollamaErrorMessage(
+        let message = ModelStore.providerErrorMessage(
             for: AIProviderError.networkError(URLError(.timedOut)),
-            urlString: "http://localhost:11434"
+            endpointLabel: "http://localhost:11434",
+            providerName: "Ollama Local",
+            reachabilityHint: "Check that the server is running and reachable on your local network."
         )
 
         #expect(message.contains("Timed out"))
@@ -281,10 +302,9 @@ struct ModelStoreReliabilityTests {
 
     @Test("Available status reports the model count")
     func availableStatusTitle() {
-        let status = OllamaConnectionStatus.available(modelCount: 3)
+        let status = ProviderConnectionStatus.available(modelCount: 3)
 
         #expect(status.title == "3 models available")
-        #expect(status.detail == "Connected to your local Ollama server.")
         #expect(status.isAvailable)
     }
 }

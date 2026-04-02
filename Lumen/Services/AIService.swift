@@ -3,39 +3,60 @@ import Foundation
 actor AIService {
     static let shared = AIService()
 
-    private let ollamaProvider: OllamaProvider
+    private let ollamaLocalProvider: OllamaProvider
+    private let ollamaCloudProvider: OllamaProvider
     private let foundationModelsProvider: FoundationModelsProvider
 
     private init() {
-        self.ollamaProvider = OllamaProvider()
+        self.ollamaLocalProvider = OllamaProvider(
+            id: "ollama-local",
+            displayName: "Ollama Local",
+            providerType: .ollamaLocal,
+            baseURL: URL(string: "http://localhost:11434")!
+        )
+        self.ollamaCloudProvider = OllamaProvider(
+            id: "ollama-cloud",
+            displayName: "Ollama Cloud",
+            providerType: .ollamaCloud,
+            baseURL: URL(string: "https://ollama.com")!
+        )
         self.foundationModelsProvider = FoundationModelsProvider()
     }
 
     func provider(for type: AIProviderType) -> any AIProvider {
         switch type {
-        case .ollama:           return ollamaProvider
+        case .ollamaLocal:      return ollamaLocalProvider
+        case .ollamaCloud:      return ollamaCloudProvider
         case .foundationModels: return foundationModelsProvider
         }
     }
 
-    func configureOllama(baseURL: URL, bearerToken: String? = nil) async {
-        await ollamaProvider.updateBaseURL(baseURL)
-        await ollamaProvider.updateBearerToken(bearerToken)
+    func configureOllamaLocal(baseURL: URL, bearerToken: String? = nil) async {
+        await ollamaLocalProvider.updateBaseURL(baseURL)
+        await ollamaLocalProvider.updateBearerToken(bearerToken)
+    }
+
+    func configureOllamaCloud(apiKey: String?) async {
+        await ollamaCloudProvider.updateBaseURL(URL(string: "https://ollama.com")!)
+        await ollamaCloudProvider.updateBearerToken(apiKey)
     }
 
     func checkAvailability() async -> [AIProviderType: Bool] {
-        async let ollamaAvailable = ollamaProvider.checkAvailability()
+        async let ollamaLocalAvailable = ollamaLocalProvider.checkAvailability()
+        async let ollamaCloudAvailable = ollamaCloudProvider.checkAvailability()
         async let fmAvailable = foundationModelsProvider.checkAvailability()
         return await [
-            .ollama: ollamaAvailable,
+            .ollamaLocal: ollamaLocalAvailable,
+            .ollamaCloud: ollamaCloudAvailable,
             .foundationModels: fmAvailable
         ]
     }
 
     func listAllModels() async -> [AIModel] {
         let foundationModels = await listFoundationModels()
-        let ollamaModels = (try? await listOllamaModels()) ?? []
-        return foundationModels + ollamaModels
+        let ollamaLocalModels = (try? await listOllamaLocalModels()) ?? []
+        let ollamaCloudModels = (try? await listOllamaCloudModels()) ?? []
+        return foundationModels + ollamaLocalModels + ollamaCloudModels
     }
 
     func listFoundationModels() async -> [AIModel] {
@@ -43,8 +64,12 @@ actor AIService {
         return (try? await foundationModelsProvider.listModels()) ?? []
     }
 
-    func listOllamaModels() async throws -> [AIModel] {
-        try await ollamaProvider.listModels()
+    func listOllamaLocalModels() async throws -> [AIModel] {
+        try await ollamaLocalProvider.listModels()
+    }
+
+    func listOllamaCloudModels() async throws -> [AIModel] {
+        try await ollamaCloudProvider.listModels()
     }
 
     func chat(
@@ -76,8 +101,13 @@ actor AIService {
         if await foundationModelsProvider.checkAvailability() {
             return .appleFoundationModel
         }
-        if await ollamaProvider.checkAvailability(),
-           let ollamaModels = try? await ollamaProvider.listModels(),
+        if await ollamaLocalProvider.checkAvailability(),
+           let ollamaModels = try? await ollamaLocalProvider.listModels(),
+           let first = ollamaModels.first {
+            return first
+        }
+        if await ollamaCloudProvider.checkAvailability(),
+           let ollamaModels = try? await ollamaCloudProvider.listModels(),
            let first = ollamaModels.first {
             return first
         }

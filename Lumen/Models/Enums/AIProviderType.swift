@@ -1,21 +1,24 @@
 import Foundation
 
 enum AIProviderType: String, Sendable, Codable, CaseIterable, Identifiable {
-    case ollama          = "ollama"
+    case ollamaLocal      = "ollamaLocal"
+    case ollamaCloud      = "ollamaCloud"
     case foundationModels = "foundationModels"
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .ollama:           return "Ollama"
+        case .ollamaLocal:      return "Ollama Local"
+        case .ollamaCloud:      return "Ollama Cloud"
         case .foundationModels: return "Apple Intelligence"
         }
     }
 
     var iconName: String {
         switch self {
-        case .ollama:           return LumenIcon.ollama
+        case .ollamaLocal:      return LumenIcon.ollama
+        case .ollamaCloud:      return LumenIcon.ollamaCloud
         case .foundationModels: return LumenIcon.onDevice
         }
     }
@@ -25,13 +28,23 @@ enum AIProviderType: String, Sendable, Codable, CaseIterable, Identifiable {
     }
 
     var requiresNetworkSetup: Bool {
-        self == .ollama
+        self != .foundationModels
     }
 
     var shortName: String {
         switch self {
-        case .ollama:           return "Ollama"
+        case .ollamaLocal:      return "Local"
+        case .ollamaCloud:      return "Cloud"
         case .foundationModels: return "On-Device"
+        }
+    }
+
+    static func fromStoredValue(_ rawValue: String) -> AIProviderType {
+        switch rawValue {
+        case "ollama":
+            return .ollamaLocal
+        default:
+            return AIProviderType(rawValue: rawValue) ?? .ollamaLocal
         }
     }
 }

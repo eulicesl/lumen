@@ -180,17 +180,21 @@ private struct ModelPickerChip: View {
 
     var body: some View {
         Menu {
-            ForEach(modelStore.availableModels, id: \.id) { model in
-                Button {
-                    modelStore.selectModel(model)
-                } label: {
-                    HStack {
-                        Text(model.displayName)
-                        if chatStore.currentModel?.id == model.id {
-                            Spacer()
-                            Image(systemName: "checkmark")
-                        }
-                    }
+            if !modelStore.foundationModels.isEmpty {
+                Section("Apple Intelligence") {
+                    modelButtons(for: modelStore.foundationModels)
+                }
+            }
+
+            if !modelStore.ollamaLocalModels.isEmpty {
+                Section("Ollama Local") {
+                    modelButtons(for: modelStore.ollamaLocalModels)
+                }
+            }
+
+            if !modelStore.ollamaCloudModels.isEmpty {
+                Section("Ollama Cloud") {
+                    modelButtons(for: modelStore.ollamaCloudModels)
                 }
             }
         } label: {
@@ -222,9 +226,26 @@ private struct ModelPickerChip: View {
         }
     }
 
+    @ViewBuilder
+    private func modelButtons(for models: [AIModel]) -> some View {
+        ForEach(models, id: \.id) { model in
+            Button {
+                modelStore.selectModel(model)
+            } label: {
+                HStack {
+                    Text(model.displayName)
+                    if chatStore.currentModel?.id == model.id {
+                        Spacer()
+                        Image(systemName: "checkmark")
+                    }
+                }
+            }
+        }
+    }
+
     private var currentModelChipTitle: String {
         guard let model = chatStore.currentModel else { return "Choose Model" }
-        return model.displayName
+        return model.shortName
     }
 
     private var currentModelAccessibilityValue: String {
@@ -234,13 +255,11 @@ private struct ModelPickerChip: View {
 
     private var currentProviderIconName: String {
         guard let model = chatStore.currentModel else { return "cpu" }
-        return model.providerType == .foundationModels
-            ? LumenIcon.appleIntelligence
-            : LumenIcon.ollama
+        return model.providerType.iconName
     }
 
     private func providerTitle(for model: AIModel) -> String {
-        model.providerType == .foundationModels ? "Apple Intelligence" : "Ollama"
+        model.providerType.displayName
     }
 }
 

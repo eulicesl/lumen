@@ -66,7 +66,7 @@ extension AIModel {
         id: "ollama.placeholder",
         name: "llama3.2",
         displayName: "Llama 3.2",
-        providerType: .ollama,
+        providerType: .ollamaLocal,
         supportsImages: false,
         supportsStreaming: true,
         contextLength: 128_000,

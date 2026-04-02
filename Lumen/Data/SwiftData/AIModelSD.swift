@@ -43,7 +43,7 @@ final class AIModelSD {
             id: modelID,
             name: name,
             displayName: displayName,
-            providerType: AIProviderType(rawValue: provider) ?? .ollama,
+            providerType: AIProviderType.fromStoredValue(provider),
             supportsImages: supportsImages,
             supportsStreaming: supportsStreaming,
             contextLength: contextLength,

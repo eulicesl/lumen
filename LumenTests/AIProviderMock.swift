@@ -11,13 +11,13 @@ actor MockAIProvider: AIProvider {
         AIModel(
             id: "mock.model-a",
             name: "Mock Model A",
-            providerType: .ollama,
+            providerType: .ollamaLocal,
             supportsStreaming: true
         ),
         AIModel(
             id: "mock.model-b",
             name: "Mock Model B",
-            providerType: .ollama,
+            providerType: .ollamaLocal,
             supportsImages: true
         )
     ]
@@ -32,7 +32,7 @@ actor MockAIProvider: AIProvider {
     init(
         id: String = "mock",
         displayName: String = "Mock Provider",
-        providerType: AIProviderType = .ollama
+        providerType: AIProviderType = .ollamaLocal
     ) {
         self.id = id
         self.displayName = displayName
@@ -92,7 +92,7 @@ actor MockAIProvider: AIProvider {
 actor UnavailableProvider: AIProvider {
     let id = "unavailable"
     let displayName = "Unavailable Provider"
-    let providerType: AIProviderType = .ollama
+    let providerType: AIProviderType = .ollamaLocal
 
     func checkAvailability() async -> Bool { false }
     func listModels() async throws -> [AIModel] {
