@@ -8,8 +8,34 @@ BUNDLE_ID="com.eulices.lumen"
 DERIVED_DATA="$ROOT/build/app-store-derived-data"
 OUTPUT_ROOT="$ROOT/build/app-store-screenshots"
 
-IPHONE_ID="F4D07D07-45B0-4757-A0CD-00A0364D5C8D"
-IPAD_ID="BF8EC923-C845-429E-8F02-CBC6AFF81DCC"
+resolve_device_id() {
+  local device_name
+
+  for device_name in "$@"; do
+    local device_id
+    device_id="$(
+      xcrun simctl list devices available |
+        grep -F "$device_name" |
+        grep -v unavailable |
+        grep -m 1 -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}'
+    )"
+
+    if [[ -n "$device_id" ]]; then
+      printf '%s\n' "$device_id"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+IPHONE_ID="${IPHONE_SIMULATOR_ID:-$(resolve_device_id "iPhone 17 Pro Max" "iPhone 16 Pro Max")}"
+IPAD_ID="${IPAD_SIMULATOR_ID:-$(resolve_device_id "iPad Pro 13-inch" "iPad Pro 13-inch (M4)")}"
+
+if [[ -z "${IPHONE_ID:-}" || -z "${IPAD_ID:-}" ]]; then
+  printf 'Required simulators were not found. Install an available 6.9-inch iPhone and 13-inch iPad runtime, or set IPHONE_SIMULATOR_ID and IPAD_SIMULATOR_ID.\n' >&2
+  exit 1
+fi
 
 override_status_bar() {
   local device_id="$1"
