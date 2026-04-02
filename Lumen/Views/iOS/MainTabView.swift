@@ -12,6 +12,7 @@ struct MainTabView: View {
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
     @State private var appliedLaunchPanel = false
+    @State private var showingModelPicker = false
     @State private var showingComparison = false
     @State private var showingSystemPrompt = false
 
@@ -30,7 +31,9 @@ struct MainTabView: View {
                         .accessibilityLabel("Open history")
                         .accessibilityHint("Shows your conversation list")
 
-                        ModelPickerChip()
+                        ModelPickerChip {
+                            showingModelPicker = true
+                        }
                     }
 
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -128,6 +131,12 @@ struct MainTabView: View {
             .environment(modelStore)
             .environment(libraryStore)
         }
+        .sheet(isPresented: $showingModelPicker) {
+            ModelPickerView()
+                .environment(appStore)
+                .environment(chatStore)
+                .environment(modelStore)
+        }
         .sheet(isPresented: $showingComparison) {
             ModelComparisonView()
                 .environment(chatStore)
@@ -213,31 +222,17 @@ extension NavigationSplitViewVisibility {
 private struct ModelPickerChip: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    let action: () -> Void
 
     var body: some View {
-        Menu {
-            if !modelStore.foundationModels.isEmpty {
-                Section("Apple Intelligence") {
-                    modelButtons(for: modelStore.foundationModels)
-                }
-            }
-
-            if !modelStore.ollamaLocalModels.isEmpty {
-                Section("Ollama Local") {
-                    modelButtons(for: modelStore.ollamaLocalModels)
-                }
-            }
-
-            if !modelStore.ollamaCloudModels.isEmpty {
-                Section("Ollama Cloud") {
-                    modelButtons(for: modelStore.ollamaCloudModels)
-                }
-            }
-        } label: {
+        Button(action: action) {
             HStack(spacing: 6) {
-                Image(systemName: currentProviderIconName)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.primary)
+                ProviderMark(
+                    provider: currentProviderType,
+                    size: 15,
+                    showsVariantBadge: currentProviderType != .foundationModels
+                )
+
                 Image(systemName: "chevron.down")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
@@ -247,6 +242,7 @@ private struct ModelPickerChip: View {
             .fixedSize(horizontal: true, vertical: false)
             .liquidCapsuleChrome()
         }
+        .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Current model")
         .accessibilityValue(currentModelAccessibilityValue)
@@ -258,31 +254,13 @@ private struct ModelPickerChip: View {
         }
     }
 
-    @ViewBuilder
-    private func modelButtons(for models: [AIModel]) -> some View {
-        ForEach(models, id: \.id) { model in
-            Button {
-                modelStore.selectModel(model)
-            } label: {
-                HStack {
-                    Text(model.displayName)
-                    if chatStore.currentModel?.id == model.id {
-                        Spacer()
-                        Image(systemName: "checkmark")
-                    }
-                }
-            }
-        }
-    }
-
     private var currentModelAccessibilityValue: String {
         guard let model = chatStore.currentModel else { return "No model selected" }
         return "\(providerTitle(for: model)). \(model.displayName)"
     }
 
-    private var currentProviderIconName: String {
-        guard let model = chatStore.currentModel else { return "cpu" }
-        return model.providerType.iconName
+    private var currentProviderType: AIProviderType {
+        chatStore.currentModel?.providerType ?? .foundationModels
     }
 
     private func providerTitle(for model: AIModel) -> String {

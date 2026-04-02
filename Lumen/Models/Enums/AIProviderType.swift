@@ -23,6 +23,17 @@ enum AIProviderType: String, Sendable, Codable, CaseIterable, Identifiable {
         }
     }
 
+    var badgeIconName: String? {
+        switch self {
+        case .ollamaLocal:
+            return "server.rack"
+        case .ollamaCloud:
+            return "cloud.fill"
+        case .foundationModels:
+            return nil
+        }
+    }
+
     var isOnDevice: Bool {
         self == .foundationModels
     }

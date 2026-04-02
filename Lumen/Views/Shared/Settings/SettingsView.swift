@@ -87,7 +87,7 @@ struct SettingsView: View {
         Section {
             Toggle(isOn: allowOllamaLocalBinding) {
                 providerToggleLabel(
-                    iconName: LumenIcon.ollama,
+                    provider: .ollamaLocal,
                     title: "Enable Ollama Local",
                     subtitle: "Use models from a local or self-hosted Ollama endpoint"
                 )
@@ -95,10 +95,8 @@ struct SettingsView: View {
             .accessibilityHint("Turns local Ollama model access on or off")
 
             HStack {
-                Image(systemName: LumenIcon.ollama)
-                    .foregroundStyle(.secondary)
+                ProviderMark(provider: .ollamaLocal, size: 18, showsVariantBadge: true)
                     .frame(width: 24)
-                    .accessibilityHidden(true)
 
                 TextField("http://localhost:11434", text: $ollamaLocalURLDraft)
                     .accessibilityLabel("Ollama local endpoint")
@@ -148,7 +146,7 @@ struct SettingsView: View {
             .disabled(!appStore.allowOllamaLocal)
             .accessibilityHint("Refreshes the model list from your local Ollama endpoint")
         } header: {
-            Label("Ollama Local", systemImage: LumenIcon.ollama)
+            providerSectionHeader("Ollama Local", provider: .ollamaLocal)
         } footer: {
             Text("Local Ollama keeps traffic on hardware you control. Default is http://localhost:11434.")
         }
@@ -158,7 +156,7 @@ struct SettingsView: View {
         Section {
             Toggle(isOn: allowOllamaCloudBinding) {
                 providerToggleLabel(
-                    iconName: LumenIcon.ollamaCloud,
+                    provider: .ollamaCloud,
                     title: "Enable Ollama Cloud",
                     subtitle: "Use hosted models from Ollama Cloud"
                 )
@@ -201,7 +199,7 @@ struct SettingsView: View {
             .disabled(!appStore.allowOllamaCloud)
             .accessibilityHint("Refreshes the hosted model list from Ollama Cloud")
         } header: {
-            Label("Ollama Cloud", systemImage: LumenIcon.ollamaCloud)
+            providerSectionHeader("Ollama Cloud", provider: .ollamaCloud)
         } footer: {
             Text("Ollama Cloud sends prompts to Ollama's hosted service when enabled. It requires your Ollama API key.")
         }
@@ -210,10 +208,8 @@ struct SettingsView: View {
     private var appleIntelligenceSection: some View {
         Section {
             HStack {
-                Image(systemName: LumenIcon.appleIntelligence)
-                    .foregroundStyle(.secondary)
+                ProviderMark(provider: .foundationModels, size: 18)
                     .frame(width: 24)
-                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Apple Intelligence")
@@ -232,10 +228,10 @@ struct SettingsView: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Apple Intelligence")
-            .accessibilityValue(modelStore.appleIntelligenceAvailable ? "Available on this device" : "Not available on this device")
-            .accessibilityHint("Shows whether Apple Intelligence is available for on-device models")
+        .accessibilityValue(modelStore.appleIntelligenceAvailable ? "Available on this device" : "Not available on this device")
+        .accessibilityHint("Shows whether Apple Intelligence is available for on-device models")
         } header: {
-            Label("Apple Intelligence", systemImage: LumenIcon.appleIntelligence)
+            providerSectionHeader("Apple Intelligence", provider: .foundationModels)
         } footer: {
             Text("Runs entirely on-device. Requests stay on your iPhone.")
         }
@@ -365,12 +361,14 @@ struct SettingsView: View {
 }
 
 private extension SettingsView {
-    func providerToggleLabel(iconName: String, title: String, subtitle: String) -> some View {
+    func providerToggleLabel(provider: AIProviderType, title: String, subtitle: String) -> some View {
         HStack(spacing: LumenSpacing.sm) {
-            Image(systemName: iconName)
-                .foregroundStyle(.secondary)
-                .frame(width: 24)
-                .accessibilityHidden(true)
+            ProviderMark(
+                provider: provider,
+                size: 18,
+                showsVariantBadge: provider != .foundationModels
+            )
+            .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -378,6 +376,17 @@ private extension SettingsView {
                     .font(LumenType.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+
+    func providerSectionHeader(_ title: String, provider: AIProviderType) -> some View {
+        HStack(spacing: LumenSpacing.xs) {
+            ProviderMark(
+                provider: provider,
+                size: 14,
+                showsVariantBadge: provider != .foundationModels
+            )
+            Text(title)
         }
     }
 

@@ -70,10 +70,12 @@ struct ModelPickerView: View {
             dismiss()
         } label: {
             HStack(spacing: LumenSpacing.sm) {
-                Image(systemName: model.providerType.iconName)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 32)
+                ProviderMark(
+                    provider: model.providerType,
+                    size: 20,
+                    showsVariantBadge: model.providerType != .foundationModels
+                )
+                .frame(width: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.displayName)
