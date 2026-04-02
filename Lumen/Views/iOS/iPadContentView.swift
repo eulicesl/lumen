@@ -6,6 +6,7 @@ struct iPadContentView: View {
     @Environment(AppStore.self) private var appStore
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    @Environment(MemoryStore.self) private var memoryStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @SceneStorage("scene.ipadColumnVisibility") private var restoredColumnVisibility = "all"
@@ -32,10 +33,11 @@ struct iPadContentView: View {
                 }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            SettingsStoreView(showsDoneButton: true)
+            SettingsView()
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)
+                .environment(memoryStore)
         }
         .task {
             restoreColumnVisibility()
@@ -72,5 +74,6 @@ private extension iPadContentView {
         .environment(AppStore.shared)
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
+        .environment(MemoryStore.shared)
 }
 #endif

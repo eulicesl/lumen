@@ -6,10 +6,12 @@ struct MainTabView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(LibraryStore.self) private var libraryStore
+    @Environment(MemoryStore.self) private var memoryStore
 
     @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
+    @State private var appliedLaunchPanel = false
 
     var body: some View {
         @Bindable var bindableStore = appStore
@@ -104,16 +106,16 @@ struct MainTabView: View {
             .environment(libraryStore)
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
-            NavigationStack {
-                SettingsStoreView(showsDoneButton: true)
-            }
+            SettingsView()
             .environment(appStore)
             .environment(chatStore)
             .environment(modelStore)
             .environment(libraryStore)
+            .environment(memoryStore)
         }
         .task {
             await restoreSceneSelectionIfNeeded()
+            await applyLaunchPresentationIfNeeded()
         }
         .onChange(of: chatStore.conversations.count) {
             Task { await restoreSceneSelectionIfNeeded() }
@@ -134,6 +136,17 @@ private extension MainTabView {
     func restoreSceneSelectionIfNeeded() async {
         let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
         await chatStore.restoreSelectedConversation(id: restoredID)
+    }
+
+    func applyLaunchPresentationIfNeeded() async {
+        guard !appliedLaunchPanel else { return }
+        appliedLaunchPanel = true
+
+        guard AppLaunchConfiguration.screenshotScene?.opensSearchPanel == true else { return }
+        for _ in 0..<20 where chatStore.conversations.isEmpty {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        activePanel = .search
     }
 }
 

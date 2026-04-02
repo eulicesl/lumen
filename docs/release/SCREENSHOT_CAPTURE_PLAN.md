@@ -62,3 +62,13 @@ Apple currently lists multiple accepted resolutions within the same screenshot c
 ## Output organization
 
 Store the final captured assets outside the source tree or in a dedicated release-assets folder that is not confused with runtime app resources.
+
+## Local capture command
+
+Use the repo script below to generate the deterministic simulator set for the current release candidate:
+
+```bash
+./scripts/capture_app_store_screenshots.sh
+```
+
+The script writes the generated PNGs to `build/app-store-screenshots/`.
