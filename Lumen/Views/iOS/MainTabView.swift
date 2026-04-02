@@ -230,42 +230,8 @@ private extension View {
 }
 
 private struct ChatComposerChrome: View {
-    @Environment(ChatStore.self) private var chatStore
-
     var body: some View {
-        VStack(spacing: 0) {
-            if chatStore.canRegenerate {
-                regenerateBar
-            }
-            InputBarView()
-        }
-    }
-
-    private var regenerateBar: some View {
-        Button {
-            Task { await chatStore.regenerate() }
-        } label: {
-            Label("Regenerate response", systemImage: "arrow.clockwise")
-                .font(LumenType.footnote)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Regenerate response")
-        .padding(.horizontal, LumenSpacing.md)
-        .padding(.vertical, LumenSpacing.xs)
-        .liquidRegenerateSurface()
-    }
-}
-
-private extension View {
-    @ViewBuilder
-    func liquidRegenerateSurface() -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassCard(radius: LumenRadius.md, interactive: true)
-        } else {
-            self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        }
+        InputBarView()
     }
 }
 

@@ -14,6 +14,10 @@ struct MessageBubbleView: View {
     @State private var copyFeedbackTask: Task<Void, Never>?
     @State private var speechSynthesizer = AVSpeechSynthesizer()
 
+    private var canRegenerateMessage: Bool {
+        chatStore.canRegenerate && chatStore.messages.last?.id == message.id
+    }
+
     var body: some View {
         HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
             if message.isUser { Spacer(minLength: 40) }
@@ -33,8 +37,10 @@ struct MessageBubbleView: View {
                         .modifier(
                             MessageAccessibilityActions(
                                 message: message,
+                                canRegenerate: canRegenerateMessage,
                                 onCopy: copyMessage,
                                 onSaveToMemory: saveToMemory,
+                                onRegenerate: regenerateMessage,
                                 onBranch: { showingBranchConfirm = true },
                                 onSpeak: speakMessage,
                                 onEdit: { chatStore.beginEditing(message) }
@@ -83,6 +89,14 @@ struct MessageBubbleView: View {
         }
 
         if message.isComplete && !message.isError {
+            if canRegenerateMessage {
+                Button {
+                    regenerateMessage()
+                } label: {
+                    Label("Regenerate", systemImage: "arrow.clockwise")
+                }
+            }
+
             Button {
                 showingBranchConfirm = true
             } label: {
@@ -249,11 +263,16 @@ struct MessageBubbleView: View {
         MemoryStore.shared.add(content: shortened, category: message.isUser ? .preference : .fact)
     }
 
+    private func regenerateMessage() {
+        guard canRegenerateMessage else { return }
+        Task { await chatStore.regenerate() }
+    }
+
     private var maxBubbleWidth: CGFloat {
         #if os(iOS)
         let screenWidth = UIScreen.main.bounds.width
         if message.isUser {
-            return max(220, min(screenWidth * 0.72, 460))
+            return max(180, min(screenWidth * 0.64, 340))
         } else {
             return max(260, min(screenWidth * 0.84, 560))
         }
@@ -309,8 +328,10 @@ struct MessageBubbleView: View {
 
 private struct MessageAccessibilityActions: ViewModifier {
     let message: ChatMessage
+    let canRegenerate: Bool
     let onCopy: () -> Void
     let onSaveToMemory: () -> Void
+    let onRegenerate: () -> Void
     let onBranch: () -> Void
     let onSpeak: () -> Void
     let onEdit: () -> Void
@@ -323,6 +344,11 @@ private struct MessageAccessibilityActions: ViewModifier {
             .accessibilityHint(baseHint)
             .accessibilityAction(named: Text("Copy"), onCopy)
             .accessibilityAction(named: Text("Save to Memory"), onSaveToMemory)
+            .messageAction(
+                isEnabled: canRegenerate,
+                name: "Regenerate",
+                action: onRegenerate
+            )
             .messageAction(
                 isEnabled: message.isComplete && !message.isError,
                 name: "Branch from Here",
