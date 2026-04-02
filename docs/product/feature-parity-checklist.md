@@ -73,12 +73,17 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [x] Network reachability/status indicator for Ollama connectivity.  
   - Priority: P1  
   - Status: Done
+- [x] Prompt-aware memory relevance (compact index + top-k hints).  
+  - Priority: P1  
+  - Status: Done
+  - Notes: Shipped as Sprint 05 Phase 1. Phase 2/3 require explicit gate review before implementation.
 
 ## Sprint Mapping
 - Sprint 01: Completed P0 parity trio (edit/regenerate, full-text search, doc uploads)
 - Sprint 02: HIG + accessibility fundamentals, including scene restore, refresh, settings title mode, and Reduce Motion
 - Sprint 03: UX parity polish (copy feedback, thinking UX)
 - Sprint 04: Security + reliability (Keychain, network state, retry UX)
+- Sprint 05: Memory relevance phase 1 (compact index + top-k prompt hints, with phase-gate criteria for phase 2/3)
 
 ## Execution Notes
 - Preserve current regenerate behavior for the most recent assistant response while improving adjacent chat UX.

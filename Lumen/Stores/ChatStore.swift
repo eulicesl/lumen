@@ -535,8 +535,8 @@ final class ChatStore {
         "Branch: \(String(conversation.title.prefix(35)))"
     }
 
-    private func chatOptions(for conversation: Conversation) -> ChatOptions {
-        let memoryContext = MemoryStore.shared.contextString
+    private func chatOptions(for conversation: Conversation, promptText: String) -> ChatOptions {
+        let memoryContext = MemoryStore.shared.contextString(for: promptText)
         let basePrompt = conversation.systemPrompt ?? ""
         let fullPrompt = [memoryContext, basePrompt]
             .filter { !$0.isEmpty }
@@ -575,7 +575,7 @@ final class ChatStore {
         startStream(
             context: context,
             model: model,
-            options: chatOptions(for: conversation),
+            options: chatOptions(for: conversation, promptText: promptText),
             assistantIndex: assistantIndex,
             startTime: startTime,
             conversation: conversation,
