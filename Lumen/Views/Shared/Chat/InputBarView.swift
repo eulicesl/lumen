@@ -119,9 +119,7 @@ struct InputBarView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.top, LumenSpacing.xs)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Last response failed")
-        .accessibilityValue(chatStore.conversationState.errorMessage ?? "Unknown error")
+        .accessibilityElement(children: .contain)
         .accessibilityHint("Retries the most recent assistant response")
     }
 
@@ -151,9 +149,7 @@ struct InputBarView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.top, LumenSpacing.xs)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Editing earlier message in a new branch")
-        .accessibilityValue(chatStore.editingMessagePreview ?? "")
+        .accessibilityElement(children: .contain)
         .accessibilityHint("Cancel editing or send the updated message to create a branch")
     }
 

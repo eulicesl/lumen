@@ -195,9 +195,7 @@ struct SettingsView: View {
                 }
             }
             .accessibilityLabel("Memory")
-            .accessibilityValue(memoryStore.isEnabled
-                                ? "\(memoryStore.activeMemories.count) active memor\(memoryStore.activeMemories.count == 1 ? "y" : "ies")"
-                                : "Disabled")
+            .accessibilityValue(memoryAccessibilityValue)
             .accessibilityHint("Opens memory settings")
         } header: {
             Label("Intelligence", systemImage: "sparkles")
@@ -232,9 +230,7 @@ struct SettingsView: View {
                 }
             }
             .accessibilityLabel("Agent Mode")
-            .accessibilityValue(chatStore.agentModeEnabled
-                                ? "Active with \(AgentToolRegistry.all.count) tools available"
-                                : "Disabled")
+            .accessibilityValue(agentModeAccessibilityValue)
             .accessibilityHint("Opens agent mode settings")
         } footer: {
             Text("When enabled, Lumen can call tools (calculator, date/time, encoders) mid-conversation.")
@@ -329,6 +325,18 @@ private extension SettingsView {
         case .unavailable:
             return "exclamationmark.triangle.fill"
         }
+    }
+
+    var memoryAccessibilityValue: String {
+        guard memoryStore.isEnabled else { return "Disabled" }
+        let count = memoryStore.activeMemories.count
+        return "\(count) active memor\(count == 1 ? "y" : "ies")"
+    }
+
+    var agentModeAccessibilityValue: String {
+        guard chatStore.agentModeEnabled else { return "Disabled" }
+        let toolCount = AgentToolRegistry.all.count
+        return "Active with \(toolCount) tool\(toolCount == 1 ? "" : "s") available"
     }
 }
 
