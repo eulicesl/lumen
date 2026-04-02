@@ -51,7 +51,11 @@ Use `docs/release/PRE_SUBMISSION_AUDIT.md` as the active go/no-go summary for wh
 ## Signing and distribution
 
 - [ ] Correct team, bundle identifier, and signing configuration are selected
+- [ ] App Store export settings match the active Apple team (`8394UJXX4F`)
+- [ ] Xcode account credentials are valid and refreshed locally
+- [ ] An App Store distribution profile exists for `com.eulices.lumen`
 - [ ] Archive completes cleanly in Xcode
+- [ ] IPA export completes with `./scripts/export_app_store_archive.sh`
 - [ ] Validation passes before upload
 - [ ] Uploaded build appears in App Store Connect and processes successfully
 

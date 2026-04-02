@@ -28,6 +28,24 @@ These items cannot be completed purely through repository edits:
 - App Store Connect app record review and privacy questionnaire entry
 - Signed archive upload using the final Apple account and distribution setup
 
+## Verified local packaging state
+
+The current repository is archive-ready and can produce an App Store IPA locally:
+
+- `xcodebuild archive` succeeds for `Lumen`
+- `./scripts/export_app_store_archive.sh` succeeds and exports an IPA from `build/Lumen.xcarchive`
+- `exportOptions-appstore.plist` is aligned to the active team `8394UJXX4F`
+
+One local environment caveat is now documented in the export script: if Homebrew `rsync` appears ahead of `/usr/bin` in `PATH`, `xcodebuild -exportArchive` can fail with a generic `Copy failed` packaging error. The script forces the system toolchain order so release packaging is reproducible.
+
+## Remaining external submission blockers
+
+App Store submission still depends on Apple-account state that cannot be fixed purely in the repository:
+
+- App Store Connect access for the final submitting account
+- uploaded build processing in App Store Connect
+- final metadata/privacy form entry in App Store Connect
+
 ## Ongoing release governance
 
 - Memory relevance roadmap is phase-gated (`docs/product/sprints/2026-sprint-05-memory-relevance.md`).
