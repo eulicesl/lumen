@@ -75,6 +75,10 @@ Attach at least one:
 - [ ] CI output links
 - [ ] Perf numbers (if relevant)
 
+If this PR changes UI/UX, attach visual verification from the branch being merged:
+- [ ] Simulator screenshot from the current branch
+- [ ] Device screenshot/recording for user-visible iPhone/iPad changes
+
 ## Human Verification (required)
 
 What you personally verified (not just CI), and how:
@@ -82,6 +86,7 @@ What you personally verified (not just CI), and how:
 - Verified scenarios:
 - Edge cases checked:
 - What you did **not** verify:
+- Visual verification artifact path(s):
 
 ## Review Conversations
 

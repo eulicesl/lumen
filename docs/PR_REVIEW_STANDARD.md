@@ -6,6 +6,7 @@ Every Lumen PR should be reviewed like a product PR, not a casual code dump.
 - Scope is tight and understandable
 - Validation is explicit, not implied
 - UI changes include screenshots or video
+- UI changes include a note of what was visually checked on the branch under review
 - Risk is called out honestly
 - Follow-up work is separated from must-fix work
 - Apple/platform correctness has been considered
