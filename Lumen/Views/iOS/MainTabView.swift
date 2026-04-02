@@ -19,7 +19,7 @@ struct MainTabView: View {
         NavigationStack {
             ChatView(showsConversationTools: true)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItemGroup(placement: .topBarLeading) {
                         Button {
                             showingConversationList = true
                         } label: {
@@ -27,9 +27,7 @@ struct MainTabView: View {
                         }
                         .accessibilityLabel("Open history")
                         .accessibilityHint("Shows your conversation list")
-                    }
 
-                    ToolbarItem(placement: .principal) {
                         ModelPickerChip()
                     }
 
@@ -197,24 +195,52 @@ private struct ModelPickerChip: View {
             }
         } label: {
             HStack(spacing: 6) {
-                Text(chatStore.currentModel?.shortName ?? "Model")
+                Image(systemName: currentProviderIconName)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Text(currentModelChipTitle)
                     .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
                 Image(systemName: "chevron.down")
                     .font(.caption2)
             }
             .padding(.horizontal, 9)
             .padding(.vertical, 5)
+            .fixedSize(horizontal: true, vertical: false)
             .liquidCapsuleChrome()
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Current model")
-        .accessibilityValue(chatStore.currentModel?.displayName ?? "No model selected")
+        .accessibilityValue(currentModelAccessibilityValue)
         .accessibilityHint("Double-tap to choose a different model")
         .task {
             if modelStore.availableModels.isEmpty {
                 await modelStore.loadModels()
             }
         }
+    }
+
+    private var currentModelChipTitle: String {
+        guard let model = chatStore.currentModel else { return "Choose Model" }
+        return model.displayName
+    }
+
+    private var currentModelAccessibilityValue: String {
+        guard let model = chatStore.currentModel else { return "No model selected" }
+        return "\(providerTitle(for: model)). \(model.displayName)"
+    }
+
+    private var currentProviderIconName: String {
+        guard let model = chatStore.currentModel else { return "cpu" }
+        return model.providerType == .foundationModels
+            ? LumenIcon.appleIntelligence
+            : LumenIcon.ollama
+    }
+
+    private func providerTitle(for model: AIModel) -> String {
+        model.providerType == .foundationModels ? "Apple Intelligence" : "Ollama"
     }
 }
 

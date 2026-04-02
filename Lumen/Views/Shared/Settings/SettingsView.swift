@@ -17,6 +17,7 @@ struct SettingsView: View {
         @Bindable var bindableApp = appStore
         NavigationStack {
             Form {
+                activeModelSection
                 ollamaSection
                 appleIntelligenceSection
                 memorySection
@@ -67,8 +68,33 @@ struct SettingsView: View {
 
     // MARK: - Sections
 
+    private var activeModelSection: some View {
+        Section {
+            LabeledContent("Model", value: selectedModelTitle)
+            LabeledContent("Provider", value: selectedProviderTitle)
+        } header: {
+            Label("Active Model", systemImage: "cpu")
+        }
+    }
+
     private var ollamaSection: some View {
         Section {
+            Toggle(isOn: allowOllamaBinding) {
+                HStack(spacing: LumenSpacing.sm) {
+                    Image(systemName: LumenIcon.ollama)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 24)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Enable Ollama")
+                        Text("Use models from your configured local Ollama server")
+                            .font(LumenType.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .accessibilityHint("Turns local Ollama model access on or off")
+
             HStack {
                 Image(systemName: LumenIcon.ollama)
                     .foregroundStyle(.secondary)
@@ -86,6 +112,7 @@ struct SettingsView: View {
                         Task { await refreshOllamaModels() }
                     }
             }
+            .disabled(!appStore.allowOllama)
             ollamaStatusRow
             Button {
                 Task { await refreshOllamaModels() }
@@ -102,11 +129,12 @@ struct SettingsView: View {
                 }
             }
             .foregroundStyle(.primary)
+            .disabled(!appStore.allowOllama)
             .accessibilityHint("Refreshes the model list from the configured Ollama server")
         } header: {
-            Label("Ollama Server", systemImage: LumenIcon.ollama)
+            Label("Ollama", systemImage: LumenIcon.ollama)
         } footer: {
-            Text("Ollama must be running on your local network. Default is http://localhost:11434")
+            Text("Ollama runs locally or on a trusted machine you control. Default is http://localhost:11434.")
         }
     }
 
@@ -337,6 +365,25 @@ private extension SettingsView {
         guard chatStore.agentModeEnabled else { return "Disabled" }
         let toolCount = AgentToolRegistry.all.count
         return "Active with \(toolCount) tool\(toolCount == 1 ? "" : "s") available"
+    }
+
+    var allowOllamaBinding: Binding<Bool> {
+        Binding(
+            get: { appStore.allowOllama },
+            set: { enabled in
+                appStore.saveAllowOllama(enabled)
+                Task { await modelStore.loadModels() }
+            }
+        )
+    }
+
+    var selectedModelTitle: String {
+        chatStore.currentModel?.displayName ?? "Not selected"
+    }
+
+    var selectedProviderTitle: String {
+        guard let model = chatStore.currentModel else { return "None" }
+        return model.providerType == .foundationModels ? "Apple Intelligence" : "Ollama"
     }
 }
 
