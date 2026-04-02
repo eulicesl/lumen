@@ -144,6 +144,7 @@ struct SettingsView: View {
                 Image(systemName: LumenIcon.appleIntelligence)
                     .foregroundStyle(.secondary)
                     .frame(width: 24)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Apple Intelligence")
                     Text(modelStore.appleIntelligenceAvailable
@@ -155,7 +156,12 @@ struct SettingsView: View {
                 Spacer()
                 Image(systemName: modelStore.appleIntelligenceAvailable ? "checkmark.circle.fill" : "xmark.circle")
                     .foregroundStyle(modelStore.appleIntelligenceAvailable ? .green : .secondary)
+                    .accessibilityHidden(true)
             }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Apple Intelligence")
+            .accessibilityValue(modelStore.appleIntelligenceAvailable ? "Available on this device" : "Not available on this device")
+            .accessibilityHint("Shows whether Apple Intelligence is available for on-device models")
         } header: {
             Label("Apple Intelligence", systemImage: LumenIcon.appleIntelligence)
         } footer: {
@@ -188,6 +194,10 @@ struct SettingsView: View {
                         .accessibilityHidden(true)
                 }
             }
+            .accessibilityLabel("Memory")
+            .accessibilityValue(memoryStore.isEnabled
+                                ? "\(memoryStore.activeMemories.count) active memor\(memoryStore.activeMemories.count == 1 ? "y" : "ies")"
+                                : "Disabled")
             .accessibilityHint("Opens memory settings")
         } header: {
             Label("Intelligence", systemImage: "sparkles")
@@ -221,6 +231,10 @@ struct SettingsView: View {
                         .accessibilityHidden(true)
                 }
             }
+            .accessibilityLabel("Agent Mode")
+            .accessibilityValue(chatStore.agentModeEnabled
+                                ? "Active with \(AgentToolRegistry.all.count) tools available"
+                                : "Disabled")
             .accessibilityHint("Opens agent mode settings")
         } footer: {
             Text("When enabled, Lumen can call tools (calculator, date/time, encoders) mid-conversation.")

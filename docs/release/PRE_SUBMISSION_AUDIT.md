@@ -1,0 +1,34 @@
+# Lumen Pre-Submission Audit
+
+This is the active gate for deciding whether Lumen should ship now or stay in development.
+
+## Must Fix Before Submission
+
+- [x] Core chat parity is coherent on the main path.
+  - Delivered: branch-aware edit/regenerate, full-text history search, document import, starter prompts, scroll affordance, copy feedback.
+- [x] Security and reliability baseline is credible.
+  - Delivered: Keychain migration, retry UX, Ollama reachability status, prompt-aware memory relevance phase 1.
+- [ ] Dynamic Type pass is complete on the release candidate.
+  - Current focus: primary iPhone shell, onboarding, empty states, chat composer, search, and critical settings rows.
+- [ ] Accessibility semantics pass is complete on the release candidate.
+  - Current focus: critical controls, status rows, attachment chips, and high-frequency chat actions.
+- [ ] Physical-device QA is complete on the exact release candidate build.
+- [ ] Final App Store screenshots are captured from the polished release candidate.
+- [ ] App Store Connect metadata and privacy answers are entered and verified.
+- [ ] Signed archive upload is validated in App Store Connect.
+
+## Can Ship With
+
+- [ ] Enhanced thinking UX remains a polish opportunity, not a submission blocker.
+  - Rationale: useful for parity, but not required for a coherent first release if the current message experience is strong.
+
+## Post-Launch Roadmap
+
+- [ ] Artifacts rendering pipeline
+- [ ] Projects with persistent shared context
+- [ ] Memory relevance phase 2
+- [ ] Memory relevance phase 3
+
+## Release Decision Rule
+
+Ship when all `Must Fix Before Submission` items are complete and there is no known App Review-blocking defect on the primary user journey.

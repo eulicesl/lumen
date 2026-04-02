@@ -9,6 +9,7 @@ This document tracks the gap between a healthy repository and an actual App Stor
 - App version metadata is now defined intentionally in repository configuration instead of being left as an undocumented default.
 - Public privacy and support pages are now live at <https://eulicesl.github.io/lumen/privacy/> and <https://eulicesl.github.io/lumen/support/>.
 - Draft App Store metadata, privacy answers, reviewer notes, and screenshot planning now exist in-repo.
+- A dedicated pre-submission go/no-go audit now exists at `docs/release/PRE_SUBMISSION_AUDIT.md`.
 - The repository now includes a GitHub Pages deployment workflow at `.github/workflows/pages.yml` and a public-site source tree at `site/` for release-facing privacy and support URLs.
 - Stale Calendar and Reminders permission strings were removed from project configuration because the current codebase does not use EventKit.
 - Release candidates are expected to carry fresh local validation evidence before submission.

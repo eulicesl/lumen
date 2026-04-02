@@ -5,12 +5,15 @@ import SwiftUI
 /// Reusable empty state with SF Symbol, title, subtitle and optional action button.
 struct EmptyStateView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let symbol: String
     let title: String
     let subtitle: String
     var symbolColor: Color = .secondary
     var actionTitle: String? = nil
     var action: (() -> Void)? = nil
+    @ScaledMetric(relativeTo: .title2) private var symbolBackgroundSize = 96
+    @ScaledMetric(relativeTo: .title2) private var symbolSize = 40
 
     var body: some View {
         VStack(spacing: LumenSpacing.lg) {
@@ -20,7 +23,7 @@ struct EmptyStateView: View {
                 ZStack {
                     Circle()
                         .fill(symbolColor.opacity(0.10))
-                        .frame(width: 96, height: 96)
+                        .frame(width: symbolBackgroundSize, height: symbolBackgroundSize)
 
                     emptyStateSymbol
                 }
@@ -42,6 +45,7 @@ struct EmptyStateView: View {
                     Button(actionTitle, action: action)
                         .buttonStyle(.bordered)
                         .controlSize(.regular)
+                        .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
                 }
             }
 
@@ -55,7 +59,7 @@ struct EmptyStateView: View {
     @ViewBuilder
     private var emptyStateSymbol: some View {
         let image = Image(systemName: symbol)
-            .font(.system(size: 40, weight: .light))
+            .font(.system(size: symbolSize, weight: .light))
             .foregroundStyle(symbolColor.opacity(0.7))
             .accessibilityHidden(true)
 

@@ -4,10 +4,13 @@ struct ChatView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var scrollProxy: ScrollViewProxy?
     @State private var isAtBottom = true
     @State private var showingComparison = false
     @State private var showingSystemPrompt = false
+    @ScaledMetric(relativeTo: .title) private var emptyPromptSymbolSize = 56
+    @ScaledMetric(relativeTo: .title3) private var scrollButtonIconSize = 28
 
     var showsConversationTools: Bool = true
 
@@ -201,15 +204,25 @@ struct ChatView: View {
                 .font(LumenType.footnote.weight(.semibold))
                 .foregroundStyle(.secondary)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: LumenSpacing.sm) {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: LumenSpacing.sm) {
                     ForEach(starterPrompts) { prompt in
                         StarterPromptCard(prompt: prompt) {
                             applyStarterPrompt(prompt)
                         }
                     }
                 }
-                .padding(.vertical, LumenSpacing.xxs)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: LumenSpacing.sm) {
+                        ForEach(starterPrompts) { prompt in
+                            StarterPromptCard(prompt: prompt) {
+                                applyStarterPrompt(prompt)
+                            }
+                        }
+                    }
+                    .padding(.vertical, LumenSpacing.xxs)
+                }
             }
         }
         .frame(maxWidth: 640, alignment: .leading)
@@ -221,7 +234,7 @@ struct ChatView: View {
             scrollToBottom()
         } label: {
             Image(systemName: "arrow.down.circle.fill")
-                .font(.system(size: 28, weight: .semibold))
+                .font(.system(size: scrollButtonIconSize, weight: .semibold))
                 .foregroundStyle(.white, Color.accentColor)
                 .shadow(color: .black.opacity(0.16), radius: 12, y: 4)
         }
@@ -266,7 +279,7 @@ struct ChatView: View {
     @ViewBuilder
     private var emptyPromptSymbol: some View {
         let symbol = Image(systemName: "sparkle")
-            .font(.system(size: 56))
+            .font(.system(size: emptyPromptSymbolSize))
             .foregroundStyle(.secondary)
             .symbolRenderingMode(.hierarchical)
 
@@ -279,6 +292,7 @@ struct ChatView: View {
 }
 
 private struct StarterPromptCard: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let prompt: SavedPrompt
     let action: () -> Void
 
@@ -298,14 +312,15 @@ private struct StarterPromptCard: View {
                     .font(LumenType.footnote)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.leading)
-                    .lineLimit(3)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 3)
             }
-            .frame(width: 220, alignment: .leading)
+            .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : 220, alignment: .leading)
             .padding(LumenSpacing.md)
             .glassCard(radius: LumenRadius.lg, interactive: true)
         }
         .buttonStyle(.plain)
         .accessibilityLabel(prompt.title)
+        .accessibilityValue(promptPreview)
         .accessibilityHint("Inserts this starter prompt into the composer")
     }
 
