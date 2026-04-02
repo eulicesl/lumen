@@ -5,10 +5,14 @@ struct SearchView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
 
-    @State private var query = ""
+    @State private var query: String
     @State private var searchTask: Task<Void, Never>?
     @State private var results: [ConversationSearchResult] = []
     @State private var isSearching = false
+
+    init(initialQuery: String = AppLaunchConfiguration.screenshotScene?.searchQuery ?? "") {
+        _query = State(initialValue: initialQuery)
+    }
 
     var body: some View {
         NavigationStack {
@@ -31,6 +35,11 @@ struct SearchView: View {
                 prompt: "Search conversations and messages…"
             )
             .onChange(of: query) { runSearch() }
+            .onAppear {
+                if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && results.isEmpty {
+                    runSearch()
+                }
+            }
         }
     }
 

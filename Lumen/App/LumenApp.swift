@@ -20,7 +20,7 @@ struct LumenApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if hasSeenOnboarding {
+                if AppLaunchConfiguration.shouldSkipOnboarding || hasSeenOnboarding {
                     ContentView()
                 } else {
                     OnboardingView(hasSeenOnboarding: Binding(
@@ -48,7 +48,9 @@ struct LumenApp: App {
                 )
             }
             .task {
+                await ReleaseCaptureHarness.prepareIfNeeded()
                 await modelStore.loadModels()
+                ReleaseCaptureHarness.configureModelsIfNeeded()
                 await chatStore.loadConversations()
                 if chatStore.conversations.isEmpty {
                     await chatStore.createNewConversation()
@@ -56,6 +58,7 @@ struct LumenApp: App {
                 if chatStore.currentModel == nil {
                     chatStore.currentModel = modelStore.selectedModel
                 }
+                await ReleaseCaptureHarness.presentIfNeeded()
             }
             .onOpenURL { url in
                 Task { await DeepLinkHandler.shared.handle(url: url) }
