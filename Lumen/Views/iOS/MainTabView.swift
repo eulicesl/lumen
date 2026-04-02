@@ -12,12 +12,14 @@ struct MainTabView: View {
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
     @State private var appliedLaunchPanel = false
+    @State private var showingComparison = false
+    @State private var showingSystemPrompt = false
 
     var body: some View {
         @Bindable var bindableStore = appStore
 
         NavigationStack {
-            ChatView(showsConversationTools: true)
+            ChatView(showsConversationTools: false)
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarLeading) {
                         Button {
@@ -58,6 +60,29 @@ struct MainTabView: View {
                                 activePanel = .search
                             } label: {
                                 Label("Search", systemImage: LumenIcon.search)
+                            }
+
+                            Button {
+                                showingComparison = true
+                            } label: {
+                                Label("Compare Models", systemImage: "arrow.left.arrow.right.circle")
+                            }
+
+                            if let conv = chatStore.selectedConversation {
+                                Button {
+                                    showingSystemPrompt = true
+                                } label: {
+                                    Label(
+                                        conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
+                                        systemImage: "brain.head.profile"
+                                    )
+                                }
+                            }
+
+                            if !chatStore.exportText.isEmpty {
+                                ShareLink(item: chatStore.exportText) {
+                                    Label("Share Conversation", systemImage: LumenIcon.share)
+                                }
                             }
 
                             Divider()
@@ -102,6 +127,17 @@ struct MainTabView: View {
             .environment(chatStore)
             .environment(modelStore)
             .environment(libraryStore)
+        }
+        .sheet(isPresented: $showingComparison) {
+            ModelComparisonView()
+                .environment(chatStore)
+                .environment(modelStore)
+        }
+        .sheet(isPresented: $showingSystemPrompt) {
+            if let conv = chatStore.selectedConversation {
+                SystemPromptSheet(conversation: conv)
+                    .environment(chatStore)
+            }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
             SettingsView()
@@ -201,16 +237,12 @@ private struct ModelPickerChip: View {
             HStack(spacing: 6) {
                 Image(systemName: currentProviderIconName)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-
-                Text(currentModelChipTitle)
-                    .font(.subheadline.weight(.medium))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .foregroundStyle(.primary)
                 Image(systemName: "chevron.down")
                     .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 9)
+            .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .fixedSize(horizontal: true, vertical: false)
             .liquidCapsuleChrome()
@@ -241,11 +273,6 @@ private struct ModelPickerChip: View {
                 }
             }
         }
-    }
-
-    private var currentModelChipTitle: String {
-        guard let model = chatStore.currentModel else { return "Choose Model" }
-        return model.shortName
     }
 
     private var currentModelAccessibilityValue: String {
