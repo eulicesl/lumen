@@ -18,6 +18,8 @@ This is the active gate for deciding whether Lumen should ship now or stay in de
 - [ ] App Store Connect metadata and privacy answers are entered and verified.
 - [ ] Signed archive upload is validated in App Store Connect.
 
+See `docs/release/FINAL_APP_STORE_RELEASE_CHECKLIST.md` for the final itemized release checklist and current audit findings.
+
 ## Can Ship With
 
 - [ ] Enhanced thinking UX remains a polish opportunity, not a submission blocker.
