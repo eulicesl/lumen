@@ -69,7 +69,7 @@ struct PrivacyView: View {
         } header: {
             Label("Your Data", systemImage: "cylinder.fill")
         } footer: {
-            Text("Lumen has no cloud backend, no account system, and no analytics. Your data stays on your device or your local network.")
+            Text("Lumen has no Lumen-operated backend, no account system, and no analytics. Your data stays on-device unless you explicitly enable a network-backed model provider.")
         }
     }
 
@@ -84,13 +84,19 @@ struct PrivacyView: View {
             privacyRow(
                 icon: "server.rack",
                 iconColor: .indigo,
-                title: "Ollama",
-                detail: "Runs on your local network (localhost or LAN). Traffic stays within your network and is not routed to the internet."
+                title: "Ollama Local",
+                detail: "Runs on your local network or self-hosted hardware. Traffic stays within infrastructure you control."
+            )
+            privacyRow(
+                icon: "cloud.fill",
+                iconColor: .blue,
+                title: "Ollama Cloud",
+                detail: "Optional hosted provider. When enabled, prompts are sent to Ollama's cloud service using your API key."
             )
         } header: {
             Label("AI Models", systemImage: "cpu")
         } footer: {
-            Text("No third-party hosted AI APIs are required by the shipped product. Inference is local to the device or local network.")
+            Text("Apple Intelligence is on-device by default. Ollama Local and Ollama Cloud are both optional and user-controlled.")
         }
     }
 
@@ -169,7 +175,7 @@ struct PrivacyView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Privacy First by Design")
                 .font(.title3.weight(.semibold))
-            Text("Lumen processes everything locally. Nothing is sent to the cloud.")
+            Text("Lumen keeps your data local by default and only uses network-backed providers when you explicitly enable them.")
                 .font(LumenType.body)
                 .foregroundStyle(.secondary)
         }

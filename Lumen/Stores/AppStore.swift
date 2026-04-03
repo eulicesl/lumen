@@ -10,17 +10,24 @@ final class AppStore {
     static let shared = AppStore()
 
     private static let hasLaunchedBeforeKey = "hasLaunchedBefore"
-    private static let ollamaServerURLKey = "ollamaServerURL"
-    private static let ollamaBearerTokenKey = "ollamaBearerToken"
+    private static let ollamaLocalServerURLKey = "ollamaLocalServerURL"
+    private static let ollamaLocalBearerTokenKey = "ollamaLocalBearerToken"
+    private static let ollamaCloudAPIKeyKey = "ollamaCloudAPIKey"
     private static let defaultModelIDKey = "defaultModelID"
-    private static let allowOllamaKey = "allowOllama"
+    private static let allowOllamaLocalKey = "allowOllamaLocal"
+    private static let allowOllamaCloudKey = "allowOllamaCloud"
     private static let colorSchemePreferenceKey = "colorSchemePreference"
+    private static let legacyOllamaServerURLKey = "ollamaServerURL"
+    private static let legacyOllamaBearerTokenKey = "ollamaBearerToken"
+    private static let legacyAllowOllamaKey = "allowOllama"
 
     var selectedTab: LumenTab = .chat
     var colorSchemePreference: AppColorScheme = .system
-    var ollamaServerURL: String = "http://localhost:11434"
-    var ollamaBearerToken: String = ""
-    var allowOllama: Bool = true
+    var ollamaLocalServerURL: String = "http://localhost:11434"
+    var ollamaLocalBearerToken: String = ""
+    var ollamaCloudAPIKey: String = ""
+    var allowOllamaLocal: Bool = true
+    var allowOllamaCloud: Bool = false
     var defaultModelID: String?
     var isFirstLaunch: Bool = false
 
@@ -41,13 +48,33 @@ final class AppStore {
         if isFirstLaunch {
             userDefaults.set(true, forKey: Self.hasLaunchedBeforeKey)
         }
-        ollamaServerURL = userDefaults.string(forKey: Self.ollamaServerURLKey) ?? "http://localhost:11434"
-        ollamaBearerToken = loadOllamaBearerToken()
-        defaultModelID = userDefaults.string(forKey: Self.defaultModelIDKey)
-        if userDefaults.object(forKey: Self.allowOllamaKey) != nil {
-            allowOllama = userDefaults.bool(forKey: Self.allowOllamaKey)
+        ollamaLocalServerURL =
+            userDefaults.string(forKey: Self.ollamaLocalServerURLKey)
+            ?? userDefaults.string(forKey: Self.legacyOllamaServerURLKey)
+            ?? "http://localhost:11434"
+        ollamaLocalBearerToken = loadSecret(
+            currentKey: Self.ollamaLocalBearerTokenKey,
+            legacyKey: Self.legacyOllamaBearerTokenKey
+        )
+        ollamaCloudAPIKey = loadSecret(currentKey: Self.ollamaCloudAPIKeyKey)
+        if let storedDefaultModelID = userDefaults.string(forKey: Self.defaultModelIDKey) {
+            let normalizedDefaultModelID = Self.normalizeStoredModelID(storedDefaultModelID)
+            defaultModelID = normalizedDefaultModelID
+            if normalizedDefaultModelID != storedDefaultModelID {
+                userDefaults.set(normalizedDefaultModelID, forKey: Self.defaultModelIDKey)
+            }
+        }
+        if userDefaults.object(forKey: Self.allowOllamaLocalKey) != nil {
+            allowOllamaLocal = userDefaults.bool(forKey: Self.allowOllamaLocalKey)
         } else {
-            allowOllama = true
+            allowOllamaLocal = userDefaults.object(forKey: Self.legacyAllowOllamaKey) != nil
+                ? userDefaults.bool(forKey: Self.legacyAllowOllamaKey)
+                : true
+        }
+        if userDefaults.object(forKey: Self.allowOllamaCloudKey) != nil {
+            allowOllamaCloud = userDefaults.bool(forKey: Self.allowOllamaCloudKey)
+        } else {
+            allowOllamaCloud = false
         }
         if let raw = userDefaults.string(forKey: Self.colorSchemePreferenceKey),
            let scheme = AppColorScheme(rawValue: raw) {
@@ -63,23 +90,23 @@ final class AppStore {
         }
     }
 
-    func saveOllamaURL(_ urlString: String) {
-        ollamaServerURL = urlString
-        userDefaults.set(urlString, forKey: Self.ollamaServerURLKey)
-        Task { await syncOllamaConfiguration() }
+    func saveOllamaLocalURL(_ urlString: String) {
+        ollamaLocalServerURL = urlString
+        userDefaults.set(urlString, forKey: Self.ollamaLocalServerURLKey)
+        Task { await syncOllamaLocalConfiguration() }
     }
 
-    func saveOllamaBearerToken(_ token: String) {
+    func saveOllamaLocalBearerToken(_ token: String) {
         let normalizedToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
-        ollamaBearerToken = normalizedToken
+        ollamaLocalBearerToken = normalizedToken
 
         do {
             if normalizedToken.isEmpty {
-                try secretStore.removeValue(forKey: Self.ollamaBearerTokenKey)
+                try secretStore.removeValue(forKey: Self.ollamaLocalBearerTokenKey)
             } else {
-                try secretStore.setString(normalizedToken, forKey: Self.ollamaBearerTokenKey)
+                try secretStore.setString(normalizedToken, forKey: Self.ollamaLocalBearerTokenKey)
             }
-            clearLegacyOllamaBearerTokenIfNeeded()
+            clearLegacyOllamaLocalBearerTokenIfNeeded()
         } catch {
             activeAlert = AppAlert(
                 title: "Secure Storage Failed",
@@ -87,17 +114,43 @@ final class AppStore {
             )
         }
 
-        Task { await syncOllamaConfiguration() }
+        Task { await syncOllamaLocalConfiguration() }
+    }
+
+    func saveOllamaCloudAPIKey(_ token: String) {
+        let normalizedToken = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        ollamaCloudAPIKey = normalizedToken
+
+        do {
+            if normalizedToken.isEmpty {
+                try secretStore.removeValue(forKey: Self.ollamaCloudAPIKeyKey)
+            } else {
+                try secretStore.setString(normalizedToken, forKey: Self.ollamaCloudAPIKeyKey)
+            }
+        } catch {
+            activeAlert = AppAlert(
+                title: "Secure Storage Failed",
+                message: error.localizedDescription
+            )
+        }
+
+        Task { await syncOllamaCloudConfiguration() }
     }
     
-    func saveAllowOllama(_ allow: Bool) {
-        allowOllama = allow
-        userDefaults.set(allow, forKey: Self.allowOllamaKey)
+    func saveAllowOllamaLocal(_ allow: Bool) {
+        allowOllamaLocal = allow
+        userDefaults.set(allow, forKey: Self.allowOllamaLocalKey)
+    }
+
+    func saveAllowOllamaCloud(_ allow: Bool) {
+        allowOllamaCloud = allow
+        userDefaults.set(allow, forKey: Self.allowOllamaCloudKey)
     }
 
     func saveDefaultModel(_ modelID: String) {
-        defaultModelID = modelID
-        userDefaults.set(modelID, forKey: Self.defaultModelIDKey)
+        let normalizedModelID = Self.normalizeStoredModelID(modelID)
+        defaultModelID = normalizedModelID
+        userDefaults.set(normalizedModelID, forKey: Self.defaultModelIDKey)
     }
 
     func saveColorScheme(_ scheme: AppColorScheme) {
@@ -105,26 +158,51 @@ final class AppStore {
         userDefaults.set(scheme.rawValue, forKey: Self.colorSchemePreferenceKey)
     }
 
-    private func syncOllamaConfiguration() async {
-        guard let url = URL(string: ollamaServerURL) else { return }
-        let token = ollamaBearerToken.isEmpty ? nil : ollamaBearerToken
-        await AIService.shared.configureOllama(baseURL: url, bearerToken: token)
+    private func syncOllamaLocalConfiguration() async {
+        guard let url = URL(string: ollamaLocalServerURL) else { return }
+        let token = ollamaLocalBearerToken.isEmpty ? nil : ollamaLocalBearerToken
+        await AIService.shared.configureOllamaLocal(baseURL: url, bearerToken: token)
     }
 
-    private func loadOllamaBearerToken() -> String {
-        if let storedToken = try? secretStore.string(forKey: Self.ollamaBearerTokenKey),
+    private func syncOllamaCloudConfiguration() async {
+        let token = ollamaCloudAPIKey.isEmpty ? nil : ollamaCloudAPIKey
+        await AIService.shared.configureOllamaCloud(apiKey: token)
+    }
+
+    private func loadSecret(currentKey: String, legacyKey: String? = nil) -> String {
+        if let storedToken = try? secretStore.string(forKey: currentKey),
            !storedToken.isEmpty {
-            clearLegacyOllamaBearerTokenIfNeeded()
+            if let legacyKey {
+                clearLegacySecretIfNeeded(legacyKey: legacyKey)
+            }
             return storedToken
         }
 
-        let legacyToken = userDefaults.string(forKey: Self.ollamaBearerTokenKey)?
+        guard let legacyKey else { return "" }
+
+        if let legacyStoredToken = try? secretStore.string(forKey: legacyKey),
+           !legacyStoredToken.isEmpty {
+            do {
+                try secretStore.setString(legacyStoredToken, forKey: currentKey)
+                try? secretStore.removeValue(forKey: legacyKey)
+                clearLegacySecretIfNeeded(legacyKey: legacyKey)
+            } catch {
+                activeAlert = AppAlert(
+                    title: "Secure Storage Failed",
+                    message: error.localizedDescription
+                )
+            }
+            return legacyStoredToken
+        }
+
+        let legacyToken = userDefaults.string(forKey: legacyKey)?
             .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !legacyToken.isEmpty else { return "" }
 
         do {
-            try secretStore.setString(legacyToken, forKey: Self.ollamaBearerTokenKey)
-            clearLegacyOllamaBearerTokenIfNeeded()
+            try secretStore.setString(legacyToken, forKey: currentKey)
+            try? secretStore.removeValue(forKey: legacyKey)
+            clearLegacySecretIfNeeded(legacyKey: legacyKey)
         } catch {
             activeAlert = AppAlert(
                 title: "Secure Storage Failed",
@@ -135,9 +213,49 @@ final class AppStore {
         return legacyToken
     }
 
-    private func clearLegacyOllamaBearerTokenIfNeeded() {
-        guard userDefaults.object(forKey: Self.ollamaBearerTokenKey) != nil else { return }
-        userDefaults.removeObject(forKey: Self.ollamaBearerTokenKey)
+    private func clearLegacyOllamaLocalBearerTokenIfNeeded() {
+        clearLegacySecretIfNeeded(legacyKey: Self.legacyOllamaBearerTokenKey)
+    }
+
+    private func clearLegacySecretIfNeeded(legacyKey: String) {
+        guard userDefaults.object(forKey: legacyKey) != nil else { return }
+        userDefaults.removeObject(forKey: legacyKey)
+    }
+
+    private static func normalizeStoredModelID(_ modelID: String) -> String {
+        let legacyPrefix = "\(AIProviderType.ollamaLocal.rawValue)."
+        guard modelID.hasPrefix(legacyPrefix) else { return modelID }
+        let suffix = modelID.dropFirst(legacyPrefix.count)
+        return "\(AIProviderType.ollamaLocal.stableModelIDPrefix).\(suffix)"
+    }
+
+    // MARK: - Legacy compatibility
+
+    var ollamaServerURL: String {
+        get { ollamaLocalServerURL }
+        set { saveOllamaLocalURL(newValue) }
+    }
+
+    var ollamaBearerToken: String {
+        get { ollamaLocalBearerToken }
+        set { saveOllamaLocalBearerToken(newValue) }
+    }
+
+    var allowOllama: Bool {
+        get { allowOllamaLocal }
+        set { saveAllowOllamaLocal(newValue) }
+    }
+
+    func saveOllamaURL(_ urlString: String) {
+        saveOllamaLocalURL(urlString)
+    }
+
+    func saveOllamaBearerToken(_ token: String) {
+        saveOllamaLocalBearerToken(token)
+    }
+
+    func saveAllowOllama(_ allow: Bool) {
+        saveAllowOllamaLocal(allow)
     }
 }
 

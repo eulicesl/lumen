@@ -12,14 +12,17 @@ struct MainTabView: View {
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
     @State private var appliedLaunchPanel = false
+    @State private var showingModelPicker = false
+    @State private var showingComparison = false
+    @State private var showingSystemPrompt = false
 
     var body: some View {
         @Bindable var bindableStore = appStore
 
         NavigationStack {
-            ChatView(showsConversationTools: true)
+            ChatView(showsConversationTools: false)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItemGroup(placement: .topBarLeading) {
                         Button {
                             showingConversationList = true
                         } label: {
@@ -27,10 +30,10 @@ struct MainTabView: View {
                         }
                         .accessibilityLabel("Open history")
                         .accessibilityHint("Shows your conversation list")
-                    }
 
-                    ToolbarItem(placement: .principal) {
-                        ModelPickerChip()
+                        ModelPickerChip {
+                            showingModelPicker = true
+                        }
                     }
 
                     ToolbarItemGroup(placement: .topBarTrailing) {
@@ -60,6 +63,29 @@ struct MainTabView: View {
                                 activePanel = .search
                             } label: {
                                 Label("Search", systemImage: LumenIcon.search)
+                            }
+
+                            Button {
+                                showingComparison = true
+                            } label: {
+                                Label("Compare Models", systemImage: "arrow.left.arrow.right.circle")
+                            }
+
+                            if let conv = chatStore.selectedConversation {
+                                Button {
+                                    showingSystemPrompt = true
+                                } label: {
+                                    Label(
+                                        conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
+                                        systemImage: "brain.head.profile"
+                                    )
+                                }
+                            }
+
+                            if !chatStore.exportText.isEmpty {
+                                ShareLink(item: chatStore.exportText) {
+                                    Label("Share Conversation", systemImage: LumenIcon.share)
+                                }
                             }
 
                             Divider()
@@ -104,6 +130,23 @@ struct MainTabView: View {
             .environment(chatStore)
             .environment(modelStore)
             .environment(libraryStore)
+        }
+        .sheet(isPresented: $showingModelPicker) {
+            ModelPickerView()
+                .environment(appStore)
+                .environment(chatStore)
+                .environment(modelStore)
+        }
+        .sheet(isPresented: $showingComparison) {
+            ModelComparisonView()
+                .environment(chatStore)
+                .environment(modelStore)
+        }
+        .sheet(isPresented: $showingSystemPrompt) {
+            if let conv = chatStore.selectedConversation {
+                SystemPromptSheet(conversation: conv)
+                    .environment(chatStore)
+            }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
             SettingsView()
@@ -179,42 +222,48 @@ extension NavigationSplitViewVisibility {
 private struct ModelPickerChip: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
+    let action: () -> Void
 
     var body: some View {
-        Menu {
-            ForEach(modelStore.availableModels, id: \.id) { model in
-                Button {
-                    modelStore.selectModel(model)
-                } label: {
-                    HStack {
-                        Text(model.displayName)
-                        if chatStore.currentModel?.id == model.id {
-                            Spacer()
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-        } label: {
+        Button(action: action) {
             HStack(spacing: 6) {
-                Text(chatStore.currentModel?.shortName ?? "Model")
-                    .font(.subheadline.weight(.medium))
+                ProviderMark(
+                    provider: currentProviderType,
+                    size: 15,
+                    showsVariantBadge: currentProviderType != .foundationModels
+                )
+
                 Image(systemName: "chevron.down")
                     .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 9)
+            .padding(.horizontal, 10)
             .padding(.vertical, 5)
+            .fixedSize(horizontal: true, vertical: false)
             .liquidCapsuleChrome()
         }
+        .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Current model")
-        .accessibilityValue(chatStore.currentModel?.displayName ?? "No model selected")
+        .accessibilityValue(currentModelAccessibilityValue)
         .accessibilityHint("Double-tap to choose a different model")
         .task {
             if modelStore.availableModels.isEmpty {
                 await modelStore.loadModels()
             }
         }
+    }
+
+    private var currentModelAccessibilityValue: String {
+        guard let model = chatStore.currentModel else { return "No model selected" }
+        let provider = model.providerType.displayName
+        return model.displayName.localizedStandardContains(provider)
+            ? model.displayName
+            : "\(provider). \(model.displayName)"
+    }
+
+    private var currentProviderType: AIProviderType {
+        chatStore.currentModel?.providerType ?? .foundationModels
     }
 }
 

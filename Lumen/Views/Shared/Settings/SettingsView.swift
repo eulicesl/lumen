@@ -6,18 +6,25 @@ struct SettingsView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(MemoryStore.self) private var memoryStore
     @Environment(\.dismiss) private var dismiss
-    @State private var ollamaURLDraft = ""
+
+    @State private var ollamaLocalURLDraft = ""
+    @State private var ollamaLocalTokenDraft = ""
+    @State private var ollamaCloudTokenDraft = ""
     @State private var showingResetAlert = false
     @State private var showingMemory = false
     @State private var showingAgentConfig = false
     @State private var showingPrivacy = false
-    @State private var isRefreshingOllama = false
+    @State private var isRefreshingOllamaLocal = false
+    @State private var isRefreshingOllamaCloud = false
 
     var body: some View {
         @Bindable var bindableApp = appStore
+
         NavigationStack {
             Form {
-                ollamaSection
+                activeModelSection
+                ollamaLocalSection
+                ollamaCloudSection
                 appleIntelligenceSection
                 memorySection
                 agentSection
@@ -32,16 +39,18 @@ struct SettingsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
-                        persistOllamaURLIfNeeded()
+                        persistProviderDraftsIfNeeded()
                         dismiss()
                     }
                 }
             }
             .onAppear {
-                ollamaURLDraft = appStore.ollamaServerURL
+                ollamaLocalURLDraft = appStore.ollamaLocalServerURL
+                ollamaLocalTokenDraft = appStore.ollamaLocalBearerToken
+                ollamaCloudTokenDraft = appStore.ollamaCloudAPIKey
             }
             .onDisappear {
-                persistOllamaURLIfNeeded()
+                persistProviderDraftsIfNeeded()
             }
             .alert("Reset Conversations", isPresented: $showingResetAlert) {
                 Button("Cancel", role: .cancel) {}
@@ -65,17 +74,53 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Sections
-
-    private var ollamaSection: some View {
+    private var activeModelSection: some View {
         Section {
+            HStack(spacing: LumenSpacing.sm) {
+                ProviderMark(
+                    provider: selectedProviderType,
+                    size: 18,
+                    showsVariantBadge: selectedProviderType != .foundationModels
+                )
+                .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(selectedProviderTitle)
+                        .foregroundStyle(.primary)
+                    if let subtitle = selectedModelSubtitle {
+                        Text(subtitle)
+                            .font(LumenType.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer()
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Active model")
+            .accessibilityValue(activeModelAccessibilityValue)
+        } header: {
+            Label("Active Model", systemImage: LumenIcon.model)
+        }
+    }
+
+    private var ollamaLocalSection: some View {
+        Section {
+            Toggle(isOn: allowOllamaLocalBinding) {
+                providerToggleLabel(
+                    provider: .ollamaLocal,
+                    title: "Enable Ollama Local",
+                    subtitle: "Use models from a local or self-hosted Ollama endpoint"
+                )
+            }
+            .accessibilityHint("Turns local Ollama model access on or off")
+
             HStack {
-                Image(systemName: LumenIcon.ollama)
-                    .foregroundStyle(.secondary)
+                ProviderMark(provider: .ollamaLocal, size: 18, showsVariantBadge: true)
                     .frame(width: 24)
-                    .accessibilityHidden(true)
-                TextField("http://localhost:11434", text: $ollamaURLDraft)
-                    .accessibilityLabel("Ollama server URL")
+
+                TextField("http://localhost:11434", text: $ollamaLocalURLDraft)
+                    .accessibilityLabel("Ollama local endpoint")
                     .accessibilityHint("Enter the base URL for your local Ollama server")
                     .autocorrectionDisabled()
                     #if os(iOS)
@@ -83,89 +128,133 @@ struct SettingsView: View {
                     .textInputAutocapitalization(.never)
                     #endif
                     .onSubmit {
-                        Task { await refreshOllamaModels() }
+                        Task { await refreshOllamaLocalModels() }
                     }
             }
-            ollamaStatusRow
+            .disabled(!appStore.allowOllamaLocal)
+
+            HStack {
+                Image(systemName: "key")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24)
+                    .accessibilityHidden(true)
+
+                SecureField("Optional bearer token", text: $ollamaLocalTokenDraft)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .accessibilityLabel("Ollama local bearer token")
+                    .accessibilityHint("Optional authentication for a protected local Ollama endpoint")
+            }
+            .disabled(!appStore.allowOllamaLocal)
+
+            providerStatusRow(
+                label: "Ollama Local status",
+                status: modelStore.ollamaLocalConnectionStatus,
+                detail: modelStore.ollamaLocalStatusMessage,
+                color: localStatusColor,
+                iconName: localStatusIconName
+            )
+
             Button {
-                Task { await refreshOllamaModels() }
+                Task { await refreshOllamaLocalModels() }
             } label: {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                        .foregroundStyle(.secondary)
-                        .frame(width: 24)
-                    Text("Refresh Models")
-                    Spacer()
-                    if modelStore.isLoading || isRefreshingOllama {
-                        ProgressView()
-                    }
-                }
+                refreshRow(
+                    title: "Refresh Local Models",
+                    isRefreshing: modelStore.isLoading || isRefreshingOllamaLocal
+                )
             }
             .foregroundStyle(.primary)
-            .accessibilityHint("Refreshes the model list from the configured Ollama server")
+            .disabled(!appStore.allowOllamaLocal)
+            .accessibilityHint("Refreshes the model list from your local Ollama endpoint")
         } header: {
-            Label("Ollama Server", systemImage: LumenIcon.ollama)
+            providerSectionHeader("Ollama Local", provider: .ollamaLocal)
         } footer: {
-            Text("Ollama must be running on your local network. Default is http://localhost:11434")
+            Text("Local Ollama keeps traffic on hardware you control. Default is http://localhost:11434.")
         }
     }
 
-    private var ollamaStatusRow: some View {
-        HStack(alignment: .top, spacing: LumenSpacing.sm) {
-            Image(systemName: ollamaStatusIconName)
-                .foregroundStyle(ollamaStatusColor)
-                .frame(width: 24)
-                .accessibilityHidden(true)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Status")
-                    .font(LumenType.body)
-                Text(modelStore.ollamaConnectionStatus.title)
-                    .font(LumenType.caption)
-                    .foregroundStyle(ollamaStatusColor)
-                if let detail = modelStore.ollamaStatusMessage {
-                    Text(detail)
-                        .font(LumenType.caption)
-                        .foregroundStyle(.secondary)
-                }
+    private var ollamaCloudSection: some View {
+        Section {
+            Toggle(isOn: allowOllamaCloudBinding) {
+                providerToggleLabel(
+                    provider: .ollamaCloud,
+                    title: "Enable Ollama Cloud",
+                    subtitle: "Use hosted models from Ollama Cloud"
+                )
             }
+            .accessibilityHint("Turns Ollama Cloud model access on or off")
 
-            Spacer()
+            LabeledContent("Endpoint", value: "https://ollama.com/api")
+
+            HStack {
+                Image(systemName: "key")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24)
+                    .accessibilityHidden(true)
+
+                SecureField("Ollama Cloud API key", text: $ollamaCloudTokenDraft)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .accessibilityLabel("Ollama Cloud API key")
+                    .accessibilityHint("Required to load and use hosted models from Ollama Cloud")
+            }
+            .disabled(!appStore.allowOllamaCloud)
+
+            providerStatusRow(
+                label: "Ollama Cloud status",
+                status: modelStore.ollamaCloudConnectionStatus,
+                detail: modelStore.ollamaCloudStatusMessage,
+                color: cloudStatusColor,
+                iconName: cloudStatusIconName
+            )
+
+            Button {
+                Task { await refreshOllamaCloudModels() }
+            } label: {
+                refreshRow(
+                    title: "Refresh Cloud Models",
+                    isRefreshing: modelStore.isLoading || isRefreshingOllamaCloud
+                )
+            }
+            .foregroundStyle(.primary)
+            .disabled(!appStore.allowOllamaCloud)
+            .accessibilityHint("Refreshes the hosted model list from Ollama Cloud")
+        } header: {
+            providerSectionHeader("Ollama Cloud", provider: .ollamaCloud)
+        } footer: {
+            Text("Ollama Cloud sends prompts to Ollama's hosted service when enabled. It requires your Ollama API key.")
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Ollama status")
-        .accessibilityValue(modelStore.ollamaConnectionStatus.title)
-        .accessibilityHint(modelStore.ollamaStatusMessage ?? "Shows whether the configured Ollama server is reachable")
     }
 
     private var appleIntelligenceSection: some View {
         Section {
             HStack {
-                Image(systemName: LumenIcon.appleIntelligence)
-                    .foregroundStyle(.secondary)
+                ProviderMark(provider: .foundationModels, size: 18)
                     .frame(width: 24)
-                    .accessibilityHidden(true)
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Apple Intelligence")
                     Text(modelStore.appleIntelligenceAvailable
-                         ? "Available on this device"
-                         : "Not available — requires iPhone 15 Pro or later with iOS 26")
+                        ? "Available on this device"
+                        : "Not available — requires supported Apple Intelligence hardware and iOS 26")
                         .font(LumenType.caption)
                         .foregroundStyle(modelStore.appleIntelligenceAvailable ? .green : .secondary)
                 }
+
                 Spacer()
+
                 Image(systemName: modelStore.appleIntelligenceAvailable ? "checkmark.circle.fill" : "xmark.circle")
                     .foregroundStyle(modelStore.appleIntelligenceAvailable ? .green : .secondary)
                     .accessibilityHidden(true)
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Apple Intelligence")
-            .accessibilityValue(modelStore.appleIntelligenceAvailable ? "Available on this device" : "Not available on this device")
-            .accessibilityHint("Shows whether Apple Intelligence is available for on-device models")
+        .accessibilityValue(modelStore.appleIntelligenceAvailable ? "Available on this device" : "Not available on this device")
+        .accessibilityHint("Shows whether Apple Intelligence is available for on-device models")
         } header: {
-            Label("Apple Intelligence", systemImage: LumenIcon.appleIntelligence)
+            providerSectionHeader("Apple Intelligence", provider: .foundationModels)
         } footer: {
-            Text("Runs entirely on-device. No data leaves your iPhone.")
+            Text("Runs entirely on-device. Requests stay on your iPhone.")
         }
     }
 
@@ -178,16 +267,19 @@ struct SettingsView: View {
                     Image(systemName: "brain.head.profile")
                         .foregroundStyle(memoryStore.isEnabled ? Color.accentColor : Color.secondary)
                         .frame(width: 24)
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Memory")
                             .foregroundStyle(.primary)
                         Text(memoryStore.isEnabled
-                             ? "\(memoryStore.activeMemories.count) active memor\(memoryStore.activeMemories.count == 1 ? "y" : "ies")"
-                             : "Disabled")
+                            ? "\(memoryStore.activeMemories.count) active memor\(memoryStore.activeMemories.count == 1 ? "y" : "ies")"
+                            : "Disabled")
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
                     }
+
                     Spacer()
+
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
@@ -213,16 +305,19 @@ struct SettingsView: View {
                     Image(systemName: "cpu.fill")
                         .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                         .frame(width: 24)
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Agent Mode")
                             .foregroundStyle(.primary)
                         Text(chatStore.agentModeEnabled
-                             ? "Active — \(AgentToolRegistry.all.count) tools available"
-                             : "Disabled")
+                            ? "Active — \(AgentToolRegistry.all.count) tools available"
+                            : "Disabled")
                             .font(LumenType.caption)
                             .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                     }
+
                     Spacer()
+
                     Image(systemName: "chevron.right")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
@@ -254,15 +349,18 @@ struct SettingsView: View {
         Section("About") {
             LabeledContent("Version", value: Bundle.main.appVersion)
             LabeledContent("Build", value: Bundle.main.buildNumber)
+
             Link(destination: URL(string: "https://github.com/eulicesl/lumen")!) {
                 Label("Source Code", systemImage: "chevron.left.forwardslash.chevron.right")
             }
+
             Button {
                 showingPrivacy = true
             } label: {
                 Label("Privacy", systemImage: "lock.shield")
                     .foregroundStyle(.primary)
             }
+
             Button {
                 ReviewRequestManager.shared.requestReviewNow()
             } label: {
@@ -283,45 +381,188 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Bundle helpers
-
 private extension SettingsView {
-    func persistOllamaURLIfNeeded() {
-        let normalized = ollamaURLDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    func providerToggleLabel(provider: AIProviderType, title: String, subtitle: String) -> some View {
+        HStack(spacing: LumenSpacing.sm) {
+            ProviderMark(
+                provider: provider,
+                size: 18,
+                showsVariantBadge: provider != .foundationModels
+            )
+            .frame(width: 24)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                Text(subtitle)
+                    .font(LumenType.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    func providerSectionHeader(_ title: String, provider: AIProviderType) -> some View {
+        HStack(spacing: LumenSpacing.xs) {
+            ProviderMark(
+                provider: provider,
+                size: 14,
+                showsVariantBadge: provider != .foundationModels
+            )
+            Text(title)
+        }
+    }
+
+    func refreshRow(title: String, isRefreshing: Bool) -> some View {
+        HStack {
+            Image(systemName: "arrow.clockwise")
+                .foregroundStyle(.secondary)
+                .frame(width: 24)
+            Text(title)
+            Spacer()
+            if isRefreshing {
+                ProgressView()
+            }
+        }
+    }
+
+    func providerStatusRow(
+        label: String,
+        status: ProviderConnectionStatus,
+        detail: String?,
+        color: Color,
+        iconName: String
+    ) -> some View {
+        HStack(alignment: .top, spacing: LumenSpacing.sm) {
+            Image(systemName: iconName)
+                .foregroundStyle(color)
+                .frame(width: 24)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Status")
+                    .font(LumenType.body)
+                Text(status.title)
+                    .font(LumenType.caption)
+                    .foregroundStyle(color)
+                if let detail {
+                    Text(detail)
+                        .font(LumenType.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(label)
+        .accessibilityValue(status.title)
+        .accessibilityHint(detail ?? "Shows the current provider connection status")
+    }
+
+    func persistProviderDraftsIfNeeded() {
+        persistOllamaLocalURLIfNeeded()
+
+        if ollamaLocalTokenDraft != appStore.ollamaLocalBearerToken {
+            appStore.saveOllamaLocalBearerToken(ollamaLocalTokenDraft)
+            ollamaLocalTokenDraft = appStore.ollamaLocalBearerToken
+        }
+
+        if ollamaCloudTokenDraft != appStore.ollamaCloudAPIKey {
+            appStore.saveOllamaCloudAPIKey(ollamaCloudTokenDraft)
+            ollamaCloudTokenDraft = appStore.ollamaCloudAPIKey
+        }
+    }
+
+    func persistOllamaLocalURLIfNeeded() {
+        let normalized = ollamaLocalURLDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         let targetURL = normalized.isEmpty ? "http://localhost:11434" : normalized
-        guard targetURL != appStore.ollamaServerURL else { return }
-        appStore.saveOllamaURL(targetURL)
-        ollamaURLDraft = appStore.ollamaServerURL
+        guard targetURL != appStore.ollamaLocalServerURL else { return }
+        appStore.saveOllamaLocalURL(targetURL)
+        ollamaLocalURLDraft = appStore.ollamaLocalServerURL
     }
 
-    func refreshOllamaModels() async {
-        isRefreshingOllama = true
-        persistOllamaURLIfNeeded()
+    func refreshOllamaLocalModels() async {
+        isRefreshingOllamaLocal = true
+        persistProviderDraftsIfNeeded()
         await modelStore.loadModels()
-        isRefreshingOllama = false
+        isRefreshingOllamaLocal = false
     }
 
-    var ollamaStatusColor: Color {
-        switch modelStore.ollamaConnectionStatus {
+    func refreshOllamaCloudModels() async {
+        isRefreshingOllamaCloud = true
+        persistProviderDraftsIfNeeded()
+        await modelStore.loadModels()
+        isRefreshingOllamaCloud = false
+    }
+
+    var allowOllamaLocalBinding: Binding<Bool> {
+        Binding(
+            get: { appStore.allowOllamaLocal },
+            set: { enabled in
+                persistProviderDraftsIfNeeded()
+                appStore.saveAllowOllamaLocal(enabled)
+                Task { await modelStore.loadModels() }
+            }
+        )
+    }
+
+    var allowOllamaCloudBinding: Binding<Bool> {
+        Binding(
+            get: { appStore.allowOllamaCloud },
+            set: { enabled in
+                persistProviderDraftsIfNeeded()
+                appStore.saveAllowOllamaCloud(enabled)
+                Task { await modelStore.loadModels() }
+            }
+        )
+    }
+
+    var localStatusColor: Color {
+        switch modelStore.ollamaLocalConnectionStatus {
         case .available:
             return .green
-        case .checking:
+        case .checking, .disabled:
             return .secondary
-        case .disabled:
-            return .secondary
-        case .unavailable:
+        case .missingCredentials, .unavailable:
             return .orange
         }
     }
 
-    var ollamaStatusIconName: String {
-        switch modelStore.ollamaConnectionStatus {
+    var localStatusIconName: String {
+        switch modelStore.ollamaLocalConnectionStatus {
         case .available:
             return "checkmark.circle.fill"
         case .checking:
             return "arrow.trianglehead.clockwise"
         case .disabled:
             return "pause.circle"
+        case .missingCredentials:
+            return "key.slash"
+        case .unavailable:
+            return "exclamationmark.triangle.fill"
+        }
+    }
+
+    var cloudStatusColor: Color {
+        switch modelStore.ollamaCloudConnectionStatus {
+        case .available:
+            return .green
+        case .checking, .disabled:
+            return .secondary
+        case .missingCredentials, .unavailable:
+            return .orange
+        }
+    }
+
+    var cloudStatusIconName: String {
+        switch modelStore.ollamaCloudConnectionStatus {
+        case .available:
+            return "checkmark.circle.fill"
+        case .checking:
+            return "arrow.trianglehead.clockwise"
+        case .disabled:
+            return "pause.circle"
+        case .missingCredentials:
+            return "key.slash"
         case .unavailable:
             return "exclamationmark.triangle.fill"
         }
@@ -337,6 +578,30 @@ private extension SettingsView {
         guard chatStore.agentModeEnabled else { return "Disabled" }
         let toolCount = AgentToolRegistry.all.count
         return "Active with \(toolCount) tool\(toolCount == 1 ? "" : "s") available"
+    }
+
+    var selectedModelTitle: String {
+        chatStore.currentModel?.displayName ?? "Not selected"
+    }
+
+    var selectedProviderTitle: String {
+        chatStore.currentModel?.providerType.displayName ?? "None"
+    }
+
+    var selectedProviderType: AIProviderType {
+        chatStore.currentModel?.providerType ?? .foundationModels
+    }
+
+    var selectedModelSubtitle: String? {
+        guard let model = chatStore.currentModel else { return nil }
+        return model.displayName == model.providerType.displayName ? nil : model.displayName
+    }
+
+    var activeModelAccessibilityValue: String {
+        if let subtitle = selectedModelSubtitle {
+            return "\(selectedProviderTitle). \(subtitle)"
+        }
+        return selectedProviderTitle
     }
 }
 

@@ -16,14 +16,14 @@ private let onboardingPages: [OnboardingPage] = [
         symbol: "wand.and.stars",
         symbolColor: .accentColor,
         title: "Welcome to Lumen",
-        subtitle: "A privacy-first AI assistant that runs entirely on your device and local network — no data ever leaves your hands."
+        subtitle: "A privacy-first AI assistant with Apple Intelligence on-device, plus optional Ollama Local and Ollama Cloud providers you control."
     ),
     OnboardingPage(
         id: 1,
         symbol: "lock.shield.fill",
         symbolColor: .green,
         title: "Your Privacy, Guaranteed",
-        subtitle: "Lumen uses Apple Intelligence and Ollama — both run on-device or on your local network. No cloud accounts. No tracking. Your conversations stay yours."
+        subtitle: "Apple Intelligence stays on-device. Ollama Local stays on infrastructure you control. Ollama Cloud is optional and only used when you enable it. No tracking. Your conversations stay yours."
     ),
     OnboardingPage(
         id: 2,
@@ -37,7 +37,7 @@ private let onboardingPages: [OnboardingPage] = [
         symbol: "sparkles",
         symbolColor: .orange,
         title: "Ready to Go",
-        subtitle: "Connect Ollama on your local network or use Apple Intelligence on this device. Switch models anytime from the chat bar."
+        subtitle: "Choose Apple Intelligence, connect Ollama Local, or sign in with an Ollama Cloud API key. Switch models anytime from the chat bar."
     ),
 ]
 

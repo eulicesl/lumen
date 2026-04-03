@@ -1,9 +1,9 @@
 import Foundation
 
 actor OllamaProvider: AIProvider {
-    let id = "ollama"
-    let displayName = "Ollama"
-    let providerType: AIProviderType = .ollama
+    let id: String
+    let displayName: String
+    let providerType: AIProviderType
 
     private(set) var baseURL: URL
     private(set) var bearerToken: String?
@@ -12,7 +12,16 @@ actor OllamaProvider: AIProvider {
     private var availabilityCache: (value: Bool, timestamp: Date)?
     private let cacheTTL: TimeInterval = 10
 
-    init(baseURL: URL = URL(string: "http://localhost:11434")!, bearerToken: String? = nil) {
+    init(
+        id: String,
+        displayName: String,
+        providerType: AIProviderType,
+        baseURL: URL,
+        bearerToken: String? = nil
+    ) {
+        self.id = id
+        self.displayName = displayName
+        self.providerType = providerType
         self.baseURL = baseURL
         self.bearerToken = bearerToken
         let config = URLSessionConfiguration.default
@@ -65,9 +74,9 @@ actor OllamaProvider: AIProvider {
             let decoded = try JSONDecoder().decode(OllamaTagsResponse.self, from: data)
             return decoded.models.map { ollamaModel in
                 AIModel(
-                    id: "ollama.\(ollamaModel.name)",
+                    id: "\(providerType.stableModelIDPrefix).\(ollamaModel.name)",
                     name: ollamaModel.name,
-                    providerType: .ollama,
+                    providerType: providerType,
                     supportsImages: ollamaModel.name.lowercased().contains("llava") ||
                                     ollamaModel.name.lowercased().contains("vision"),
                     supportsStreaming: true

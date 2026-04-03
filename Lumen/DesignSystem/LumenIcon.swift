@@ -43,6 +43,7 @@ enum LumenIcon {
     // MARK: - Models
     static let model              = "cpu"
     static let ollama             = "server.rack"
+    static let ollamaCloud        = "cloud.fill"
     static let appleIntelligence  = "apple.logo"
     static let onDevice           = "apple.logo"
     static let compare  = "rectangle.split.2x1"

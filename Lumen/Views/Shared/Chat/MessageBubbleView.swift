@@ -156,9 +156,11 @@ struct MessageBubbleView: View {
                 Text(AttributedString.fromMarkdown(displayText))
                     .font(LumenType.messageBody)
                     .foregroundStyle(Color.white)
+                    .multilineTextAlignment(.leading)
                     .textSelection(.enabled)
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.sm)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: maxBubbleWidth, alignment: .trailing)
             )
         } else {
@@ -166,9 +168,11 @@ struct MessageBubbleView: View {
                 Text(AttributedString.fromMarkdown(displayText))
                     .font(LumenType.messageBody)
                     .foregroundStyle(Color.primary)
+                    .multilineTextAlignment(.leading)
                     .textSelection(.enabled)
                     .padding(.horizontal, LumenSpacing.md)
-                    .padding(.vertical, LumenSpacing.sm)
+                    .padding(.vertical, LumenSpacing.xs)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: maxBubbleWidth, alignment: .leading)
             )
         }
@@ -184,9 +188,11 @@ struct MessageBubbleView: View {
                 Text(AttributedString.fromMarkdown(message.content))
                     .font(LumenType.messageBody)
                     .foregroundStyle(Color.primary)
+                    .multilineTextAlignment(.leading)
                     .textSelection(.enabled)
                     .padding(.horizontal, LumenSpacing.md)
-                    .padding(.vertical, LumenSpacing.sm)
+                    .padding(.vertical, LumenSpacing.xs)
+                    .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: maxBubbleWidth, alignment: .leading)
                 StreamingPulse()
                     .padding(.trailing, LumenSpacing.sm)
@@ -274,7 +280,7 @@ struct MessageBubbleView: View {
         if message.isUser {
             return max(180, min(screenWidth * 0.64, 340))
         } else {
-            return max(260, min(screenWidth * 0.84, 560))
+            return max(240, min(screenWidth * 0.76, 520))
         }
         #else
         return 600

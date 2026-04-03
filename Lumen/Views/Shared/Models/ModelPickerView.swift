@@ -13,9 +13,16 @@ struct ModelPickerView: View {
                 } else if modelStore.availableModels.isEmpty {
                     emptySection
                 } else {
-                    if !ollamaModels.isEmpty {
-                        Section("Ollama (Local)") {
-                            ForEach(ollamaModels) { model in
+                    if !ollamaLocalModels.isEmpty {
+                        Section("Ollama Local") {
+                            ForEach(ollamaLocalModels) { model in
+                                modelRow(model)
+                            }
+                        }
+                    }
+                    if !ollamaCloudModels.isEmpty {
+                        Section("Ollama Cloud") {
+                            ForEach(ollamaCloudModels) { model in
                                 modelRow(model)
                             }
                         }
@@ -59,15 +66,16 @@ struct ModelPickerView: View {
 
     private func modelRow(_ model: AIModel) -> some View {
         Button {
-            chatStore.currentModel = model
+            modelStore.selectModel(model)
             dismiss()
         } label: {
             HStack(spacing: LumenSpacing.sm) {
-                Image(systemName: model.providerType == .foundationModels
-                      ? LumenIcon.appleIntelligence : LumenIcon.ollama)
-                    .font(.title3)
-                    .foregroundStyle(.secondary)
-                    .frame(width: 32)
+                ProviderMark(
+                    provider: model.providerType,
+                    size: 20,
+                    showsVariantBadge: model.providerType != .foundationModels
+                )
+                .frame(width: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(model.displayName)
@@ -135,8 +143,12 @@ struct ModelPickerView: View {
 
     // MARK: - Filtering
 
-    private var ollamaModels: [AIModel] {
-        modelStore.availableModels.filter { $0.providerType == .ollama }
+    private var ollamaLocalModels: [AIModel] {
+        modelStore.availableModels.filter { $0.providerType == .ollamaLocal }
+    }
+
+    private var ollamaCloudModels: [AIModel] {
+        modelStore.availableModels.filter { $0.providerType == .ollamaCloud }
     }
 
     private var appleModels: [AIModel] {
@@ -145,13 +157,13 @@ struct ModelPickerView: View {
 
     private var emptyStateMessage: String {
         if let lastError = modelStore.lastError {
-            return "\(lastError) You can try again after confirming your Ollama server settings."
+            return "\(lastError) You can try again after confirming your provider settings."
         }
-        return "Make sure Ollama is running, or that Apple Intelligence is enabled in Settings."
+        return "To use Apple Intelligence, make sure it is available on a supported device and enabled in iOS Settings. You can also configure Ollama Local or Ollama Cloud in Settings."
     }
 
     private func modelRowAccessibilityValue(_ model: AIModel) -> String {
-        var parts = [model.providerType == .foundationModels ? "Apple Intelligence" : "Ollama"]
+        var parts = [model.providerType.displayName]
         if let context = model.contextLength {
             parts.append("\(context / 1000)K context")
         }

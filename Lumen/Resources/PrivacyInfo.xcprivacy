@@ -5,9 +5,9 @@
 
     <!--
         Lumen AI — Privacy Manifest
-        Data collected: NONE (privacy-first, fully on-device or self-hosted)
-        All AI inference runs on Apple Intelligence or the user's own Ollama server.
-        No telemetry, no analytics, no data leaves the device.
+        Data collected: NONE (privacy-first, with optional user-enabled cloud inference)
+        AI inference can run on Apple Intelligence, the user's own Ollama server, or Ollama Cloud when the user explicitly enables it.
+        No telemetry, no analytics, and no Lumen-operated backend.
     -->
 
     <!-- No data types collected or linked to users -->
