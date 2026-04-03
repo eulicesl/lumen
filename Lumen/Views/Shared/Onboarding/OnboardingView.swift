@@ -100,8 +100,9 @@ struct OnboardingView: View {
 
                 VStack(spacing: LumenSpacing.md) {
                     Text(page.title)
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        .font(.largeTitle.weight(.bold))
                         .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
 
                     Text(page.subtitle)
                         .font(LumenType.body)
@@ -131,6 +132,7 @@ struct OnboardingView: View {
                     }
                     .font(LumenType.body)
                     .foregroundStyle(.secondary)
+                    .accessibilityLabel("Skip onboarding")
                     .accessibilityHint("Skips onboarding and opens the app")
 
                     Spacer()
@@ -149,6 +151,7 @@ struct OnboardingView: View {
                             .padding(.vertical, LumenSpacing.md)
                             .background(Color.accentColor, in: Capsule())
                     }
+                    .accessibilityLabel("Next page")
                     .accessibilityHint("Moves to the next onboarding page")
                 }
             } else {
@@ -163,6 +166,7 @@ struct OnboardingView: View {
                         .padding(.vertical, LumenSpacing.md)
                         .background(Color.accentColor, in: RoundedRectangle(cornerRadius: LumenRadius.lg))
                 }
+                .accessibilityLabel("Get started")
                 .accessibilityHint("Completes onboarding and opens the app")
             }
         }

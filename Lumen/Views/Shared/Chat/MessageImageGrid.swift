@@ -17,7 +17,7 @@ struct MessageImageGrid: View {
 
                     if i == visible.count - 1 && extra > 0 {
                         Text("+\(extra)")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.title3.weight(.semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .background(.ultraThinMaterial)
@@ -104,10 +104,12 @@ struct FullscreenImageViewer: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 28))
+                            .font(.title2)
                             .foregroundStyle(.white.opacity(0.8))
                             .padding()
                     }
+                    .accessibilityLabel("Close image viewer")
+                    .accessibilityHint("Returns to the conversation")
                 }
                 Spacer()
             }

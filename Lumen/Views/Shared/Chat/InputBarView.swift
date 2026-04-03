@@ -191,6 +191,7 @@ struct InputBarView: View {
         .buttonStyle(.plain)
         .accessibilityLabel("Attach Document")
         .accessibilityHint("Import PDF, text, or source files into the current message")
+        .accessibilityValue(chatStore.pendingDocuments.isEmpty ? "No documents attached" : "\(chatStore.pendingDocuments.count) document\(chatStore.pendingDocuments.count == 1 ? "" : "s") attached")
         .disabled(chatStore.conversationState == .generating)
     }
 
@@ -213,6 +214,7 @@ struct InputBarView: View {
             .disabled(chatStore.selectedConversation == nil)
             .accessibilityLabel(chatStore.isEditingMessage ? "Edit message" : "Message composer")
             .accessibilityHint("Enter a prompt or question for the selected conversation")
+            .accessibilityValue(chatStore.inputText.isEmpty ? "Empty" : "\(chatStore.inputText.count) characters")
     }
 
     // MARK: - Send / Stop button
@@ -257,6 +259,7 @@ struct InputBarView: View {
                     .buttonStyle(.plain)
                     .accessibilityLabel(chatStore.isEditingMessage ? "Send edited message in new branch" : "Send message")
                     .accessibilityHint(sendButtonAccessibilityHint)
+                    .accessibilityValue(sendButtonAccessibilityValue)
                     .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
                 } else {
                     #if os(iOS)
@@ -305,6 +308,13 @@ struct InputBarView: View {
         }
 
         return "Sends the current message"
+    }
+
+    private var sendButtonAccessibilityValue: String {
+        let textCount = chatStore.inputText.trimmingCharacters(in: .whitespacesAndNewlines).count
+        let imageCount = chatStore.pendingImageData.count
+        let documentCount = chatStore.pendingDocuments.count
+        return "\(textCount) characters, \(imageCount) image\(imageCount == 1 ? "" : "s"), \(documentCount) document\(documentCount == 1 ? "" : "s")"
     }
 
     @ViewBuilder
@@ -456,6 +466,7 @@ private struct DocumentAttachmentRow: View {
     let onRemove: (ImportedDocument) -> Void
     @ScaledMetric(relativeTo: .body) private var rowHeight = 88
     @ScaledMetric(relativeTo: .body) private var documentIconSize = 18
+    @ScaledMetric(relativeTo: .body) private var removeIconSize = 16
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -496,7 +507,7 @@ private struct DocumentAttachmentRow: View {
                 onRemove(document)
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 16))
+                    .font(.system(size: removeIconSize))
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)

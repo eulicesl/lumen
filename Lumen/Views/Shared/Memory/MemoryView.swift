@@ -46,7 +46,8 @@ struct MemoryView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
-                    .accessibilityLabel("Add Memory")
+                    .accessibilityLabel("Add memory")
+                    .accessibilityHint("Opens the form to save a new memory")
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if !memoryStore.memories.isEmpty {
@@ -63,7 +64,9 @@ struct MemoryView: View {
                         } label: {
                             Image(systemName: "line.3.horizontal.decrease.circle")
                         }
-                        .accessibilityLabel("Filter by Category")
+                        .accessibilityLabel("Filter by category")
+                        .accessibilityValue(selectedCategory?.rawValue ?? "All categories")
+                        .accessibilityHint("Filters visible memories by category")
                     }
                 }
             }
@@ -101,6 +104,8 @@ struct MemoryView: View {
                     set: { _ in memoryStore.toggleEnabled() }
                 ))
                 .labelsHidden()
+                .accessibilityLabel("Enable memory")
+                .accessibilityValue(memoryStore.isEnabled ? "On" : "Off")
             }
             .padding(.vertical, 2)
         } footer: {
@@ -143,7 +148,7 @@ struct MemoryView: View {
         .contentShape(Rectangle())
         .onTapGesture { editingItem = item }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(item.content)
+        .accessibilityLabel("Memory: \(item.content)")
         .accessibilityValue(memoryRowAccessibilityValue(item))
         .accessibilityHint("Double-tap to edit. Swipe for enable or delete actions.")
         .swipeActions(edge: .leading) {

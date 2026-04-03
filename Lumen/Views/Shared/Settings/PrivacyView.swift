@@ -161,7 +161,9 @@ struct PrivacyView: View {
         }
         .padding(.vertical, LumenSpacing.xs)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(title): \(detail)")
+        .accessibilityLabel(title)
+        .accessibilityValue(detail)
+        .accessibilityHint("Privacy detail")
     }
 
     private var heroIcon: some View {

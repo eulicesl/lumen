@@ -52,6 +52,7 @@ struct ChatView: View {
                         }
                         .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
                         .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                        .accessibilityHint("Opens system prompt settings for this conversation")
                     }
                 }
 
@@ -62,6 +63,7 @@ struct ChatView: View {
                         }
                         .help("Share conversation")
                         .accessibilityLabel("Share conversation")
+                        .accessibilityHint("Opens the share sheet for this conversation")
                     }
                 }
 
@@ -73,6 +75,7 @@ struct ChatView: View {
                     }
                     .help("Compare Models")
                     .accessibilityLabel("Compare Models")
+                    .accessibilityHint("Opens model comparison for the current conversation")
                 }
             }
         }

@@ -9,12 +9,14 @@ Status legend: `Done` | `In Progress` | `Not Started` | `Blocked`
 - [x] Success confirmation haptic after assistant response starts/completes.  
   - Priority: P2  
   - Status: Done
-- [ ] Dynamic Type audit and scaling completeness.  
+- [x] Dynamic Type audit and scaling completeness.  
   - Priority: P0  
-  - Status: In Progress
-- [ ] Accessibility labels/hints/values audit for all critical controls.  
+  - Status: Done
+  - Notes: Completed focused updates across chat media/attachment controls and onboarding typography semantics.
+- [x] Accessibility labels/hints/values audit for all critical controls.  
   - Priority: P0  
-  - Status: In Progress
+  - Status: Done
+  - Notes: Completed focused updates across chat toolbar/composer controls, memory filters/toggles, onboarding actions, and settings appearance controls.
 - [x] Reduce Motion consistency across symbol effects and animated transitions.  
   - Priority: P1  
   - Status: Done
