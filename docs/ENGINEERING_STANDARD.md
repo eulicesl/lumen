@@ -32,6 +32,7 @@ Every PR must include:
 - API availability is explicit (`#available`) where needed.
 - Native platform behavior is preferred over heavy custom abstractions for core shell UX.
 - Device validation is done for UI-affecting changes before merge.
+- Visual verification artifacts are captured for UI-affecting PRs and called out in the PR evidence.
 - Launch/orientation/privacy config is treated as product quality, not "later" work.
 
 ## Documentation quality

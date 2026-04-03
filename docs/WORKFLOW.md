@@ -22,12 +22,14 @@ A PR is mergeable only when:
 - required review is present
 - conversation threads are resolved
 - no known high-risk blocker remains
+- UI-affecting changes have visual verification evidence from the branch being merged
 
 ## Review standard
 Prefer senior-engineer judgment:
 - small scope
 - explicit validation
 - screenshots for UI changes
+- written note of exactly what was visually verified
 - follow-up notes when deferring non-blockers
 
 ## Merge standard

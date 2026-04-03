@@ -71,9 +71,13 @@ If none, write `None`.
 Attach at least one:
 
 - [ ] Failing state before + passing after (logs/screenshots)
-- [ ] Device screenshot/recording
+- [ ] Visual verification attachment/link (PR upload, CI artifact URL, or repo-relative path)
 - [ ] CI output links
 - [ ] Perf numbers (if relevant)
+
+If this PR changes UI/UX, attach visual verification from the branch being merged:
+- [ ] Simulator screenshot from the current branch
+- [ ] Device screenshot/recording for user-visible iPhone/iPad/macOS changes, as applicable
 
 ## Human Verification (required)
 
@@ -82,6 +86,7 @@ What you personally verified (not just CI), and how:
 - Verified scenarios:
 - Edge cases checked:
 - What you did **not** verify:
+- Visual verification evidence reference (attachment/link or repo-relative path):
 
 ## Review Conversations
 
