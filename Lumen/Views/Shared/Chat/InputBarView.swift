@@ -325,7 +325,11 @@ struct InputBarView: View {
             parts.append("\(documentCount) document\(documentCount == 1 ? "" : "s")")
         }
 
-        return parts.isEmpty ? "Empty" : parts.joined(separator: ", ")
+        assert(
+            !parts.isEmpty,
+            "sendButtonAccessibilityValue should only be evaluated when there is sendable content"
+        )
+        return parts.joined(separator: ", ")
     }
 
     @ViewBuilder
