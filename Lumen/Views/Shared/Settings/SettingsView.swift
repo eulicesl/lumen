@@ -76,8 +76,29 @@ struct SettingsView: View {
 
     private var activeModelSection: some View {
         Section {
-            LabeledContent("Model", value: selectedModelTitle)
-            LabeledContent("Provider", value: selectedProviderTitle)
+            HStack(spacing: LumenSpacing.sm) {
+                ProviderMark(
+                    provider: selectedProviderType,
+                    size: 18,
+                    showsVariantBadge: selectedProviderType != .foundationModels
+                )
+                .frame(width: 24)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(selectedProviderTitle)
+                        .foregroundStyle(.primary)
+                    if let subtitle = selectedModelSubtitle {
+                        Text(subtitle)
+                            .font(LumenType.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer()
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Active model")
+            .accessibilityValue(activeModelAccessibilityValue)
         } header: {
             Label("Active Model", systemImage: LumenIcon.model)
         }
@@ -563,6 +584,22 @@ private extension SettingsView {
 
     var selectedProviderTitle: String {
         chatStore.currentModel?.providerType.displayName ?? "None"
+    }
+
+    var selectedProviderType: AIProviderType {
+        chatStore.currentModel?.providerType ?? .foundationModels
+    }
+
+    var selectedModelSubtitle: String? {
+        guard let model = chatStore.currentModel else { return nil }
+        return model.displayName == model.providerType.displayName ? nil : model.displayName
+    }
+
+    var activeModelAccessibilityValue: String {
+        if let subtitle = selectedModelSubtitle {
+            return "\(selectedProviderTitle). \(subtitle)"
+        }
+        return selectedProviderTitle
     }
 }
 
