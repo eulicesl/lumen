@@ -5,6 +5,8 @@ struct ImageAttachmentRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Binding var images: [UIImage]
     var onOCR: ((UIImage) -> Void)? = nil
+    @ScaledMetric(relativeTo: .body) private var removeIconSize = 18
+
 
     var body: some View {
         if !images.isEmpty {
@@ -55,7 +57,7 @@ struct ImageAttachmentRow: View {
                 images.remove(at: index)
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 18))
+                    .font(.system(size: removeIconSize))
                     .foregroundStyle(.white)
                     .background(Color.black.opacity(0.5), in: Circle())
             }
@@ -73,6 +75,8 @@ struct PhotoPickerButton: View {
     @Binding var selectedImages: [UIImage]
     @State private var pickerItems: [PhotosPickerItem] = []
     var maxSelection: Int = 4
+    @ScaledMetric(relativeTo: .body) private var actionIconSize = 20
+
 
     var body: some View {
         PhotosPicker(
@@ -81,7 +85,7 @@ struct PhotoPickerButton: View {
             matching: .images
         ) {
             Image(systemName: LumenIcon.photo)
-                .font(.system(size: 20))
+                .font(.system(size: actionIconSize))
                 .foregroundStyle(.secondary)
                 .frame(width: 36, height: 36)
         }
@@ -113,13 +117,15 @@ struct PhotoPickerButton: View {
 struct CameraButton: View {
     @Binding var capturedImage: UIImage?
     @State private var showingCamera = false
+    @ScaledMetric(relativeTo: .body) private var actionIconSize = 20
+
 
     var body: some View {
         Button {
             showingCamera = true
         } label: {
             Image(systemName: LumenIcon.camera)
-                .font(.system(size: 20))
+                .font(.system(size: actionIconSize))
                 .foregroundStyle(.secondary)
                 .frame(width: 36, height: 36)
         }

@@ -42,6 +42,7 @@ struct SettingsView: View {
                         persistProviderDraftsIfNeeded()
                         dismiss()
                     }
+                    .accessibilityHint("Saves settings changes and closes this screen")
                 }
             }
             .onAppear {
@@ -340,6 +341,8 @@ struct SettingsView: View {
                 Text("Dark").tag(AppColorScheme.dark)
             }
             .pickerStyle(.segmented)
+            .accessibilityLabel("Appearance")
+            .accessibilityHint("Choose system, light, or dark appearance")
         } header: {
             Label("Appearance", systemImage: "paintbrush")
         }
