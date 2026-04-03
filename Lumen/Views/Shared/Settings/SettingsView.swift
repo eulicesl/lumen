@@ -342,7 +342,6 @@ struct SettingsView: View {
             }
             .pickerStyle(.segmented)
             .accessibilityLabel("Appearance")
-            .accessibilityValue(bindableApp.colorSchemePreference.wrappedValue.rawValue.capitalized)
             .accessibilityHint("Choose system, light, or dark appearance")
         } header: {
             Label("Appearance", systemImage: "paintbrush")

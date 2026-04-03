@@ -213,8 +213,7 @@ struct InputBarView: View {
             }
             .disabled(chatStore.selectedConversation == nil)
             .accessibilityLabel(chatStore.isEditingMessage ? "Edit message" : "Message composer")
-            .accessibilityHint("Enter a prompt or question for the selected conversation")
-            .accessibilityValue(chatStore.inputText.isEmpty ? "Empty" : "\(chatStore.inputText.count) characters")
+            .accessibilityHint(chatStore.isEditingMessage ? "Update your message" : "Enter a prompt or question for the selected conversation")
     }
 
     // MARK: - Send / Stop button
@@ -314,7 +313,19 @@ struct InputBarView: View {
         let textCount = chatStore.inputText.trimmingCharacters(in: .whitespacesAndNewlines).count
         let imageCount = chatStore.pendingImageData.count
         let documentCount = chatStore.pendingDocuments.count
-        return "\(textCount) characters, \(imageCount) image\(imageCount == 1 ? "" : "s"), \(documentCount) document\(documentCount == 1 ? "" : "s")"
+
+        var parts: [String] = []
+        if textCount > 0 {
+            parts.append("\(textCount) character\(textCount == 1 ? "" : "s")")
+        }
+        if imageCount > 0 {
+            parts.append("\(imageCount) image\(imageCount == 1 ? "" : "s")")
+        }
+        if documentCount > 0 {
+            parts.append("\(documentCount) document\(documentCount == 1 ? "" : "s")")
+        }
+
+        return parts.isEmpty ? "Empty" : parts.joined(separator: ", ")
     }
 
     @ViewBuilder

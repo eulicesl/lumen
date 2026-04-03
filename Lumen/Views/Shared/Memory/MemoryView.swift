@@ -105,7 +105,6 @@ struct MemoryView: View {
                 ))
                 .labelsHidden()
                 .accessibilityLabel("Enable memory")
-                .accessibilityValue(memoryStore.isEnabled ? "On" : "Off")
             }
             .padding(.vertical, 2)
         } footer: {
