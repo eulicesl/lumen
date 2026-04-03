@@ -256,15 +256,14 @@ private struct ModelPickerChip: View {
 
     private var currentModelAccessibilityValue: String {
         guard let model = chatStore.currentModel else { return "No model selected" }
-        return "\(providerTitle(for: model)). \(model.displayName)"
+        let provider = model.providerType.displayName
+        return model.displayName.localizedStandardContains(provider)
+            ? model.displayName
+            : "\(provider). \(model.displayName)"
     }
 
     private var currentProviderType: AIProviderType {
         chatStore.currentModel?.providerType ?? .foundationModels
-    }
-
-    private func providerTitle(for model: AIModel) -> String {
-        model.providerType.displayName
     }
 }
 
