@@ -57,7 +57,13 @@ final class AppStore {
             legacyKey: Self.legacyOllamaBearerTokenKey
         )
         ollamaCloudAPIKey = loadSecret(currentKey: Self.ollamaCloudAPIKeyKey)
-        defaultModelID = userDefaults.string(forKey: Self.defaultModelIDKey)
+        if let storedDefaultModelID = userDefaults.string(forKey: Self.defaultModelIDKey) {
+            let normalizedDefaultModelID = Self.normalizeStoredModelID(storedDefaultModelID)
+            defaultModelID = normalizedDefaultModelID
+            if normalizedDefaultModelID != storedDefaultModelID {
+                userDefaults.set(normalizedDefaultModelID, forKey: Self.defaultModelIDKey)
+            }
+        }
         if userDefaults.object(forKey: Self.allowOllamaLocalKey) != nil {
             allowOllamaLocal = userDefaults.bool(forKey: Self.allowOllamaLocalKey)
         } else {
@@ -142,8 +148,9 @@ final class AppStore {
     }
 
     func saveDefaultModel(_ modelID: String) {
-        defaultModelID = modelID
-        userDefaults.set(modelID, forKey: Self.defaultModelIDKey)
+        let normalizedModelID = Self.normalizeStoredModelID(modelID)
+        defaultModelID = normalizedModelID
+        userDefaults.set(normalizedModelID, forKey: Self.defaultModelIDKey)
     }
 
     func saveColorScheme(_ scheme: AppColorScheme) {
@@ -213,6 +220,13 @@ final class AppStore {
     private func clearLegacySecretIfNeeded(legacyKey: String) {
         guard userDefaults.object(forKey: legacyKey) != nil else { return }
         userDefaults.removeObject(forKey: legacyKey)
+    }
+
+    private static func normalizeStoredModelID(_ modelID: String) -> String {
+        let legacyPrefix = "\(AIProviderType.ollamaLocal.rawValue)."
+        guard modelID.hasPrefix(legacyPrefix) else { return modelID }
+        let suffix = modelID.dropFirst(legacyPrefix.count)
+        return "\(AIProviderType.ollamaLocal.stableModelIDPrefix).\(suffix)"
     }
 
     // MARK: - Legacy compatibility

@@ -74,7 +74,7 @@ actor OllamaProvider: AIProvider {
             let decoded = try JSONDecoder().decode(OllamaTagsResponse.self, from: data)
             return decoded.models.map { ollamaModel in
                 AIModel(
-                    id: "\(providerType.rawValue).\(ollamaModel.name)",
+                    id: "\(providerType.stableModelIDPrefix).\(ollamaModel.name)",
                     name: ollamaModel.name,
                     providerType: providerType,
                     supportsImages: ollamaModel.name.lowercased().contains("llava") ||

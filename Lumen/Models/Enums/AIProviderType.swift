@@ -50,6 +50,15 @@ enum AIProviderType: String, Sendable, Codable, CaseIterable, Identifiable {
         }
     }
 
+    var stableModelIDPrefix: String {
+        switch self {
+        case .ollamaLocal:
+            return "ollama"
+        case .ollamaCloud, .foundationModels:
+            return rawValue
+        }
+    }
+
     static func fromStoredValue(_ rawValue: String) -> AIProviderType {
         switch rawValue {
         case "ollama":

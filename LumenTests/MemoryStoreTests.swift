@@ -253,6 +253,36 @@ struct AppStoreSecurityTests {
 
         defaults.removePersistentDomain(forName: suiteName)
     }
+
+    @Test("Migrates legacy local model IDs to the stable Ollama prefix")
+    func migratesLegacyLocalModelIDs() {
+        let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults.set("ollamaLocal.llama3.2", forKey: "defaultModelID")
+
+        let store = AppStore(userDefaults: defaults, secretStore: InMemorySecretStore())
+
+        #expect(store.defaultModelID == "ollama.llama3.2")
+        #expect(defaults.string(forKey: "defaultModelID") == "ollama.llama3.2")
+
+        defaults.removePersistentDomain(forName: suiteName)
+    }
+
+    @Test("Saving a local model stores the stable Ollama prefix")
+    func savesLocalModelWithStableIDPrefix() {
+        let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defaults.removePersistentDomain(forName: suiteName)
+
+        let store = AppStore(userDefaults: defaults, secretStore: InMemorySecretStore())
+        store.saveDefaultModel("ollamaLocal.llama3.2")
+
+        #expect(store.defaultModelID == "ollama.llama3.2")
+        #expect(defaults.string(forKey: "defaultModelID") == "ollama.llama3.2")
+
+        defaults.removePersistentDomain(forName: suiteName)
+    }
 }
 
 private final class InMemorySecretStore: SecretStore {

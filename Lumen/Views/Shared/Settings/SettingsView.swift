@@ -498,6 +498,7 @@ private extension SettingsView {
         Binding(
             get: { appStore.allowOllamaLocal },
             set: { enabled in
+                persistProviderDraftsIfNeeded()
                 appStore.saveAllowOllamaLocal(enabled)
                 Task { await modelStore.loadModels() }
             }
@@ -508,6 +509,7 @@ private extension SettingsView {
         Binding(
             get: { appStore.allowOllamaCloud },
             set: { enabled in
+                persistProviderDraftsIfNeeded()
                 appStore.saveAllowOllamaCloud(enabled)
                 Task { await modelStore.loadModels() }
             }

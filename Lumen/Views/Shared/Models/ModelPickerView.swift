@@ -159,7 +159,7 @@ struct ModelPickerView: View {
         if let lastError = modelStore.lastError {
             return "\(lastError) You can try again after confirming your provider settings."
         }
-        return "Enable Apple Intelligence, Ollama Local, or Ollama Cloud in Settings."
+        return "To use Apple Intelligence, make sure it is available on a supported device and enabled in iOS Settings. You can also configure Ollama Local or Ollama Cloud in Settings."
     }
 
     private func modelRowAccessibilityValue(_ model: AIModel) -> String {
