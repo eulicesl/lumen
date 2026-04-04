@@ -6,7 +6,13 @@ import UIKit
 
 struct MessageBubbleView: View {
     let message: ChatMessage
+    let availableWidth: CGFloat?
     @Environment(ChatStore.self) private var chatStore
+
+    init(message: ChatMessage, availableWidth: CGFloat? = nil) {
+        self.message = message
+        self.availableWidth = availableWidth
+    }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var thinkingExpanded = false
     @State private var showingBranchConfirm = false
@@ -19,50 +25,45 @@ struct MessageBubbleView: View {
     }
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
-            if message.isUser { Spacer(minLength: 40) }
-
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: LumenSpacing.xs) {
-                if message.isAssistant, !thinkBlocks.isEmpty {
-                    thinkingDisclosure
-                }
-
-                if let images = message.imageData, !images.isEmpty {
-                    MessageImageGrid(imageData: images)
-                }
-
-                if !message.content.isEmpty || message.isStreaming {
-                    bubbleContent
-                        .contextMenu { contextMenuItems }
-                        .modifier(
-                            MessageAccessibilityActions(
-                                message: message,
-                                canRegenerate: canRegenerateMessage,
-                                onCopy: copyMessage,
-                                onSaveToMemory: saveToMemory,
-                                onRegenerate: regenerateMessage,
-                                onBranch: { showingBranchConfirm = true },
-                                onSpeak: speakMessage,
-                                onEdit: { chatStore.beginEditing(message) }
-                            )
-                        )
-                }
-
-                if showingCopyFeedback {
-                    copyFeedbackBadge
-                }
-
-                if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
-                    Text("\(count) tokens")
-                        .font(LumenType.caption)
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, LumenSpacing.xs)
-                        .accessibilityHidden(true)
-                }
+        VStack(alignment: message.isUser ? .trailing : .leading, spacing: LumenSpacing.xs) {
+            if message.isAssistant, !thinkBlocks.isEmpty {
+                thinkingDisclosure
             }
 
-            if !message.isUser { Spacer(minLength: 24) }
+            if let images = message.imageData, !images.isEmpty {
+                MessageImageGrid(imageData: images)
+            }
+
+            if !message.content.isEmpty || message.isStreaming {
+                bubbleContent
+                    .contextMenu { contextMenuItems }
+                    .modifier(
+                        MessageAccessibilityActions(
+                            message: message,
+                            canRegenerate: canRegenerateMessage,
+                            onCopy: copyMessage,
+                            onSaveToMemory: saveToMemory,
+                            onRegenerate: regenerateMessage,
+                            onBranch: { showingBranchConfirm = true },
+                            onSpeak: speakMessage,
+                            onEdit: { chatStore.beginEditing(message) }
+                        )
+                    )
+            }
+
+            if showingCopyFeedback {
+                copyFeedbackBadge
+            }
+
+            if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
+                Text("\(count) tokens")
+                    .font(LumenType.caption)
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, LumenSpacing.xs)
+                    .accessibilityHidden(true)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: message.isUser ? .trailing : .leading)
         .id(message.id)
         .confirmationDialog(
             "Branch from this message?",
@@ -276,14 +277,21 @@ struct MessageBubbleView: View {
 
     private var maxBubbleWidth: CGFloat {
         #if os(iOS)
-        let screenWidth = UIScreen.main.bounds.width
+        let layoutWidth = availableWidth ?? UIScreen.main.bounds.width
+        let usableWidth = max(layoutWidth, 280)
+
         if message.isUser {
-            return max(180, min(screenWidth * 0.64, 340))
+            return max(220, min(usableWidth * 0.78, 460))
         } else {
-            return max(240, min(screenWidth * 0.76, 520))
+            return max(260, min(usableWidth * 0.88, 680))
         }
         #else
-        return 600
+        let layoutWidth = availableWidth ?? 720
+        if message.isUser {
+            return max(260, min(layoutWidth * 0.72, 520))
+        } else {
+            return max(320, min(layoutWidth * 0.82, 760))
+        }
         #endif
     }
 

@@ -114,11 +114,14 @@ struct ChatView: View {
                 ScrollView {
                     LazyVStack(spacing: LumenSpacing.sm) {
                         ForEach(chatStore.messages) { message in
-                            MessageBubbleView(message: message)
-                                .padding(.horizontal, LumenSpacing.md)
-                                .searchFocusChrome(
-                                    isFocused: chatStore.focusedMessageID == message.id
-                                )
+                            MessageBubbleView(
+                                message: message,
+                                availableWidth: geo.size.width - (LumenSpacing.md * 2)
+                            )
+                            .padding(.horizontal, LumenSpacing.md)
+                            .searchFocusChrome(
+                                isFocused: chatStore.focusedMessageID == message.id
+                            )
                         }
                         Color.clear
                             .frame(height: 1)
