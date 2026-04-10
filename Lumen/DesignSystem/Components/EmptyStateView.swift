@@ -66,7 +66,7 @@ struct EmptyStateView: View {
         if reduceMotion {
             image
         } else {
-            image.symbolEffect(.pulse.byLayer, options: .repeating)
+            image.symbolEffect(.pulse.byLayer)
         }
     }
 }

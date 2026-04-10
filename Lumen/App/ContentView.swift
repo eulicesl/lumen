@@ -8,7 +8,6 @@ struct ContentView: View {
             iPadContentView()
         } else {
             MainTabView()
-                .preferredColorScheme(.dark)
         }
         #elseif os(macOS)
         MacContentView()

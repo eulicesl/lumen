@@ -34,7 +34,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             #if os(iOS)
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -110,8 +110,8 @@ struct SettingsView: View {
             Toggle(isOn: allowOllamaLocalBinding) {
                 providerToggleLabel(
                     provider: .ollamaLocal,
-                    title: "Enable Ollama Local",
-                    subtitle: "Use models from a local or self-hosted Ollama endpoint"
+                    title: "Ollama Local",
+                    subtitle: "Use a local or self-hosted Ollama server"
                 )
             }
             .accessibilityHint("Turns local Ollama model access on or off")
@@ -170,7 +170,7 @@ struct SettingsView: View {
         } header: {
             providerSectionHeader("Ollama Local", provider: .ollamaLocal)
         } footer: {
-            Text("Local Ollama keeps traffic on hardware you control. Default is http://localhost:11434.")
+            Text("Traffic stays on hardware you control. Default: http://localhost:11434.")
         }
     }
 
@@ -179,8 +179,8 @@ struct SettingsView: View {
             Toggle(isOn: allowOllamaCloudBinding) {
                 providerToggleLabel(
                     provider: .ollamaCloud,
-                    title: "Enable Ollama Cloud",
-                    subtitle: "Use hosted models from Ollama Cloud"
+                    title: "Ollama Cloud",
+                    subtitle: "Use hosted models from Ollama"
                 )
             }
             .accessibilityHint("Turns Ollama Cloud model access on or off")
@@ -223,7 +223,7 @@ struct SettingsView: View {
         } header: {
             providerSectionHeader("Ollama Cloud", provider: .ollamaCloud)
         } footer: {
-            Text("Ollama Cloud sends prompts to Ollama's hosted service when enabled. It requires your Ollama API key.")
+            Text("When enabled, prompts are sent to Ollama's hosted service. Requires an API key.")
         }
     }
 
@@ -237,7 +237,7 @@ struct SettingsView: View {
                     Text("Apple Intelligence")
                     Text(modelStore.appleIntelligenceAvailable
                         ? "Available on this device"
-                        : "Not available — requires supported Apple Intelligence hardware and iOS 26")
+                        : "Requires supported hardware and iOS 26")
                         .font(LumenType.caption)
                         .foregroundStyle(modelStore.appleIntelligenceAvailable ? .green : .secondary)
                 }
@@ -293,7 +293,7 @@ struct SettingsView: View {
         } header: {
             Label("Intelligence", systemImage: "sparkles")
         } footer: {
-            Text("Lumen remembers facts and preferences across all conversations.")
+            Text("Save important facts and preferences for future conversations.")
         }
     }
 
@@ -329,7 +329,7 @@ struct SettingsView: View {
             .accessibilityValue(agentModeAccessibilityValue)
             .accessibilityHint("Opens agent mode settings")
         } footer: {
-            Text("When enabled, Lumen can call tools (calculator, date/time, encoders) mid-conversation.")
+            Text("Allow Lumen to use built-in tools during a conversation.")
         }
     }
 
@@ -367,7 +367,7 @@ struct SettingsView: View {
             Button {
                 ReviewRequestManager.shared.requestReviewNow()
             } label: {
-                Label("Rate Lumen", systemImage: "star.fill")
+                Label("Rate App", systemImage: "star.fill")
                     .foregroundStyle(.primary)
             }
         }

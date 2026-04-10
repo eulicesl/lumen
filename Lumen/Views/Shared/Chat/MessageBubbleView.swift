@@ -57,9 +57,10 @@ struct MessageBubbleView: View {
 
             if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
                 Text("\(count) tokens")
-                    .font(LumenType.caption)
+                    .font(.caption2)
                     .foregroundStyle(.tertiary)
-                    .padding(.horizontal, LumenSpacing.xs)
+                    .padding(.horizontal, LumenSpacing.sm)
+                    .offset(y: -2)
                     .accessibilityHidden(true)
             }
         }
@@ -137,15 +138,18 @@ struct MessageBubbleView: View {
         if message.isStreaming {
             streamingContent
                 .bubbleBackground(isUser: false, isError: false)
+                .frame(maxWidth: maxBubbleWidth, alignment: .leading)
         } else if message.isError {
             errorContent
                 .bubbleBackground(isUser: false, isError: true)
+                .frame(maxWidth: maxBubbleWidth, alignment: .leading)
         } else if message.isAssistant && mainContent.hasCodeBlocks {
             // Mixed text + code: no outer bubble; code blocks break out to full-width dark panels
             MessageContentView(text: mainContent, maxWidth: maxBubbleWidth)
         } else {
             plainRenderedContent
                 .bubbleBackground(isUser: message.isUser, isError: false)
+                .frame(maxWidth: maxBubbleWidth, alignment: message.isUser ? .trailing : .leading)
         }
     }
 
@@ -162,7 +166,6 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.sm)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: maxBubbleWidth, alignment: .trailing)
             )
         } else {
             return AnyView(
@@ -174,7 +177,6 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.xs)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: maxBubbleWidth, alignment: .leading)
             )
         }
     }
@@ -194,7 +196,6 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.xs)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: maxBubbleWidth, alignment: .leading)
                 StreamingPulse()
                     .padding(.trailing, LumenSpacing.sm)
             }
@@ -211,7 +212,6 @@ struct MessageBubbleView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.sm)
-        .frame(maxWidth: maxBubbleWidth, alignment: .leading)
     }
 
     // MARK: - Think blocks
@@ -281,9 +281,9 @@ struct MessageBubbleView: View {
         let usableWidth = max(layoutWidth, 280)
 
         if message.isUser {
-            return max(220, min(usableWidth * 0.78, 460))
+            return max(180, min(usableWidth * 0.64, 360))
         } else {
-            return max(260, min(usableWidth * 0.88, 680))
+            return max(220, min(usableWidth * 0.74, 420))
         }
         #else
         let layoutWidth = availableWidth ?? 720
@@ -430,14 +430,14 @@ private struct BubbleBackground: ViewModifier {
                 .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
                 .overlay(
                     RoundedRectangle(cornerRadius: LumenRadius.bubble)
-                        .strokeBorder(Color.red.opacity(0.3), lineWidth: 1)
+                        .strokeBorder(Color.red.opacity(0.32), lineWidth: 1)
                 )
         } else {
             content
                 .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
                 .overlay(
                     RoundedRectangle(cornerRadius: LumenRadius.bubble)
-                        .strokeBorder(Color.primary.opacity(0.05), lineWidth: 1)
+                        .strokeBorder(Color(.separator).opacity(0.38), lineWidth: 0.5)
                 )
         }
     }

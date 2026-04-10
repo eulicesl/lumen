@@ -17,8 +17,6 @@ struct LumenButton: View {
     let action: () -> Void
 
     @Environment(\.isEnabled) private var isEnabled
-    @State private var isPressed = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         _ title: String? = nil,
@@ -57,19 +55,9 @@ struct LumenButton: View {
             .frame(minWidth: style == .icon ? LumenLayout.minTouchTarget : nil,
                    minHeight: LumenLayout.minTouchTarget)
             .modifier(LumenButtonBackground(style: style))
-            .scaleEffect(isPressed && !reduceMotion ? 0.96 : 1.0)
             .opacity(isEnabled ? 1.0 : 0.45)
-            .animation(
-                LumenMotion.animation(LumenAnimation.snappy, reduceMotion: reduceMotion),
-                value: isPressed
-            )
         }
-        .buttonStyle(.plain)
-        .onLongPressGesture(
-            minimumDuration: 0,
-            pressing: { pressing in isPressed = pressing },
-            perform: {}
-        )
+        .nativeButtonStyle(for: style)
         .disabled(isLoading)
     }
 
@@ -84,6 +72,40 @@ struct LumenButton: View {
         }
     }
 
+}
+
+private extension View {
+    @ViewBuilder
+    func nativeButtonStyle(for style: LumenButtonStyle) -> some View {
+        #if compiler(>=6.3)
+        if #available(iOS 26.0, macOS 26.0, *) {
+            switch style {
+            case .primary:
+                self.buttonStyle(.glassProminent)
+            case .secondary:
+                self.buttonStyle(.glass)
+            case .destructive:
+                self.buttonStyle(.glass(.regular.tint(.red)))
+            case .ghost, .icon:
+                self.buttonStyle(.plain)
+            }
+        } else {
+            switch style {
+            case .primary, .secondary, .destructive:
+                self.buttonStyle(.borderless)
+            case .ghost, .icon:
+                self.buttonStyle(.plain)
+            }
+        }
+        #else
+        switch style {
+        case .primary, .secondary, .destructive:
+            self.buttonStyle(.borderless)
+        case .ghost, .icon:
+            self.buttonStyle(.plain)
+        }
+        #endif
+    }
 }
 
 private struct LumenButtonBackground: ViewModifier {
@@ -108,13 +130,13 @@ private struct LumenButtonBackground: ViewModifier {
         switch style {
         case .primary:
             content
-                .glassEffect(.regular.tint(.accentColor).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+                .glassEffect(.regular.tint(.accentColor), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
         case .secondary:
             content
-                .glassEffect(.regular.interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
         case .destructive:
             content
-                .glassEffect(.regular.tint(.red).interactive(), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
+                .glassEffect(.regular.tint(.red), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
         case .ghost, .icon:
             content
         }

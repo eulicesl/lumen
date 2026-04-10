@@ -28,12 +28,14 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(
                 text: $query,
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: "Search conversations and messages…"
             )
+            .searchPresentationToolbarBehavior(.avoidHidingContent)
+            .searchToolbarBehaviorIfAvailable()
             .onChange(of: query) { runSearch() }
             .onAppear {
                 if !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && results.isEmpty {
@@ -47,7 +49,15 @@ struct SearchView: View {
 
     private var recentConversations: some View {
         List {
-            if !chatStore.conversations.isEmpty {
+            if chatStore.conversations.isEmpty {
+                ContentUnavailableView(
+                    "No Recent Conversations",
+                    systemImage: LumenIcon.chat,
+                    description: Text("Your recent conversations appear here when you start chatting.")
+                )
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            } else {
                 Section("Recent Conversations") {
                     ForEach(chatStore.conversations.prefix(10)) { conversation in
                         conversationRow(conversation)
@@ -90,7 +100,11 @@ struct SearchView: View {
     }
 
     private var emptyResults: some View {
-        EmptyStateView.noSearchResults(query: query)
+        ContentUnavailableView(
+            "No Results",
+            systemImage: "magnifyingglass",
+            description: Text("No conversations matched \"\(query)\".")
+        )
     }
 
     // MARK: - Row views
@@ -238,6 +252,17 @@ struct SearchView: View {
         parts.append(result.subtitle)
         parts.append("Updated \(result.conversation.updatedAt.relativeFormatted)")
         return parts.joined(separator: ". ")
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func searchToolbarBehaviorIfAvailable() -> some View {
+        if #available(iOS 26.0, *) {
+            self.searchToolbarBehavior(.minimize)
+        } else {
+            self
+        }
     }
 }
 

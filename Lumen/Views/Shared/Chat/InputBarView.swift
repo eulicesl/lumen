@@ -7,11 +7,29 @@ private extension View {
         if #available(iOS 26.0, *) {
             self.glassCard(radius: 22, interactive: true)
         } else {
-            self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            self.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         }
         #else
-        self.background(.thinMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+        self.background(.regularMaterial, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
         #endif
+    }
+
+    func neutralComposerButtonChrome() -> some View {
+        self
+            .foregroundStyle(.primary)
+            .background(Color(.tertiarySystemFill), in: Circle())
+    }
+
+    func destructiveComposerButtonChrome() -> some View {
+        self
+            .foregroundStyle(.red)
+            .background(Color.red.opacity(0.14), in: Circle())
+    }
+
+    func primaryComposerButtonChrome() -> some View {
+        self
+            .foregroundStyle(.white)
+            .background(Color.accentColor, in: Circle())
     }
 }
 
@@ -164,12 +182,12 @@ struct InputBarView: View {
         ) {
             Image(systemName: "plus")
                 .font(.system(size: mediaButtonIconSize, weight: .semibold))
-                .foregroundStyle(.secondary)
                 .frame(width: mediaButtonSize, height: mediaButtonSize)
-                .background(Color.secondary.opacity(0.12), in: Circle())
+                .neutralComposerButtonChrome()
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
         .accessibilityLabel("Attach Photo")
         .accessibilityHint("Adds images to the current message")
         .onChange(of: pickerItems) { Task { await loadPickerImages() } }
@@ -183,12 +201,12 @@ struct InputBarView: View {
         } label: {
             Image(systemName: "doc.badge.plus")
                 .font(.system(size: mediaButtonIconSize, weight: .semibold))
-                .foregroundStyle(.secondary)
                 .frame(width: mediaButtonSize, height: mediaButtonSize)
-                .background(Color.secondary.opacity(0.12), in: Circle())
+                .neutralComposerButtonChrome()
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
         .accessibilityLabel("Attach Document")
         .accessibilityHint("Import PDF, text, or source files into the current message")
         .accessibilityValue(chatStore.pendingDocuments.isEmpty ? "No documents attached" : "\(chatStore.pendingDocuments.count) document\(chatStore.pendingDocuments.count == 1 ? "" : "s") attached")
@@ -224,6 +242,7 @@ struct InputBarView: View {
             voiceButtonIcon
         }
         .buttonStyle(.plain)
+        .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
         .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
         .accessibilityHint(isRecording ? "Stops voice transcription and keeps the current text" : "Starts dictation into the message composer")
         .disabled(chatStore.conversationState == .generating)
@@ -238,11 +257,11 @@ struct InputBarView: View {
                 Button { chatStore.stopGeneration() } label: {
                     Image(systemName: LumenIcon.stop)
                         .font(.system(size: mediaButtonIconSize, weight: .semibold))
-                        .foregroundStyle(.red)
                         .frame(width: mediaButtonSize, height: mediaButtonSize)
-                        .background(Color.red.opacity(0.12), in: Circle())
+                        .destructiveComposerButtonChrome()
                 }
                 .buttonStyle(.plain)
+                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                 .accessibilityLabel("Stop generating response")
                 .accessibilityHint("Stops the assistant response in progress")
                 .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
@@ -251,11 +270,11 @@ struct InputBarView: View {
                     Button { sendMessage() } label: {
                         Image(systemName: chatStore.isEditingMessage ? "arrow.branch" : LumenIcon.send)
                             .font(.system(size: actionButtonIconSize, weight: .semibold))
-                            .foregroundStyle(Color.black)
                             .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
-                            .background(Color.white, in: Circle())
+                            .primaryComposerButtonChrome()
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                     .accessibilityLabel(chatStore.isEditingMessage ? "Send edited message in new branch" : "Send message")
                     .accessibilityHint(sendButtonAccessibilityHint)
                     .accessibilityValue(sendButtonAccessibilityValue)
@@ -265,11 +284,11 @@ struct InputBarView: View {
                     Button { toggleVoice() } label: {
                         Image(systemName: "waveform")
                             .font(.system(size: actionButtonIconSize, weight: .semibold))
-                            .foregroundStyle(Color.white)
                             .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
-                            .background(Color.white.opacity(0.16), in: Circle())
+                            .neutralComposerButtonChrome()
                     }
                     .buttonStyle(.plain)
+                    .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                     .accessibilityLabel("Start voice mode")
                     .accessibilityHint("Begins voice input when there is no text to send")
                     .transition(LumenMotion.scaleTransition(reduceMotion: reduceMotion))
@@ -336,9 +355,12 @@ struct InputBarView: View {
     private var voiceButtonIcon: some View {
         let icon = Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
             .font(.system(size: actionButtonIconSize, weight: .medium))
-            .foregroundStyle(isRecording ? Color.red : Color.secondary)
             .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
-            .background(Color.secondary.opacity(0.10), in: Circle())
+            .foregroundStyle(isRecording ? Color.red : .primary)
+            .background(
+                isRecording ? Color.red.opacity(0.14) : Color(.tertiarySystemFill),
+                in: Circle()
+            )
             .contentShape(Rectangle())
 
         if reduceMotion {
@@ -526,6 +548,7 @@ private struct DocumentAttachmentRow: View {
                     .foregroundStyle(.tertiary)
             }
             .buttonStyle(.plain)
+            .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
             .accessibilityLabel("Remove \(document.fileName)")
             .accessibilityHint("Removes this document from the message")
         }

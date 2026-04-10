@@ -15,7 +15,19 @@ struct PromptLibraryView: View {
     var body: some View {
         NavigationStack {
             List {
-                if !libraryStore.favorites.isEmpty && searchQuery.isEmpty && selectedCategory == nil {
+                if visiblePromptCount == 0 {
+                    ContentUnavailableView(
+                        searchQuery.isEmpty ? "No Prompts" : "No Results",
+                        systemImage: searchQuery.isEmpty ? LumenIcon.library : "magnifyingglass",
+                        description: Text(
+                            searchQuery.isEmpty
+                                ? "Create a prompt or browse built-in categories."
+                                : "No prompts matched \"\(searchQuery)\"."
+                        )
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                } else if !libraryStore.favorites.isEmpty && searchQuery.isEmpty && selectedCategory == nil {
                     Section {
                         ForEach(libraryStore.favorites) { prompt in
                             promptRow(prompt)
@@ -41,8 +53,10 @@ struct PromptLibraryView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Prompt Library")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchQuery, prompt: "Search prompts…")
+            .searchPresentationToolbarBehavior(.avoidHidingContent)
+            .promptLibrarySearchBehavior()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -148,7 +162,14 @@ struct PromptLibraryView: View {
             }
             .tint(.yellow)
         }
-        .swipeActions(edge: .trailing) {
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button {
+                usePrompt(prompt.content)
+            } label: {
+                Label("Use", systemImage: "arrow.up.circle")
+            }
+            .tint(.accentColor)
+
             if !prompt.isBuiltIn {
                 Button(role: .destructive) {
                     promptToDelete = prompt
@@ -157,12 +178,6 @@ struct PromptLibraryView: View {
                     Label("Delete", systemImage: "trash")
                 }
             }
-            Button {
-                usePrompt(prompt.content)
-            } label: {
-                Label("Use", systemImage: "arrow.up.circle")
-            }
-            .tint(.accentColor)
         }
     }
 
@@ -181,12 +196,29 @@ struct PromptLibraryView: View {
         }
     }
 
+    private var visiblePromptCount: Int {
+        visibleCategories.reduce(into: 0) { count, category in
+            count += filteredPrompts(in: category).count
+        }
+    }
+
     // MARK: - Use prompt
 
     private func usePrompt(_ text: String) {
         chatStore.inputText = text
         selectedPrompt = nil
         appStore.selectedTab = .chat
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func promptLibrarySearchBehavior() -> some View {
+        if #available(iOS 26.0, *) {
+            self.searchToolbarBehavior(.minimize)
+        } else {
+            self
+        }
     }
 }
 
