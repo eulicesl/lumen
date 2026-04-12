@@ -214,11 +214,15 @@ struct PromptLibraryView: View {
 private extension View {
     @ViewBuilder
     func promptLibrarySearchBehavior() -> some View {
+        #if compiler(>=6.3)
         if #available(iOS 26.0, *) {
             self.searchToolbarBehavior(.minimize)
         } else {
             self
         }
+        #else
+        self
+        #endif
     }
 }
 

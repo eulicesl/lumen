@@ -184,10 +184,10 @@ struct InputBarView: View {
                 .font(.system(size: mediaButtonIconSize, weight: .semibold))
                 .frame(width: mediaButtonSize, height: mediaButtonSize)
                 .neutralComposerButtonChrome()
-                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+        .contentShape(Rectangle())
         .accessibilityLabel("Attach Photo")
         .accessibilityHint("Adds images to the current message")
         .onChange(of: pickerItems) { Task { await loadPickerImages() } }
@@ -203,10 +203,10 @@ struct InputBarView: View {
                 .font(.system(size: mediaButtonIconSize, weight: .semibold))
                 .frame(width: mediaButtonSize, height: mediaButtonSize)
                 .neutralComposerButtonChrome()
-                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+        .contentShape(Rectangle())
         .accessibilityLabel("Attach Document")
         .accessibilityHint("Import PDF, text, or source files into the current message")
         .accessibilityValue(chatStore.pendingDocuments.isEmpty ? "No documents attached" : "\(chatStore.pendingDocuments.count) document\(chatStore.pendingDocuments.count == 1 ? "" : "s") attached")
@@ -243,6 +243,7 @@ struct InputBarView: View {
         }
         .buttonStyle(.plain)
         .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+        .contentShape(Rectangle())
         .accessibilityLabel(isRecording ? "Stop Recording" : "Start Voice Input")
         .accessibilityHint(isRecording ? "Stops voice transcription and keeps the current text" : "Starts dictation into the message composer")
         .disabled(chatStore.conversationState == .generating)
@@ -361,7 +362,6 @@ struct InputBarView: View {
                 isRecording ? Color.red.opacity(0.14) : Color(.tertiarySystemFill),
                 in: Circle()
             )
-            .contentShape(Rectangle())
 
         if reduceMotion {
             icon

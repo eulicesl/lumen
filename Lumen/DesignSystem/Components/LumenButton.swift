@@ -85,7 +85,7 @@ private extension View {
             case .secondary:
                 self.buttonStyle(.glass)
             case .destructive:
-                self.buttonStyle(.glass(.regular.tint(.red)))
+                self.buttonStyle(.glass).tint(.red)
             case .ghost, .icon:
                 self.buttonStyle(.plain)
             }
@@ -127,19 +127,9 @@ private struct LumenButtonBackground: ViewModifier {
     @available(iOS 26.0, macOS 26.0, *)
     @ViewBuilder
     private func modernBackground(content: Content) -> some View {
-        switch style {
-        case .primary:
-            content
-                .glassEffect(.regular.tint(.accentColor), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        case .secondary:
-            content
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        case .destructive:
-            content
-                .glassEffect(.regular.tint(.red), in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous))
-        case .ghost, .icon:
-            content
-        }
+        // Native glass button styles (.glass, .glassProminent) already provide
+        // the glass chrome, so no extra .glassEffect() is needed here.
+        content
     }
     #endif
 
