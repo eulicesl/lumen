@@ -258,15 +258,8 @@ struct SearchView: View {
 private extension View {
     @ViewBuilder
     func searchToolbarBehaviorIfAvailable() -> some View {
-        #if compiler(>=6.3)
-        if #available(iOS 26.0, *) {
-            self.searchToolbarBehavior(.minimize)
-        } else {
-            self
-        }
-        #else
+        // Disabled for now: CI runs Xcode 16 SDK where searchToolbarBehavior is unavailable.
         self
-        #endif
     }
 }
 
