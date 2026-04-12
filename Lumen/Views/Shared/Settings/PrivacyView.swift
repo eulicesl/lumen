@@ -15,7 +15,7 @@ struct PrivacyView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Privacy")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
@@ -69,7 +69,7 @@ struct PrivacyView: View {
         } header: {
             Label("Your Data", systemImage: "cylinder.fill")
         } footer: {
-            Text("Lumen has no Lumen-operated backend, no account system, and no analytics. Your data stays on-device unless you explicitly enable a network-backed model provider.")
+            Text("This app has no account system or analytics. Your data stays on device unless you enable a network-backed model provider.")
         }
     }
 
@@ -79,7 +79,7 @@ struct PrivacyView: View {
                 icon: "apple.intelligence",
                 iconColor: .orange,
                 title: "Apple Intelligence",
-                detail: "Runs entirely on-device using Apple's Foundation Models framework. Requests never leave the device."
+                detail: "Runs on device using Foundation Models. Requests stay on device."
             )
             privacyRow(
                 icon: "server.rack",
@@ -91,12 +91,12 @@ struct PrivacyView: View {
                 icon: "cloud.fill",
                 iconColor: .blue,
                 title: "Ollama Cloud",
-                detail: "Optional hosted provider. When enabled, prompts are sent to Ollama's cloud service using your API key."
+                detail: "Optional hosted provider. When enabled, prompts are sent to Ollama using your API key."
             )
         } header: {
             Label("AI Models", systemImage: "cpu")
         } footer: {
-            Text("Apple Intelligence is on-device by default. Ollama Local and Ollama Cloud are both optional and user-controlled.")
+            Text("On-device and hosted providers are optional and under your control.")
         }
     }
 
@@ -106,19 +106,19 @@ struct PrivacyView: View {
                 icon: "mic.fill",
                 iconColor: .red,
                 title: "Microphone",
-                detail: "Used only during active voice input. Audio is transcribed on-device by SFSpeechRecognizer and not stored."
+                detail: "Used only during voice input. Audio is transcribed on device and not stored."
             )
             privacyRow(
                 icon: "camera.fill",
                 iconColor: .green,
                 title: "Camera / Photos / Files",
-                detail: "Used only when you choose to attach images or import documents. OCR and document text extraction happen locally on-device."
+                detail: "Used only when you attach images or import documents. OCR and text extraction happen on device."
             )
             privacyRow(
                 icon: "magnifyingglass",
                 iconColor: .teal,
                 title: "Spotlight",
-                detail: "Conversation titles and previews are indexed in Spotlight for quick access. Index is stored locally on this device."
+                detail: "Conversation titles and previews can be indexed in Spotlight for quick access on this device."
             )
         } header: {
             Label("Permissions", systemImage: "checkmark.shield")
@@ -174,9 +174,9 @@ struct PrivacyView: View {
 
     private var heroCopy: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Privacy First by Design")
+            Text("Privacy by Default")
                 .font(.title3.weight(.semibold))
-            Text("Lumen keeps your data local by default and only uses network-backed providers when you explicitly enable them.")
+            Text("Your data stays on device unless you choose to use a network-backed model provider.")
                 .font(LumenType.body)
                 .foregroundStyle(.secondary)
         }

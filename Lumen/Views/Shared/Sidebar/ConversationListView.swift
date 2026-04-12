@@ -6,6 +6,8 @@ struct ConversationListView: View {
     @State private var renamingConversation: Conversation?
     @State private var renameText = ""
     @State private var promptConversation: Conversation?
+    @State private var conversationToDelete: Conversation?
+    @State private var showingDeleteConfirm = false
 
     var body: some View {
         List(selection: Binding(
@@ -22,68 +24,7 @@ struct ConversationListView: View {
                 ForEach(groupedKeys, id: \.self) { key in
                     Section(key.rawValue) {
                         ForEach(grouped[key] ?? []) { conversation in
-                            ConversationRowView(
-                                conversation: conversation,
-                                isSelected: chatStore.selectedConversation?.id == conversation.id
-                            )
-                            .tag(conversation.id)
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                Button {
-                                    HapticEngine.impact(.light)
-                                    Task { await chatStore.togglePin(conversation) }
-                                } label: {
-                                    Label(
-                                        conversation.isPinned ? "Unpin" : "Pin",
-                                        systemImage: conversation.isPinned ? LumenIcon.pinSlash : LumenIcon.pin
-                                    )
-                                }
-                                .tint(.orange)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    HapticEngine.notification(.warning)
-                                    Task { await chatStore.deleteConversation(conversation) }
-                                } label: {
-                                    Label("Delete", systemImage: LumenIcon.trash)
-                                }
-                                Button {
-                                    renamingConversation = conversation
-                                    renameText = conversation.title
-                                } label: {
-                                    Label("Rename", systemImage: "pencil")
-                                }
-                                .tint(.blue)
-                            }
-                            .contextMenu {
-                                Button {
-                                    renamingConversation = conversation
-                                    renameText = conversation.title
-                                } label: {
-                                    Label("Rename", systemImage: "pencil")
-                                }
-                                Button {
-                                    Task { await chatStore.togglePin(conversation) }
-                                } label: {
-                                    Label(
-                                        conversation.isPinned ? "Unpin" : "Pin",
-                                        systemImage: conversation.isPinned ? LumenIcon.pinSlash : LumenIcon.pin
-                                    )
-                                }
-                                Button {
-                                    promptConversation = conversation
-                                } label: {
-                                    Label(
-                                        conversation.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
-                                        systemImage: "brain.head.profile"
-                                    )
-                                }
-                                Divider()
-                                Button(role: .destructive) {
-                                    Task { await chatStore.deleteConversation(conversation) }
-                                } label: {
-                                    Label("Delete", systemImage: LumenIcon.trash)
-                                }
-                            }
+                            conversationRow(conversation)
                         }
                     }
                 }
@@ -109,6 +50,24 @@ struct ConversationListView: View {
         .sheet(item: $promptConversation) { conversation in
             SystemPromptSheet(conversation: conversation)
                 .environment(chatStore)
+        }
+        .confirmationDialog(
+            "Delete Conversation",
+            isPresented: $showingDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                if let conversationToDelete {
+                    HapticEngine.notification(.warning)
+                    Task { await chatStore.deleteConversation(conversationToDelete) }
+                }
+                self.conversationToDelete = nil
+            }
+            Button("Cancel", role: .cancel) {
+                conversationToDelete = nil
+            }
+        } message: {
+            Text("This permanently removes the conversation and its messages.")
         }
         .alert("Rename", isPresented: Binding(
             get: { renamingConversation != nil },
@@ -170,11 +129,81 @@ struct ConversationListView: View {
         .listRowSeparator(.hidden)
     }
 
+    @ViewBuilder
+    private func conversationRow(_ conversation: Conversation) -> some View {
+        ConversationRowView(
+            conversation: conversation,
+            isSelected: chatStore.selectedConversation?.id == conversation.id
+        )
+        .tag(conversation.id)
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button {
+                HapticEngine.impact(.light)
+                Task { await chatStore.togglePin(conversation) }
+            } label: {
+                Label(
+                    conversation.isPinned ? "Unpin" : "Pin",
+                    systemImage: conversation.isPinned ? LumenIcon.pinSlash : LumenIcon.pin
+                )
+            }
+            .tint(.orange)
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button(role: .destructive) {
+                promptDelete(conversation)
+            } label: {
+                Label("Delete", systemImage: LumenIcon.trash)
+            }
+            Button {
+                renamingConversation = conversation
+                renameText = conversation.title
+            } label: {
+                Label("Rename", systemImage: "pencil")
+            }
+            .tint(.blue)
+        }
+        .contextMenu {
+            Button {
+                renamingConversation = conversation
+                renameText = conversation.title
+            } label: {
+                Label("Rename", systemImage: "pencil")
+            }
+            Button {
+                Task { await chatStore.togglePin(conversation) }
+            } label: {
+                Label(
+                    conversation.isPinned ? "Unpin" : "Pin",
+                    systemImage: conversation.isPinned ? LumenIcon.pinSlash : LumenIcon.pin
+                )
+            }
+            Button {
+                promptConversation = conversation
+            } label: {
+                Label(
+                    conversation.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
+                    systemImage: "brain.head.profile"
+                )
+            }
+            Divider()
+            Button(role: .destructive) {
+                promptDelete(conversation)
+            } label: {
+                Label("Delete", systemImage: LumenIcon.trash)
+            }
+        }
+    }
+
     private func refreshConversations() async {
         await chatStore.loadConversations()
         if chatStore.conversations.isEmpty {
             await chatStore.createNewConversation()
         }
+    }
+
+    private func promptDelete(_ conversation: Conversation) {
+        conversationToDelete = conversation
+        showingDeleteConfirm = true
     }
 }
 

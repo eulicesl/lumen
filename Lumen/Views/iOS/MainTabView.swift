@@ -8,6 +8,7 @@ struct MainTabView: View {
     @Environment(LibraryStore.self) private var libraryStore
     @Environment(MemoryStore.self) private var memoryStore
 
+    @Namespace private var toolbarTransitionNamespace
     @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @State private var showingConversationList = false
     @State private var activePanel: iPhoneQuickPanel?
@@ -22,85 +23,22 @@ struct MainTabView: View {
         NavigationStack {
             ChatView(showsConversationTools: false)
                 .toolbar {
-                    ToolbarItemGroup(placement: .topBarLeading) {
-                        Button {
-                            showingConversationList = true
-                        } label: {
-                            Image(systemName: "line.3.horizontal")
-                        }
-                        .accessibilityLabel("Open history")
-                        .accessibilityHint("Shows your conversation list")
+                    ToolbarItem(placement: .topBarLeading) {
+                        historyButton
+                    }
 
+                    ToolbarItem(placement: .topBarLeading) {
                         ModelPickerChip {
                             showingModelPicker = true
                         }
                     }
 
                     ToolbarItemGroup(placement: .topBarTrailing) {
-                        Button {
-                            Task { await chatStore.createNewConversation() }
-                        } label: {
-                            Image(systemName: "square.and.pencil")
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("New chat")
-                        .accessibilityHint("Starts a new conversation")
+                        newChatButton
+                    }
 
-                        Menu {
-                            Button {
-                                activePanel = .voice
-                            } label: {
-                                Label("Voice", systemImage: LumenIcon.voice)
-                            }
-
-                            Button {
-                                activePanel = .library
-                            } label: {
-                                Label("Library", systemImage: LumenIcon.library)
-                            }
-
-                            Button {
-                                activePanel = .search
-                            } label: {
-                                Label("Search", systemImage: LumenIcon.search)
-                            }
-
-                            Button {
-                                showingComparison = true
-                            } label: {
-                                Label("Compare Models", systemImage: "arrow.left.arrow.right.circle")
-                            }
-
-                            if let conv = chatStore.selectedConversation {
-                                Button {
-                                    showingSystemPrompt = true
-                                } label: {
-                                    Label(
-                                        conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
-                                        systemImage: "brain.head.profile"
-                                    )
-                                }
-                            }
-
-                            if !chatStore.exportText.isEmpty {
-                                ShareLink(item: chatStore.exportText) {
-                                    Label("Share Conversation", systemImage: LumenIcon.share)
-                                }
-                            }
-
-                            Divider()
-
-                            Button {
-                                appStore.showingSettings = true
-                            } label: {
-                                Label("Settings", systemImage: LumenIcon.settings)
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis")
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Open tools menu")
-                        .accessibilityHint("Opens voice, library, search, and settings options")
+                    ToolbarItem(placement: .topBarTrailing) {
+                        toolsMenu
                     }
                 }
                 .safeAreaInset(edge: .bottom) {
@@ -111,6 +49,11 @@ struct MainTabView: View {
             ConversationPickerView()
                 .environment(appStore)
                 .environment(chatStore)
+                .lightweightSheetPresentation()
+                .toolbarSheetTransition(
+                    source: .history,
+                    namespace: toolbarTransitionNamespace
+                )
         }
         .sheet(item: $activePanel) { panel in
             NavigationStack {
@@ -130,31 +73,53 @@ struct MainTabView: View {
             .environment(chatStore)
             .environment(modelStore)
             .environment(libraryStore)
+            .lightweightSheetPresentation()
+            .toolbarSheetTransition(
+                source: .tools,
+                namespace: toolbarTransitionNamespace
+            )
         }
         .sheet(isPresented: $showingModelPicker) {
             ModelPickerView()
                 .environment(appStore)
                 .environment(chatStore)
                 .environment(modelStore)
+                .lightweightSheetPresentation()
+                .toolbarSheetTransition(
+                    source: .modelPicker,
+                    namespace: toolbarTransitionNamespace
+                )
         }
         .sheet(isPresented: $showingComparison) {
             ModelComparisonView()
                 .environment(chatStore)
                 .environment(modelStore)
+                .toolbarSheetTransition(
+                    source: .tools,
+                    namespace: toolbarTransitionNamespace
+                )
         }
         .sheet(isPresented: $showingSystemPrompt) {
             if let conv = chatStore.selectedConversation {
                 SystemPromptSheet(conversation: conv)
                     .environment(chatStore)
+                    .toolbarSheetTransition(
+                        source: .tools,
+                        namespace: toolbarTransitionNamespace
+                    )
             }
         }
         .sheet(isPresented: $bindableStore.showingSettings) {
             SettingsView()
-            .environment(appStore)
-            .environment(chatStore)
-            .environment(modelStore)
-            .environment(libraryStore)
-            .environment(memoryStore)
+                .environment(appStore)
+                .environment(chatStore)
+                .environment(modelStore)
+                .environment(libraryStore)
+                .environment(memoryStore)
+                .toolbarSheetTransition(
+                    source: .tools,
+                    namespace: toolbarTransitionNamespace
+                )
         }
         .task {
             await restoreSceneSelectionIfNeeded()
@@ -175,7 +140,97 @@ private enum iPhoneQuickPanel: String, Identifiable {
     var id: String { rawValue }
 }
 
+private enum ToolbarSheetSource: String {
+    case history
+    case modelPicker
+    case tools
+
+    var id: String { rawValue }
+}
+
 private extension MainTabView {
+    var historyButton: some View {
+        Button {
+            showingConversationList = true
+        } label: {
+            Image(systemName: "line.3.horizontal")
+                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+        }
+        .accessibilityLabel("Open history")
+        .accessibilityHint("Shows your conversation list")
+    }
+
+    var newChatButton: some View {
+        Button {
+            Task { await chatStore.createNewConversation() }
+        } label: {
+            Image(systemName: "square.and.pencil")
+                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("New chat")
+        .accessibilityHint("Starts a new conversation")
+    }
+
+    var toolsMenu: some View {
+        Menu {
+            Button {
+                activePanel = .voice
+            } label: {
+                Label("Voice", systemImage: LumenIcon.voice)
+            }
+
+            Button {
+                activePanel = .library
+            } label: {
+                Label("Library", systemImage: LumenIcon.library)
+            }
+
+            Button {
+                activePanel = .search
+            } label: {
+                Label("Search", systemImage: LumenIcon.search)
+            }
+
+            Button {
+                showingComparison = true
+            } label: {
+                Label("Compare Models", systemImage: "arrow.left.arrow.right.circle")
+            }
+
+            if let conv = chatStore.selectedConversation {
+                Button {
+                    showingSystemPrompt = true
+                } label: {
+                    Label(
+                        conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt",
+                        systemImage: "brain.head.profile"
+                    )
+                }
+            }
+
+            if !chatStore.exportText.isEmpty {
+                ShareLink(item: chatStore.exportText) {
+                    Label("Share Conversation", systemImage: LumenIcon.share)
+                }
+            }
+
+            Divider()
+
+            Button {
+                appStore.showingSettings = true
+            } label: {
+                Label("Settings", systemImage: LumenIcon.settings)
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Open tools menu")
+        .accessibilityHint("Opens voice, library, search, and settings options")
+    }
+
     func restoreSceneSelectionIfNeeded() async {
         let restoredID = restoredConversationID.flatMap(UUID.init(uuidString:))
         await chatStore.restoreSelectedConversation(id: restoredID)
@@ -237,10 +292,7 @@ private struct ModelPickerChip: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .fixedSize(horizontal: true, vertical: false)
-            .liquidCapsuleChrome()
+            .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
@@ -269,11 +321,19 @@ private struct ModelPickerChip: View {
 
 private extension View {
     @ViewBuilder
-    func liquidCapsuleChrome() -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassCard(radius: LumenRadius.full, interactive: true)
+    func toolbarSheetTransition(source: ToolbarSheetSource, namespace: Namespace.ID) -> some View {
+        // Disabled for now: CI runs Xcode 16 SDK where zoom navigation transitions are unavailable.
+        self
+    }
+
+    @ViewBuilder
+    func lightweightSheetPresentation() -> some View {
+        if #available(iOS 16.0, *) {
+            self
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         } else {
-            self.background(.thinMaterial, in: Capsule())
+            self
         }
     }
 }
@@ -337,6 +397,7 @@ struct PlaceholderView: View {
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
         .environment(LibraryStore.shared)
+        .environment(MemoryStore.shared)
 }
 
 #Preview("Placeholder") {

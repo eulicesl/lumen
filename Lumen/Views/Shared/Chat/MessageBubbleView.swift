@@ -6,7 +6,13 @@ import UIKit
 
 struct MessageBubbleView: View {
     let message: ChatMessage
+    let availableWidth: CGFloat?
     @Environment(ChatStore.self) private var chatStore
+
+    init(message: ChatMessage, availableWidth: CGFloat? = nil) {
+        self.message = message
+        self.availableWidth = availableWidth
+    }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var thinkingExpanded = false
     @State private var showingBranchConfirm = false
@@ -19,50 +25,46 @@ struct MessageBubbleView: View {
     }
 
     var body: some View {
-        HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
-            if message.isUser { Spacer(minLength: 40) }
-
-            VStack(alignment: message.isUser ? .trailing : .leading, spacing: LumenSpacing.xs) {
-                if message.isAssistant, !thinkBlocks.isEmpty {
-                    thinkingDisclosure
-                }
-
-                if let images = message.imageData, !images.isEmpty {
-                    MessageImageGrid(imageData: images)
-                }
-
-                if !message.content.isEmpty || message.isStreaming {
-                    bubbleContent
-                        .contextMenu { contextMenuItems }
-                        .modifier(
-                            MessageAccessibilityActions(
-                                message: message,
-                                canRegenerate: canRegenerateMessage,
-                                onCopy: copyMessage,
-                                onSaveToMemory: saveToMemory,
-                                onRegenerate: regenerateMessage,
-                                onBranch: { showingBranchConfirm = true },
-                                onSpeak: speakMessage,
-                                onEdit: { chatStore.beginEditing(message) }
-                            )
-                        )
-                }
-
-                if showingCopyFeedback {
-                    copyFeedbackBadge
-                }
-
-                if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
-                    Text("\(count) tokens")
-                        .font(LumenType.caption)
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, LumenSpacing.xs)
-                        .accessibilityHidden(true)
-                }
+        VStack(alignment: message.isUser ? .trailing : .leading, spacing: LumenSpacing.xs) {
+            if message.isAssistant, !thinkBlocks.isEmpty {
+                thinkingDisclosure
             }
 
-            if !message.isUser { Spacer(minLength: 24) }
+            if let images = message.imageData, !images.isEmpty {
+                MessageImageGrid(imageData: images)
+            }
+
+            if !message.content.isEmpty || message.isStreaming {
+                bubbleContent
+                    .contextMenu { contextMenuItems }
+                    .modifier(
+                        MessageAccessibilityActions(
+                            message: message,
+                            canRegenerate: canRegenerateMessage,
+                            onCopy: copyMessage,
+                            onSaveToMemory: saveToMemory,
+                            onRegenerate: regenerateMessage,
+                            onBranch: { showingBranchConfirm = true },
+                            onSpeak: speakMessage,
+                            onEdit: { chatStore.beginEditing(message) }
+                        )
+                    )
+            }
+
+            if showingCopyFeedback {
+                copyFeedbackBadge
+            }
+
+            if message.isAssistant, message.isComplete, let count = message.tokenCount, count > 0 {
+                Text("\(count) tokens")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, LumenSpacing.sm)
+                    .offset(y: -2)
+                    .accessibilityHidden(true)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: message.isUser ? .trailing : .leading)
         .id(message.id)
         .confirmationDialog(
             "Branch from this message?",
@@ -136,15 +138,18 @@ struct MessageBubbleView: View {
         if message.isStreaming {
             streamingContent
                 .bubbleBackground(isUser: false, isError: false)
+                .frame(maxWidth: maxBubbleWidth, alignment: .leading)
         } else if message.isError {
             errorContent
                 .bubbleBackground(isUser: false, isError: true)
+                .frame(maxWidth: maxBubbleWidth, alignment: .leading)
         } else if message.isAssistant && mainContent.hasCodeBlocks {
             // Mixed text + code: no outer bubble; code blocks break out to full-width dark panels
             MessageContentView(text: mainContent, maxWidth: maxBubbleWidth)
         } else {
             plainRenderedContent
                 .bubbleBackground(isUser: message.isUser, isError: false)
+                .frame(maxWidth: maxBubbleWidth, alignment: message.isUser ? .trailing : .leading)
         }
     }
 
@@ -161,7 +166,6 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.sm)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: maxBubbleWidth, alignment: .trailing)
             )
         } else {
             return AnyView(
@@ -173,7 +177,6 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.xs)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: maxBubbleWidth, alignment: .leading)
             )
         }
     }
@@ -193,7 +196,6 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.xs)
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: maxBubbleWidth, alignment: .leading)
                 StreamingPulse()
                     .padding(.trailing, LumenSpacing.sm)
             }
@@ -210,7 +212,6 @@ struct MessageBubbleView: View {
         }
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.sm)
-        .frame(maxWidth: maxBubbleWidth, alignment: .leading)
     }
 
     // MARK: - Think blocks
@@ -276,14 +277,21 @@ struct MessageBubbleView: View {
 
     private var maxBubbleWidth: CGFloat {
         #if os(iOS)
-        let screenWidth = UIScreen.main.bounds.width
+        let layoutWidth = availableWidth ?? UIScreen.main.bounds.width
+        let usableWidth = max(layoutWidth, 280)
+
         if message.isUser {
-            return max(180, min(screenWidth * 0.64, 340))
+            return max(180, min(usableWidth * 0.64, 360))
         } else {
-            return max(240, min(screenWidth * 0.76, 520))
+            return max(220, min(usableWidth * 0.74, 420))
         }
         #else
-        return 600
+        let layoutWidth = availableWidth ?? 720
+        if message.isUser {
+            return max(260, min(layoutWidth * 0.72, 520))
+        } else {
+            return max(320, min(layoutWidth * 0.82, 760))
+        }
         #endif
     }
 
@@ -422,14 +430,14 @@ private struct BubbleBackground: ViewModifier {
                 .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
                 .overlay(
                     RoundedRectangle(cornerRadius: LumenRadius.bubble)
-                        .strokeBorder(Color.red.opacity(0.3), lineWidth: 1)
+                        .strokeBorder(Color.red.opacity(0.32), lineWidth: 1)
                 )
         } else {
             content
                 .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
                 .overlay(
                     RoundedRectangle(cornerRadius: LumenRadius.bubble)
-                        .strokeBorder(Color.primary.opacity(0.05), lineWidth: 1)
+                        .strokeBorder(Color(.separator).opacity(0.38), lineWidth: 0.5)
                 )
         }
     }

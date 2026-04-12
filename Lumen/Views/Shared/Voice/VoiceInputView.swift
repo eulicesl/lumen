@@ -84,16 +84,11 @@ struct VoiceInputView: View {
     }
 
     private var emptyPrompt: some View {
-        VStack(spacing: LumenSpacing.md) {
-            Spacer()
-            Image(systemName: LumenIcon.microphone)
-                .font(.system(size: 48))
-                .foregroundStyle(.quaternary)
-            Text("Tap the mic to speak")
-                .font(LumenType.body)
-                .foregroundStyle(.tertiary)
-            Spacer()
-        }
+        ContentUnavailableView(
+            "Voice Input",
+            systemImage: LumenIcon.microphone,
+            description: Text("Tap the microphone to start dictation.")
+        )
         .frame(maxWidth: .infinity, minHeight: 200)
     }
 
@@ -118,6 +113,7 @@ struct VoiceInputView: View {
                         .foregroundStyle(!transcript.isEmpty ? Color.accentColor : Color.secondary.opacity(0.3))
                 }
                 .buttonStyle(.plain)
+                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                 .disabled(transcript.isEmpty)
 
                 VoicePulseView(isActive: isRecording)
@@ -131,6 +127,7 @@ struct VoiceInputView: View {
                         .foregroundStyle(!transcript.isEmpty ? Color.accentColor : Color.secondary.opacity(0.3))
                 }
                 .buttonStyle(.plain)
+                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                 .disabled(transcript.isEmpty)
             }
 

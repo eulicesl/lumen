@@ -44,15 +44,16 @@ struct ChatView: View {
             if showsConversationTools {
                 if let conv = chatStore.selectedConversation {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showingSystemPrompt = true
-                        } label: {
-                            Image(systemName: "brain.head.profile")
-                                .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
-                        }
-                        .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
-                        .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
-                        .accessibilityHint("Opens system prompt settings for this conversation")
+                    Button {
+                        showingSystemPrompt = true
+                    } label: {
+                        Image(systemName: "brain.head.profile")
+                            .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
+                            .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                    }
+                    .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
+                    .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                    .accessibilityHint("Opens system prompt settings for this conversation")
                     }
                 }
 
@@ -60,6 +61,7 @@ struct ChatView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         ShareLink(item: chatStore.exportText) {
                             Image(systemName: LumenIcon.share)
+                                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                         }
                         .help("Share conversation")
                         .accessibilityLabel("Share conversation")
@@ -72,6 +74,7 @@ struct ChatView: View {
                         showingComparison = true
                     } label: {
                         Image(systemName: "arrow.left.arrow.right.circle")
+                            .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
                     }
                     .help("Compare Models")
                     .accessibilityLabel("Compare Models")
@@ -114,11 +117,14 @@ struct ChatView: View {
                 ScrollView {
                     LazyVStack(spacing: LumenSpacing.sm) {
                         ForEach(chatStore.messages) { message in
-                            MessageBubbleView(message: message)
-                                .padding(.horizontal, LumenSpacing.md)
-                                .searchFocusChrome(
-                                    isFocused: chatStore.focusedMessageID == message.id
-                                )
+                            MessageBubbleView(
+                                message: message,
+                                availableWidth: geo.size.width - (LumenSpacing.md * 2)
+                            )
+                            .padding(.horizontal, LumenSpacing.md)
+                            .searchFocusChrome(
+                                isFocused: chatStore.focusedMessageID == message.id
+                            )
                         }
                         Color.clear
                             .frame(height: 1)
