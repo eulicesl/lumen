@@ -222,7 +222,7 @@ struct OnboardingView: View {
         if reduceMotion {
             symbol
         } else {
-            symbol.symbolEffect(.pulse.byLayer, options: .repeating)
+            symbol.symbolEffect(.pulse.byLayer)
         }
     }
 }
