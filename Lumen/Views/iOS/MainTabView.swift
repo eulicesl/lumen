@@ -23,45 +23,22 @@ struct MainTabView: View {
         NavigationStack {
             ChatView(showsConversationTools: false)
                 .toolbar {
-                    if #available(iOS 26.0, *) {
-                        ToolbarItem(placement: .topBarLeading) {
-                            historyButton
-                        }
-                        .matchedTransitionSource(id: ToolbarSheetSource.history.id, in: toolbarTransitionNamespace)
+                    ToolbarItem(placement: .topBarLeading) {
+                        historyButton
+                    }
 
-                        ToolbarItem(placement: .topBarLeading) {
-                            ModelPickerChip {
-                                showingModelPicker = true
-                            }
+                    ToolbarItem(placement: .topBarLeading) {
+                        ModelPickerChip {
+                            showingModelPicker = true
                         }
-                        .matchedTransitionSource(id: ToolbarSheetSource.modelPicker.id, in: toolbarTransitionNamespace)
+                    }
 
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            newChatButton
-                        }
+                    ToolbarItemGroup(placement: .topBarTrailing) {
+                        newChatButton
+                    }
 
-                        ToolbarItem(placement: .topBarTrailing) {
-                            toolsMenu
-                        }
-                        .matchedTransitionSource(id: ToolbarSheetSource.tools.id, in: toolbarTransitionNamespace)
-                    } else {
-                        ToolbarItem(placement: .topBarLeading) {
-                            historyButton
-                        }
-
-                        ToolbarItem(placement: .topBarLeading) {
-                            ModelPickerChip {
-                                showingModelPicker = true
-                            }
-                        }
-
-                        ToolbarItemGroup(placement: .topBarTrailing) {
-                            newChatButton
-                        }
-
-                        ToolbarItem(placement: .topBarTrailing) {
-                            toolsMenu
-                        }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        toolsMenu
                     }
                 }
                 .safeAreaInset(edge: .bottom) {
@@ -345,11 +322,8 @@ private struct ModelPickerChip: View {
 private extension View {
     @ViewBuilder
     func toolbarSheetTransition(source: ToolbarSheetSource, namespace: Namespace.ID) -> some View {
-        if #available(iOS 26.0, *) {
-            self.navigationTransition(.zoom(sourceID: source.id, in: namespace))
-        } else {
-            self
-        }
+        // Disabled for now: CI runs Xcode 16 SDK where zoom navigation transitions are unavailable.
+        self
     }
 
     @ViewBuilder
