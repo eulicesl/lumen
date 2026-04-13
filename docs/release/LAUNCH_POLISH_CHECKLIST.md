@@ -41,8 +41,8 @@ This checklist maps the current pre-launch UI issues observed in the app review 
 
 ## P2 — Needs Direct Verification / Follow-up
 
-- [ ] Identify the right-edge side handle/affordance visible in the review video and remove or redesign it if it belongs to the app.
-  - Current status: visible in the video frames, but not yet conclusively traced to a specific source file.
+- [~] Mitigate the likely right-edge side affordance and confirm the visual result on device.
+  - Current status: the strongest source candidate was `ChatView`'s floating trailing scroll-to-latest button, which has been softened into a bottom-centered capsule. The exact frame-to-code match still needs visual verification.
 - [ ] Run a release-candidate Dynamic Type pass focused on the primary iPhone shell.
 - [ ] Run a release-candidate VoiceOver / accessibility semantics pass.
 - [ ] Run light-mode and dark-mode polish pass on device.
