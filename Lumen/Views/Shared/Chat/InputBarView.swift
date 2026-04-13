@@ -532,7 +532,7 @@ private struct DocumentAttachmentRow: View {
                 Text(document.fileName)
                     .font(LumenType.caption.weight(.semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
 
                 Text(document.previewText)
                     .font(LumenType.caption)
@@ -562,6 +562,9 @@ private struct DocumentAttachmentRow: View {
             RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
                 .strokeBorder(.separator, lineWidth: 0.5)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(document.fileName)
+        .accessibilityValue(document.previewText)
     }
 }
 

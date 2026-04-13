@@ -4,6 +4,7 @@ struct PromptLibraryView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
     @Environment(LibraryStore.self) private var libraryStore
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var selectedCategory: PromptCategory? = nil
     @State private var searchQuery = ""
@@ -64,6 +65,8 @@ struct PromptLibraryView: View {
                     } label: {
                         Image(systemName: "plus")
                     }
+                    .accessibilityLabel("Add prompt")
+                    .accessibilityHint("Creates a new reusable prompt")
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     categoryPicker
@@ -116,6 +119,9 @@ struct PromptLibraryView: View {
                 }
             }
         }
+        .accessibilityLabel("Filter prompts by category")
+        .accessibilityValue(selectedCategory?.rawValue ?? "All categories")
+        .accessibilityHint("Filters the prompt library")
     }
 
     // MARK: - Prompt row
@@ -134,10 +140,11 @@ struct PromptLibraryView: View {
                     Text(prompt.title)
                         .font(LumenType.body)
                         .foregroundStyle(.primary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     Text(prompt.content)
                         .font(LumenType.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
                 }
 
                 Spacer()
@@ -151,6 +158,10 @@ struct PromptLibraryView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(prompt.title)
+        .accessibilityValue(promptAccessibilityValue(prompt))
+        .accessibilityHint("Opens this prompt. Swipe for favorite, use, or delete actions.")
         .swipeActions(edge: .leading) {
             Button {
                 libraryStore.toggleFavorite(prompt)
@@ -208,6 +219,22 @@ struct PromptLibraryView: View {
         chatStore.inputText = text
         selectedPrompt = nil
         appStore.selectedTab = .chat
+    }
+
+    private func promptAccessibilityValue(_ prompt: SavedPrompt) -> String {
+        var parts = [prompt.category.rawValue]
+        if prompt.isFavorite {
+            parts.append("Favorite")
+        }
+        if prompt.isBuiltIn {
+            parts.append("Built in")
+        }
+        let preview = prompt.content
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if !preview.isEmpty {
+            parts.append(String(preview.prefix(140)))
+        }
+        return parts.joined(separator: ". ")
     }
 }
 

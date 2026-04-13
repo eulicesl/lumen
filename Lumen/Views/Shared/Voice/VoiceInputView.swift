@@ -109,25 +109,36 @@ struct VoiceInputView: View {
                     }
                 } label: {
                     Image(systemName: "arrow.uturn.backward.circle.fill")
-                        .font(.system(size: 36))
+                        .font(.title)
                         .foregroundStyle(!transcript.isEmpty ? Color.accentColor : Color.secondary.opacity(0.3))
                 }
                 .buttonStyle(.plain)
                 .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                .accessibilityLabel("Save transcript segment")
+                .accessibilityHint("Moves the current dictated text into transcript history")
                 .disabled(transcript.isEmpty)
 
-                VoicePulseView(isActive: isRecording)
-                    .onTapGesture { toggleRecording() }
+                Button {
+                    toggleRecording()
+                } label: {
+                    VoicePulseView(isActive: isRecording)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isRecording ? "Stop voice input" : "Start voice input")
+                .accessibilityHint(isRecording ? "Stops dictation" : "Starts dictation")
+                .accessibilityValue(transcript.isEmpty ? (isRecording ? "Listening" : "Idle") : transcript)
 
                 Button {
                     sendTranscript()
                 } label: {
                     Image(systemName: LumenIcon.send)
-                        .font(.system(size: 36))
+                        .font(.title)
                         .foregroundStyle(!transcript.isEmpty ? Color.accentColor : Color.secondary.opacity(0.3))
                 }
                 .buttonStyle(.plain)
                 .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                .accessibilityLabel("Send transcript")
+                .accessibilityHint("Uses the dictated text in chat")
                 .disabled(transcript.isEmpty)
             }
 

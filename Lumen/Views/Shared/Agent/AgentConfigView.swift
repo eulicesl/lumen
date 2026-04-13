@@ -5,6 +5,8 @@ import SwiftUI
 struct AgentConfigView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var statusIconSize = 22
 
     var body: some View {
         NavigationStack {
@@ -21,6 +23,7 @@ struct AgentConfigView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
+                        .accessibilityHint("Closes agent mode settings")
                 }
             }
         }
@@ -34,7 +37,7 @@ struct AgentConfigView: View {
         Section {
             HStack(spacing: LumenSpacing.md) {
                 Image(systemName: "cpu.fill")
-                    .font(.system(size: 22))
+                    .font(.system(size: statusIconSize))
                     .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
                     .frame(width: 30)
                 VStack(alignment: .leading, spacing: 2) {
@@ -52,6 +55,10 @@ struct AgentConfigView: View {
                 .labelsHidden()
             }
             .padding(.vertical, 2)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Agent mode")
+            .accessibilityValue(chatStore.agentModeEnabled ? "On" : "Off")
+            .accessibilityHint("Turns built-in tools on or off")
         } footer: {
             Text("When enabled, Lumen can use tools (calculator, date/time, encoders) to assist with your requests.")
         }
@@ -64,6 +71,7 @@ struct AgentConfigView: View {
                     Image(systemName: iconForTool(tool.name))
                         .foregroundStyle(.secondary)
                         .frame(width: 22)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(tool.name)
                             .font(LumenType.body)
@@ -71,14 +79,20 @@ struct AgentConfigView: View {
                         Text(tool.description)
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
                     }
                     Spacer()
                     if chatStore.agentModeEnabled {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundStyle(.green)
                             .font(.caption)
+                            .accessibilityHidden(true)
                     }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(tool.name)
+                .accessibilityValue(chatStore.agentModeEnabled ? "Available" : "Unavailable while agent mode is off")
+                .accessibilityHint(tool.description)
             }
         }
     }
@@ -98,14 +112,18 @@ struct AgentConfigView: View {
     private func instructionRow(number: String, text: String) -> some View {
         HStack(alignment: .top, spacing: LumenSpacing.sm) {
             Text(number)
-                .font(.system(size: 13, weight: .bold))
+                .font(LumenType.caption.weight(.bold))
                 .foregroundStyle(.white)
                 .frame(width: 22, height: 22)
                 .background(Color.accentColor, in: Circle())
+                .accessibilityHidden(true)
             Text(text)
                 .font(LumenType.body)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Step \(number)")
+        .accessibilityValue(text)
     }
 
     private func iconForTool(_ name: String) -> String {
@@ -123,6 +141,7 @@ struct AgentConfigView: View {
 // MARK: - Tool call event bubble (shown inline in chat)
 
 struct AgentToolEventView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let event: AgentEvent
 
     var body: some View {
@@ -159,9 +178,9 @@ struct AgentToolEventView: View {
                         .foregroundStyle(.secondary)
                     if !input.isEmpty {
                         Text(input)
-                            .font(.system(size: 12, design: .monospaced))
+                            .font(.system(.caption, design: .monospaced))
                             .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
                     }
                 }
                 Spacer()
@@ -183,9 +202,9 @@ struct AgentToolEventView: View {
                         .font(LumenType.caption)
                         .foregroundStyle(.secondary)
                     Text(result)
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.primary)
-                        .lineLimit(3)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 5 : 3)
                 }
                 Spacer()
             }
@@ -214,9 +233,9 @@ struct AgentToolEventView: View {
                         .font(LumenType.caption)
                         .foregroundStyle(.secondary)
                     Text(result)
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(.caption, design: .monospaced))
                         .foregroundStyle(.primary)
-                        .lineLimit(3)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 5 : 3)
                 }
                 Spacer()
             }

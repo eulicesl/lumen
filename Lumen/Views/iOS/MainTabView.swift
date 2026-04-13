@@ -359,6 +359,7 @@ private struct ConversationPickerView: View {
 }
 
 struct PlaceholderView: View {
+    @ScaledMetric(relativeTo: .largeTitle) private var iconSize = 56
 
     let title: String
     let subtitle: String
@@ -369,7 +370,7 @@ struct PlaceholderView: View {
             VStack(spacing: LumenSpacing.lg) {
                 Spacer()
                 Image(systemName: icon)
-                    .font(.system(size: 56))
+                    .font(.system(size: iconSize))
                     .foregroundStyle(.secondary)
                     .symbolRenderingMode(.hierarchical)
                 Text(title)
