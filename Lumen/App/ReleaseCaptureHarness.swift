@@ -64,9 +64,9 @@ enum ReleaseCaptureHarness {
     }
 
     private static func seedMemories() {
-        MemoryStore.shared.add(content: "Prefers concise executive summaries with clear tradeoffs.", category: .preference)
-        MemoryStore.shared.add(content: "Lives in Portland and usually plans weekend trips by train.", category: .context)
-        MemoryStore.shared.add(content: "Launching Lumen first on iPhone and iPad with privacy-first positioning.", category: .fact)
+        MemoryStore.shared.add(content: "Prefers concise plans with clear tradeoffs and one standout recommendation.", category: .preference)
+        MemoryStore.shared.add(content: "Usually plans city weekends around walkable neighborhoods, bookstores, and good coffee.", category: .context)
+        MemoryStore.shared.add(content: "Uses Lumen for travel planning, document summaries, and thoughtful writing help.", category: .fact)
     }
 
     private static func seedConversations() async throws {
@@ -108,36 +108,36 @@ enum ReleaseCaptureHarness {
             pinned: true
         )
 
-        let releaseID = try await seedConversation(
-            title: "Release Checklist",
+        let kyotoID = try await seedConversation(
+            title: "Kyoto Trip Ideas",
             messages: [
                 .init(
                     role: .user,
-                    content: "Audit the launch blockers for Lumen before App Store submission.",
+                    content: "Plan three calm days in Kyoto with a vegetarian-friendly neighborhood, one temple morning, and a small design museum.",
                     createdAt: fixtureDate(hoursAgo: 5)
                 ),
                 .init(
                     role: .assistant,
                     content: """
-                    The main blockers are:
+                    I'd center the trip around Higashiyama or northern Gion. Both feel walkable, photogenic, and give you easy access to temple mornings plus several vegetarian-friendly dinners nearby.
 
-                    - Capture the final App Store screenshots from the release candidate.
-                    - Publish the privacy policy and support URL.
-                    - Verify the privacy questionnaire matches the app's on-device and optional Ollama behavior.
-                    - Run a final TestFlight sanity pass before submission.
+                    Suggested structure:
+                    - Day 1: Settle into Higashiyama, visit Kiyomizu-dera early, then keep the evening slow with shojin ryori or a modern vegetarian tasting menu.
+                    - Day 2: Browse Kyoto's smaller design and craft museums, then spend the afternoon in a café around Okazaki.
+                    - Day 3: Keep a flexible half day for shopping, a riverside walk, and one final neighborhood dinner.
                     """,
-                    createdAt: fixtureDate(hoursAgo: 4, minutesAgo: 45),
+                    createdAt: fixtureDate(hoursAgo: 4, minutesAgo: 40),
                     model: .appleFoundationModel
                 ),
                 .init(
                     role: .user,
-                    content: "Call out any privacy-specific reviewer notes we should include.",
-                    createdAt: fixtureDate(hoursAgo: 4, minutesAgo: 20)
+                    content: "Which area is best if vegetarian dinners and easy transit back to the hotel matter most?",
+                    createdAt: fixtureDate(hoursAgo: 4, minutesAgo: 15)
                 ),
                 .init(
                     role: .assistant,
                     content: """
-                    Include a short privacy note for App Review: Lumen supports on-device Apple Intelligence by default, keeps memory local to the device, and only connects to Ollama when the user explicitly enables a local server URL in Settings.
+                    Stay near Sanjo or the edge of Gion. You'll have the strongest mix of vegetarian dinners, evening walkability, and simple transit connections without feeling stuck in the busiest tourist blocks.
                     """,
                     createdAt: fixtureDate(hoursAgo: 4),
                     model: .appleFoundationModel
@@ -146,25 +146,25 @@ enum ReleaseCaptureHarness {
         )
 
         let document = ImportedDocument(
-            fileName: "Launch-Brief.md",
+            fileName: "Barcelona-Neighborhood-Notes.md",
             extractedText: """
-            Launch objective: ship a privacy-forward local AI assistant for iPhone and iPad.
+            Trip goal: choose the best Barcelona neighborhood for a first-time visitor who wants great food, walkability, and easy airport access.
 
-            Critical requirements:
-            - Publish App Store metadata and support materials.
-            - Keep onboarding concise and premium.
-            - Emphasize that Ollama remains optional and user-controlled.
-            - Validate screenshots against Apple's 6.9-inch iPhone and 13-inch iPad classes.
+            Notes:
+            - Eixample feels calm, central, and easy to navigate.
+            - El Born is charming and food-forward, but can feel busier at night.
+            - Gràcia is relaxed and local, though slightly less convenient for first-time logistics.
+            - Prioritize one standout recommendation plus two backup options.
             """,
             contentTypeIdentifier: "net.daringfireball.markdown"
         )
         let composedPrompt = DocumentPromptComposer.compose(
-            userText: "Summarize the launch brief and highlight the riskiest release items.",
+            userText: "Summarize these notes and recommend the best neighborhood for a first-time Barcelona trip.",
             documents: [document]
         )
 
         _ = try await seedConversation(
-            title: "Launch Brief Review",
+            title: "Barcelona Neighborhood Guide",
             messages: [
                 .init(
                     role: .user,
@@ -174,12 +174,11 @@ enum ReleaseCaptureHarness {
                 .init(
                     role: .assistant,
                     content: """
-                    The brief is clear on positioning: Lumen should feel private, polished, and intentionally scoped.
+                    Eixample is the strongest first pick. It gives you elegant, walkable blocks, excellent food access, and straightforward transit to both major sights and the airport.
 
-                    Highest-risk release items:
-                    - Missing screenshot capture from the exact release candidate
-                    - Incomplete App Review notes around optional Ollama connectivity
-                    - Any onboarding friction that makes the first-run experience feel unfinished
+                    Good backups:
+                    - El Born for a more atmospheric, food-focused stay
+                    - Gràcia for a quieter, more local neighborhood feel
                     """,
                     createdAt: fixtureDate(hoursAgo: 2, minutesAgo: 12),
                     model: .appleFoundationModel
@@ -187,12 +186,12 @@ enum ReleaseCaptureHarness {
             ]
         )
 
-        let releaseConversation = try await DataService.shared.fetchConversation(id: releaseID)
+        let kyotoConversation = try await DataService.shared.fetchConversation(id: kyotoID)
 
-        if let releaseConversation {
+        if let kyotoConversation {
             try await DataService.shared.updateConversationSystemPrompt(
-                id: releaseConversation.id,
-                systemPrompt: "You are a senior iOS release engineer. Be concise, pragmatic, and reviewer-friendly."
+                id: kyotoConversation.id,
+                systemPrompt: "You are a thoughtful travel planner. Be concise, practical, and easy to skim on iPhone."
             )
         }
     }

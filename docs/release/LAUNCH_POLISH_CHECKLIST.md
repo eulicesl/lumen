@@ -32,12 +32,15 @@ This checklist maps the current pre-launch UI issues observed in the app review 
   - Risk: dense, model-output feeling rather than polished iPhone reading.
   - Source area:
     - `Lumen/Views/Shared/Chat/MessageBubbleView.swift`
-- [ ] Replace screenshot/demo content with polished customer-facing conversations.
+- [x] Replace screenshot/demo content with polished customer-facing conversations.
   - Risk: App Review and App Store asset quality.
   - Source areas:
     - `docs/release/PRE_SUBMISSION_AUDIT.md`
     - `docs/release/FINAL_APP_STORE_RELEASE_CHECKLIST.md`
     - screenshot capture harness output
+  - Implemented in:
+    - `Lumen/App/ReleaseCaptureHarness.swift`
+    - `Lumen/App/AppLaunchConfiguration.swift`
 
 ## P2 — Needs Direct Verification / Follow-up
 
