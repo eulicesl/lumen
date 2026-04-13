@@ -15,7 +15,7 @@ struct ChatView: View {
     var showsConversationTools: Bool = true
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 if chatStore.selectedConversation == nil {
                     emptyConversationPrompt
@@ -242,17 +242,23 @@ struct ChatView: View {
             chatStore.focusedMessageID = nil
             scrollToBottom()
         } label: {
-            Image(systemName: "arrow.down.circle.fill")
-                .font(.system(size: scrollButtonIconSize, weight: .semibold))
-                .foregroundStyle(.white, Color.accentColor)
-                .shadow(color: .black.opacity(0.16), radius: 12, y: 4)
+            Label("Latest", systemImage: "arrow.down")
+                .font(LumenType.footnote.weight(.semibold))
+                .foregroundStyle(Color.primary)
+                .padding(.horizontal, LumenSpacing.md)
+                .padding(.vertical, LumenSpacing.sm)
+                .background(.regularMaterial, in: Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(Color(.separator).opacity(0.35), lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.10), radius: 10, y: 3)
         }
         .buttonStyle(.plain)
-        .padding(.trailing, LumenSpacing.lg)
         .padding(.bottom, LumenSpacing.xl)
         .accessibilityLabel("Scroll to latest message")
         .accessibilityHint("Jumps to the newest message in the conversation")
-        .transition(LumenMotion.moveTransition(edge: .trailing, reduceMotion: reduceMotion))
+        .transition(LumenMotion.moveTransition(edge: .bottom, reduceMotion: reduceMotion))
     }
 
     private var starterPrompts: [SavedPrompt] {

@@ -36,6 +36,7 @@ struct MessageContentView: View {
                         Text(AttributedString.fromMarkdown(trimmed))
                             .font(LumenType.messageBody)
                             .foregroundStyle(Color.primary)
+                            .lineSpacing(3)
                             .textSelection(.enabled)
                             .frame(maxWidth: maxWidth, alignment: .leading)
                     }
