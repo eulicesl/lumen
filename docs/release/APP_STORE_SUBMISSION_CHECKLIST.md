@@ -3,6 +3,7 @@
 Treat App Store submission as a release artifact, not a last-minute form fill.
 
 Use `docs/release/PRE_SUBMISSION_AUDIT.md` as the active go/no-go summary for whether the current build should ship.
+Use `docs/release/FINAL_APP_STORE_RELEASE_CHECKLIST.md` as the final pre-submit execution checklist.
 
 ## Provenance
 
