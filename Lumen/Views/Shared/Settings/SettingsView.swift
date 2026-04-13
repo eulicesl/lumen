@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(MemoryStore.self) private var memoryStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var ollamaLocalURLDraft = ""
     @State private var ollamaLocalTokenDraft = ""
@@ -92,6 +93,7 @@ struct SettingsView: View {
                         Text(subtitle)
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
 
@@ -277,14 +279,17 @@ struct SettingsView: View {
                             : "Disabled")
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
                 }
             }
             .accessibilityLabel("Memory")
@@ -315,14 +320,17 @@ struct SettingsView: View {
                             : "Disabled")
                             .font(LumenType.caption)
                             .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
                 }
             }
             .accessibilityLabel("Agent Mode")
@@ -399,6 +407,7 @@ private extension SettingsView {
                 Text(subtitle)
                     .font(LumenType.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -450,6 +459,7 @@ private extension SettingsView {
                     Text(detail)
                         .font(LumenType.caption)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SearchView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(ChatStore.self) private var chatStore
     @Environment(AppStore.self) private var appStore
 
@@ -122,18 +123,19 @@ struct SearchView: View {
                     Text(conversation.title)
                         .font(LumenType.body)
                         .foregroundStyle(.primary)
-                        .lineLimit(1)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     if !conversation.preview.isEmpty {
                         Text(conversation.preview)
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
                     }
                 }
                 Spacer()
                 Text(conversation.updatedAt.relativeFormatted)
                     .font(LumenType.footnote)
                     .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
         }
@@ -157,16 +159,17 @@ struct SearchView: View {
                     Text(result.title)
                         .font(LumenType.body)
                         .foregroundStyle(.primary)
-                        .lineLimit(1)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     Text(result.subtitle)
                         .font(LumenType.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
                 }
                 Spacer()
                 Text(result.conversation.updatedAt.relativeFormatted)
                     .font(LumenType.footnote)
                     .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
             }
             .contentShape(Rectangle())
         }
