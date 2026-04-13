@@ -103,6 +103,12 @@ capture_scene() {
   xcrun simctl io "$device_id" screenshot "$output_file" >/dev/null
 }
 
+rotate_for_landscape_if_needed() {
+  local output_file="$1"
+
+  sips -r 90 "$output_file" >/dev/null
+}
+
 mkdir -p "$OUTPUT_ROOT/iphone-6.9" "$OUTPUT_ROOT/ipad-13"
 
 boot_device "$IPHONE_ID"
@@ -117,8 +123,11 @@ capture_scene "$IPHONE_ID" "documents" "$OUTPUT_ROOT/iphone-6.9/03-documents.png
 capture_scene "$IPHONE_ID" "settings" "$OUTPUT_ROOT/iphone-6.9/04-settings.png"
 
 capture_scene "$IPAD_ID" "chat" "$OUTPUT_ROOT/ipad-13/01-chat.png"
+rotate_for_landscape_if_needed "$OUTPUT_ROOT/ipad-13/01-chat.png"
 capture_scene "$IPAD_ID" "documents" "$OUTPUT_ROOT/ipad-13/02-documents.png"
+rotate_for_landscape_if_needed "$OUTPUT_ROOT/ipad-13/02-documents.png"
 capture_scene "$IPAD_ID" "settings" "$OUTPUT_ROOT/ipad-13/03-settings.png"
+rotate_for_landscape_if_needed "$OUTPUT_ROOT/ipad-13/03-settings.png"
 
 clear_status_bar "$IPHONE_ID"
 clear_status_bar "$IPAD_ID"

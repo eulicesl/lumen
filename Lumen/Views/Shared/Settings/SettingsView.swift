@@ -24,14 +24,22 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 activeModelSection
-                ollamaLocalSection
-                ollamaCloudSection
-                appleIntelligenceSection
-                memorySection
-                agentSection
-                appearanceSection(bindableApp: $bindableApp)
-                aboutSection
-                dangerSection
+                if AppLaunchConfiguration.isReleaseCaptureMode {
+                    appleIntelligenceSection
+                    memorySection
+                    agentSection
+                    appearanceSection(bindableApp: $bindableApp)
+                    aboutSection
+                } else {
+                    ollamaLocalSection
+                    ollamaCloudSection
+                    appleIntelligenceSection
+                    memorySection
+                    agentSection
+                    appearanceSection(bindableApp: $bindableApp)
+                    aboutSection
+                    dangerSection
+                }
             }
             .navigationTitle("Settings")
             #if os(iOS)
@@ -257,7 +265,7 @@ struct SettingsView: View {
         } header: {
             providerSectionHeader("Apple Intelligence", provider: .foundationModels)
         } footer: {
-            Text("Runs entirely on-device. Requests stay on your iPhone.")
+            Text("Runs entirely on-device. On supported hardware, this is the simplest path and does not require an account, API key, or extra setup.")
         }
     }
 

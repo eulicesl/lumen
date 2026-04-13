@@ -69,7 +69,12 @@ actor AgentService {
             do {
                 for try await token in stream {
                     assistantContent += token.text
-                    continuation.yield(.token(assistantContent.stripAgentMarkup()))
+                    // Yield the full accumulated content; strip markup only when
+                    // it might be present to avoid O(n²) regex on every token.
+                    let display = assistantContent.mayContainAgentMarkup
+                        ? assistantContent.stripAgentMarkup()
+                        : assistantContent
+                    continuation.yield(.token(display))
                     if token.isComplete {
                         iterationTokenCount = token.tokenCount
                         if let count = token.tokenCount {
@@ -105,8 +110,10 @@ actor AgentService {
                 toolResultText += "\n[[RESULT:\(result)]]"
             }
 
+            // Keep raw markup in agent loop context so subsequent iterations
+            // can see tool results. Display-side stripping happens in the UI layer.
             let assistantMsg = ChatMessage.assistantMessage(
-                (assistantContent + toolResultText).stripAgentMarkup(),
+                assistantContent + toolResultText,
                 tokenCount: iterationTokenCount
             )
             currentMessages.append(assistantMsg)

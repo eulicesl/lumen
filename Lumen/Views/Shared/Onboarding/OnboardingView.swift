@@ -37,7 +37,7 @@ private let onboardingPages: [OnboardingPage] = [
         symbol: "sparkles",
         symbolColor: .orange,
         title: "Ready to Go",
-        subtitle: "Choose Apple Intelligence, connect Ollama Local, or sign in with an Ollama Cloud API key. Switch models anytime from the chat bar."
+        subtitle: "Start with Apple Intelligence on supported devices, or optionally connect Ollama Local or Ollama Cloud later. Switch models anytime from the chat bar."
     ),
 ]
 

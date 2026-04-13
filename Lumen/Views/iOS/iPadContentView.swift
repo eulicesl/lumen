@@ -20,15 +20,17 @@ struct iPadContentView: View {
         } detail: {
             ChatView()
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button {
-                            LumenMotion.perform(.easeInOut(duration: 0.2), reduceMotion: reduceMotion) {
-                                columnVisibility = columnVisibility == .all ? .detailOnly : .all
+                    if !AppLaunchConfiguration.isReleaseCaptureMode {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                LumenMotion.perform(.easeInOut(duration: 0.2), reduceMotion: reduceMotion) {
+                                    columnVisibility = columnVisibility == .all ? .detailOnly : .all
+                                }
+                            } label: {
+                                Image(systemName: "sidebar.left")
                             }
-                        } label: {
-                            Image(systemName: "sidebar.left")
+                            .accessibilityLabel(columnVisibility == .all ? "Hide Conversations" : "Show Conversations")
                         }
-                        .accessibilityLabel(columnVisibility == .all ? "Hide Conversations" : "Show Conversations")
                     }
                 }
         }
@@ -62,6 +64,11 @@ private extension iPadContentView {
     }
 
     func restoreColumnVisibility() {
+        if AppLaunchConfiguration.isReleaseCaptureMode {
+            columnVisibility = .detailOnly
+            return
+        }
+
         columnVisibility = NavigationSplitViewVisibility(
             sceneStorageValue: restoredColumnVisibility,
             fallback: .all

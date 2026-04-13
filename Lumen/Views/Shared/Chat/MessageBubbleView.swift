@@ -219,7 +219,15 @@ struct MessageBubbleView: View {
     // MARK: - Think blocks
 
     private var thinkBlocks: [String] { message.content.extractThinkBlocks() }
-    private var mainContent: String { message.content.stripAgentMarkup().stripThinkBlocks() }
+
+    /// Cached per body evaluation: strip agent markup and think blocks once,
+    /// then reuse everywhere in the same render pass.
+    private var mainContent: String {
+        let stripped = message.content.mayContainAgentMarkup
+            ? message.content.stripAgentMarkup()
+            : message.content
+        return stripped.stripThinkBlocks()
+    }
 
     private var thinkingDisclosure: some View {
         DisclosureGroup(isExpanded: $thinkingExpanded) {

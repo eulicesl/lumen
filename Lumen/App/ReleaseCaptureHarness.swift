@@ -145,30 +145,14 @@ enum ReleaseCaptureHarness {
             ]
         )
 
-        let document = ImportedDocument(
-            fileName: "Barcelona-Neighborhood-Notes.md",
-            extractedText: """
-            Trip goal: choose the best Barcelona neighborhood for a first-time visitor who wants great food, walkability, and easy airport access.
-
-            Notes:
-            - Eixample feels calm, central, and easy to navigate.
-            - El Born is charming and food-forward, but can feel busier at night.
-            - Gràcia is relaxed and local, though slightly less convenient for first-time logistics.
-            - Prioritize one standout recommendation plus two backup options.
-            """,
-            contentTypeIdentifier: "net.daringfireball.markdown"
-        )
-        let composedPrompt = DocumentPromptComposer.compose(
-            userText: "Summarize these notes and recommend the best neighborhood for a first-time Barcelona trip.",
-            documents: [document]
-        )
-
+        // Use a clean user-facing prompt for screenshots instead of the raw
+        // DocumentPromptComposer output, which exposes internal scaffolding.
         _ = try await seedConversation(
             title: "Barcelona Neighborhood Guide",
             messages: [
                 .init(
                     role: .user,
-                    content: composedPrompt,
+                    content: "I uploaded my Barcelona trip notes. Which neighborhood is best for a first-time visitor who wants great food and walkability?",
                     createdAt: fixtureDate(hoursAgo: 2, minutesAgo: 35)
                 ),
                 .init(
