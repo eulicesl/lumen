@@ -61,10 +61,10 @@ struct SavedPrompt: Identifiable, Hashable, Sendable, Codable {
 
 extension SavedPrompt {
     static let featuredStarterPromptTitles = [
-        "Improve my writing",
-        "Review my code",
-        "Brainstorm ideas",
-        "Action plan"
+        "Polish a message",
+        "Review Swift code",
+        "Weekend trip ideas",
+        "Plan my week"
     ]
 
     static var starterPrompts: [SavedPrompt] {
@@ -75,8 +75,8 @@ extension SavedPrompt {
 
     static let builtIns: [SavedPrompt] = [
         // Writing
-        SavedPrompt(title: "Improve my writing",
-                    content: "Please improve the clarity, flow, and grammar of the following text while preserving its meaning and voice:\n\n",
+        SavedPrompt(title: "Polish a message",
+                    content: "Rewrite this text to sound warm, clear, and confident while keeping it concise:\n\n\"Hey team, I wanted to follow up on the demo. We learned a lot, but I think we should tighten the onboarding and simplify the settings before launch. Could we review the changes tomorrow?\"",
                     category: .writing, isBuiltIn: true),
         SavedPrompt(title: "Summarize in 3 bullets",
                     content: "Summarize the following in exactly 3 concise bullet points:\n\n",
@@ -89,8 +89,8 @@ extension SavedPrompt {
                     category: .writing, isBuiltIn: true),
 
         // Coding
-        SavedPrompt(title: "Review my code",
-                    content: "Review the following code for bugs, security issues, performance improvements, and readability. Be specific:\n\n```\n\n```",
+        SavedPrompt(title: "Review Swift code",
+                    content: "Review this Swift function for bugs, edge cases, readability, and performance issues. Then suggest a cleaner version if needed:\n\n```swift\nfunc formatName(first: String?, last: String?) -> String {\n    return (first ?? \"\") + \" \" + (last ?? \"\")\n}\n```",
                     category: .coding, isBuiltIn: true),
         SavedPrompt(title: "Write unit tests",
                     content: "Write comprehensive unit tests for the following code. Cover happy paths, edge cases, and error conditions:\n\n```\n\n```",
@@ -122,16 +122,16 @@ extension SavedPrompt {
                     category: .reasoning, isBuiltIn: true),
 
         // Creative
-        SavedPrompt(title: "Brainstorm ideas",
-                    content: "Brainstorm 10 creative and diverse ideas for the following. Prioritize originality:\n\n",
+        SavedPrompt(title: "Weekend trip ideas",
+                    content: "Brainstorm 6 memorable weekend trip ideas for someone living in New York. Mix one relaxing option, one outdoors option, one food-focused option, and one unexpected pick. Include a one-line reason for each.",
                     category: .creative, isBuiltIn: true),
         SavedPrompt(title: "Continue the story",
                     content: "Continue the following story in the same style and tone, adding 2-3 paragraphs:\n\n",
                     category: .creative, isBuiltIn: true),
 
         // Productivity
-        SavedPrompt(title: "Action plan",
-                    content: "Create a clear, actionable step-by-step plan to accomplish the following goal:\n\n",
+        SavedPrompt(title: "Plan my week",
+                    content: "Create a realistic 7-day plan for someone who wants to get their inbox under control, exercise 3 times, and protect two hours of focused work each weekday. Start with the 3 most important actions for Monday.",
                     category: .productivity, isBuiltIn: true),
         SavedPrompt(title: "Meeting agenda",
                     content: "Create a structured meeting agenda for the following topic, including time slots and desired outcomes:\n\n",

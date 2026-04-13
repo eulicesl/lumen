@@ -69,7 +69,7 @@ actor AgentService {
             do {
                 for try await token in stream {
                     assistantContent += token.text
-                    continuation.yield(.token(token.text))
+                    continuation.yield(.token(assistantContent.stripAgentMarkup()))
                     if token.isComplete {
                         iterationTokenCount = token.tokenCount
                         if let count = token.tokenCount {
@@ -106,7 +106,7 @@ actor AgentService {
             }
 
             let assistantMsg = ChatMessage.assistantMessage(
-                assistantContent + toolResultText,
+                (assistantContent + toolResultText).stripAgentMarkup(),
                 tokenCount: iterationTokenCount
             )
             currentMessages.append(assistantMsg)

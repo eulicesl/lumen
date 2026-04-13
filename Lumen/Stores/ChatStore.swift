@@ -325,7 +325,7 @@ final class ChatStore {
                 if timeToFirstToken == nil {
                     timeToFirstToken = Date().timeIntervalSince(startTime)
                 }
-                assistantContent += text
+                assistantContent = text
                 messages[assistantIndex].content = assistantContent
             case .complete(let tokenCount):
                 messages[assistantIndex].isComplete = true

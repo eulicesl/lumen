@@ -33,10 +33,6 @@ struct MainTabView: View {
                         }
                     }
 
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        newChatButton
-                    }
-
                     ToolbarItem(placement: .topBarTrailing) {
                         toolsMenu
                     }
@@ -164,16 +160,17 @@ private extension MainTabView {
         Button {
             Task { await chatStore.createNewConversation() }
         } label: {
-            Image(systemName: "square.and.pencil")
-                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+            Label("New Chat", systemImage: "square.and.pencil")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("New chat")
         .accessibilityHint("Starts a new conversation")
     }
 
     var toolsMenu: some View {
         Menu {
+            newChatButton
+
+            Divider()
+
             Button {
                 activePanel = .voice
             } label: {

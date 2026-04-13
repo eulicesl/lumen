@@ -2,6 +2,9 @@ import Foundation
 import SwiftUI
 
 extension String {
+    private static let agentToolCallPattern = #/\[\[TOOL:[^\]]*\]\]/#
+    private static let agentToolResultPattern = #/\[\[RESULT:[^\]]*\]\]/#
+
     var hasMarkdown: Bool {
         contains("**") || contains("*") || contains("# ") ||
         contains("```") || contains("`") || contains("- ") ||
@@ -24,6 +27,15 @@ extension String {
             result.removeSubrange(start.lowerBound...end.upperBound)
         }
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func stripAgentMarkup() -> String {
+        let withoutToolCalls = replacing(Self.agentToolCallPattern, with: "")
+        let withoutToolResults = withoutToolCalls.replacing(Self.agentToolResultPattern, with: "")
+
+        return withoutToolResults
+            .replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     func extractThinkBlocks() -> [String] {
