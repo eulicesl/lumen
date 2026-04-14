@@ -61,19 +61,20 @@ Verify each field in App Store Connect before submitting. Light localizations ca
 
 **Budget:** 100 characters total, comma-separated, no spaces between entries. Avoid repeating words already in the app name or subtitle.
 
-> `chatbot,documents,memory,voice,image,history,search,productivity,ollama,offline,on device`
+> `chatbot,documents,memory,voice,image,history,search,productivity,ollama,offline,summary`
 
-91/100 characters.
+87/100 characters.
 
 ### Why each keyword is included
 
-- `chatbot`, `ollama`, `offline`, `on device` — core discovery terms for the category and differentiator.
-- `documents`, `image`, `voice`, `memory`, `history`, `search` — feature-surface terms that match what the app actually does.
+- `chatbot`, `ollama`, `offline` — core discovery terms for the category and differentiator.
+- `documents`, `image`, `voice`, `memory`, `history`, `search`, `summary` — feature-surface terms that match common use cases.
 - `productivity` — secondary-category reinforcement.
 
 ### Deliberately excluded
 
 - `AI`, `assistant`, `private`, `local` — already present in the app name's field (via subtitle); App Store indexes name + subtitle + keywords together, so repeats waste budget.
+- `on device` — contains a space, which Apple's keyword guidance treats as a single phrase rather than two indexed terms. `offline` already covers the on-device positioning.
 
 ---
 

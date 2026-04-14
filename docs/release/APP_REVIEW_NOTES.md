@@ -21,7 +21,9 @@ Verify this against the exact release candidate build before submission. If a fe
 >
 > If the review device does not support Apple Intelligence, AI-generation features require the user to configure an Ollama provider. In that case, please use a device that supports Apple Intelligence so the default reviewer path above applies.
 >
-> Microphone and speech-recognition permissions are requested only when the reviewer uses the voice-input feature explicitly. They are optional for core review. Lumen does not collect or transmit user data to any developer-operated backend.
+> Microphone and speech-recognition permissions are requested only when the reviewer uses the voice-input feature explicitly. They are optional for core review.
+>
+> Lumen does not operate a backend, analytics pipeline, or crash reporter. No content is transmitted to Lumen-operated infrastructure. If a user enables the optional Ollama Cloud provider, chat content is transmitted to `https://ollama.com` using the user's own Ollama Cloud API key; Lumen is the transmission vehicle but the endpoint is the user's own account. The App Privacy questionnaire discloses this as user-opt-in User Content collection used for App Functionality.
 
 ---
 

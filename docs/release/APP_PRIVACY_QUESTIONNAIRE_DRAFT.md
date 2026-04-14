@@ -10,9 +10,9 @@ Verify each answer against the exact release binary before submitting. If a new 
 
 | Section | Answer |
 |---|---|
-| Does your app collect data from this app? | **No** |
+| Does your app collect data from this app? | **Yes** (conditional — only when the user enables Ollama Cloud) |
 | Used to track users? | **No** |
-| Linked to the user? | N/A |
+| Linked to the user? | **Yes** (the Ollama Cloud API key is user-specific) |
 | Third-party analytics SDK? | **No** |
 | Third-party advertising SDK? | **No** |
 
@@ -20,19 +20,28 @@ Verify each answer against the exact release binary before submitting. If a new 
 
 Lumen does not run a developer-operated backend, analytics pipeline, crash-reporting service, or ad-tech collection path. All conversation content, preferences, and memories are stored locally on the device using platform-standard storage.
 
-When the user explicitly configures an Ollama Local or Ollama Cloud provider, app content is sent to the server URL or hosted account the user entered. That endpoint is operated by the user (or Ollama), not by the Lumen developer, so it is not "data collection by this app's developer" under App Store Connect's definition. The user is in direct control of that endpoint and can change or remove it at any time.
+Lumen's **default reviewer path uses Apple Intelligence, which runs fully on-device**. No content leaves the device on that path.
 
-This matches what `Lumen/Resources/PrivacyInfo.xcprivacy` declares at build time:
+Lumen ships an **optional Ollama Cloud provider** that the user can enable in Settings. When enabled, the provider authenticates to `https://ollama.com` using an API key the user supplies, and chat messages (plus any attached image or document content) are sent to `https://ollama.com/api/chat` for inference. Because the app is the vehicle for that transmission — even though the endpoint is the user's own Ollama Cloud account and Lumen operates no backend — Apple's App Privacy disclosure rules treat this as data collection that must be disclosed.
 
-- `NSPrivacyCollectedDataTypes` is empty.
-- `NSPrivacyTracking` is `false`.
-- `NSPrivacyTrackingDomains` is empty.
+Lumen also supports an **Ollama Local provider** where the user supplies a URL for a server on their own network. Because that endpoint is the user's own infrastructure and not addressable over the open internet, it does not change the App Store Connect disclosure beyond what Ollama Cloud already requires.
+
+`Lumen/Resources/PrivacyInfo.xcprivacy` declares `NSPrivacyCollectedDataTypes` empty and `NSPrivacyTracking` false because the privacy manifest captures what the developer collects, which is still nothing. The App Store Connect questionnaire is broader and asks about data transmitted from the app for any purpose, so the two documents can differ in answer shape even though they describe the same behavior.
 
 ---
 
 ## Per-category answers
 
-For every data-type category in the App Store Connect questionnaire, the answer is **No** for the shipped app.
+### User Content — **Yes**
+
+- Subcategory: **Other User Content** (covers chat messages and imported documents).
+- Add **Photos or Videos** only if the image-attachment feature is enabled in the release binary and those images can be sent to Ollama Cloud.
+- Linked to user identity: **Yes** — the Ollama Cloud API key is user-specific; requests the app makes on the user's behalf are linked to that account.
+- Used for tracking: **No**.
+- Purposes: **App Functionality** (the user enabled Ollama Cloud specifically to route inference through it).
+- Reviewer-facing note: only collected when the user enables the optional Ollama Cloud provider. The default Apple Intelligence path keeps content on-device.
+
+### Everything else — **No**
 
 - Contact Info: **No**
 - Health and Fitness: **No**
@@ -40,26 +49,25 @@ For every data-type category in the App Store Connect questionnaire, the answer 
 - Location: **No**
 - Sensitive Info: **No**
 - Contacts: **No**
-- User Content: **No**
-   - The developer does not collect user content. When the user configures an Ollama provider, user content is sent to the user's chosen endpoint; App Store Connect asks about developer-side collection, so this remains "No."
 - Browsing History: **No**
-- Search History: **No**
-   - Search terms stay on-device; see User Content note above.
-- Identifiers: **No**
+- Search History: **No** (search terms are executed locally against on-device conversation history, not transmitted)
+- Identifiers: **No** (no user ID, device ID, or advertising ID is sent; the Ollama Cloud API key is not asked about in this section)
 - Purchases: **No**
-- Usage Data: **No**
-- Diagnostics: **No**
+- Usage Data: **No** (no analytics collection)
+- Diagnostics: **No** (no third-party diagnostics collection)
 - Other Data: **No**
 
 ---
 
-## Required API access (already declared in PrivacyInfo.xcprivacy)
+## Required API access (declared in PrivacyInfo.xcprivacy)
 
-These are API-usage reason declarations, not data-collection disclosures. App Store Connect treats them separately from the privacy questionnaire.
+These are API-usage reason declarations, not data-collection disclosures. App Store Connect treats them separately from the privacy questionnaire. Match this list against `Lumen/Resources/PrivacyInfo.xcprivacy` whenever you change SwiftData or storage behavior.
 
 - `NSPrivacyAccessedAPICategoryUserDefaults` — reason `CA92.1` (access info from same-app group containers, limited to own app). Used for settings storage.
+- `NSPrivacyAccessedAPICategoryFileTimestamp` — reason `3B52.1` (access file timestamps within the app's own container/sandbox). Used by SwiftData for the conversation store.
+- `NSPrivacyAccessedAPICategoryDiskSpace` — reason `E174.1` (display storage info to the user, or prevent exceeding storage limits). Used by SwiftData when checking available storage before writing.
 
-If additional required-reason APIs are introduced (file timestamps, system boot time, disk space, active keyboards), add them to `PrivacyInfo.xcprivacy` with the correct reason code and re-verify this file.
+If additional required-reason APIs are introduced (system boot time, active keyboards, etc.), add them to `PrivacyInfo.xcprivacy` with the correct reason code and re-verify this file.
 
 ---
 
@@ -72,14 +80,16 @@ Permissions are orthogonal to the privacy questionnaire but the user sees them b
 | `NSMicrophoneUsageDescription` | Voice input for dictation | **Declared**, matches shipping feature |
 | `NSSpeechRecognitionUsageDescription` | On-device speech-to-text for voice input | **Declared**, matches shipping feature |
 | `NSCameraUsageDescription` | If camera capture is enabled in the shipped build | **Verify before submission** — only declare if the feature ships |
-| Photo Library (`NSPhotoLibraryUsageDescription` or add/only `NSPhotoLibraryAddUsageDescription`) | If photo selection is enabled in the shipped build | **Verify before submission** — only declare if the feature ships |
+| `NSPhotoLibraryUsageDescription` | If photo selection is enabled in the shipped build | **Verify before submission** — only declare if the feature ships |
 
 ---
 
 ## Pre-submission verification
 
 - [ ] `PrivacyInfo.xcprivacy` in the release binary still declares zero collected data types and `NSPrivacyTracking=false`.
+- [ ] The three API reason declarations above (`UserDefaults` / `FileTimestamp` / `DiskSpace`) are still present and still match the code paths that use them.
 - [ ] No new networking SDK, analytics SDK, or crash reporter has been added since this document was written.
-- [ ] `Info.plist` permission strings match the exact permission prompts in the release build. Permissions that do not ship must not have a usage description (Apple rejects usage strings for unused entitlements).
+- [ ] If the image-attachment feature is shipped and images can be sent to Ollama Cloud, the App Store Connect User Content subcategory includes **Photos or Videos**.
+- [ ] `Info.plist` permission strings match the exact permission prompts in the release build. Permissions that do not ship must not have a usage description.
 - [ ] App Store Connect answers match this document section-by-section.
-- [ ] Privacy Policy URL resolves and the content of the linked page matches the answers above.
+- [ ] Privacy Policy URL resolves and the linked page explicitly mentions the opt-in Ollama Cloud transmission described above.
