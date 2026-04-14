@@ -16,7 +16,6 @@ actor AgentService {
     static let shared = AgentService()
 
     private let maxIterations = 6
-    private let toolCallPattern = #/\[\[TOOL:(?<name>[^\|]+)\|(?<input>[^\]]*)\]\]/#
 
     private init() {}
 
@@ -140,16 +139,7 @@ actor AgentService {
     // MARK: - Tool call extraction
 
     private func extractToolCalls(from text: String) -> [(name: String, input: String)] {
-        guard text.hasOnlyAgentToolCalls else { return [] }
-
-        var results: [(name: String, input: String)] = []
-        for match in text.matches(of: toolCallPattern) {
-            results.append((
-                name: String(match.output.name).trimmingCharacters(in: .whitespaces),
-                input: String(match.output.input)
-            ))
-        }
-        return results
+        text.parsePureAgentToolCalls() ?? []
     }
 
     // MARK: - Build agent-augmented options

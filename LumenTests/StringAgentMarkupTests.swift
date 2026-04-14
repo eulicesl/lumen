@@ -106,6 +106,25 @@ struct StringAgentMarkupTests {
         #expect("\n[[TOOL:calculator|2+2]]\n[[TOOL:wordcount|hello world]]\n".hasOnlyAgentToolCalls)
     }
 
+    @Test("detects pure tool-only responses with bracketed payloads")
+    func detectPureToolOnlyResponseWithBracketedPayloads() {
+        #expect("[[TOOL:calculator|[]]]".hasOnlyAgentToolCalls)
+        #expect("[[TOOL:fetch|see [guide](https://example.com)]]".hasOnlyAgentToolCalls)
+    }
+
+    @Test("parses pure tool-only responses with bracketed payloads")
+    func parsePureToolOnlyResponseWithBracketedPayloads() {
+        let arrayPayload = "[[TOOL:calculator|[]]]".parsePureAgentToolCalls()
+        #expect(arrayPayload?.count == 1)
+        #expect(arrayPayload?.first?.name == "calculator")
+        #expect(arrayPayload?.first?.input == "[]")
+
+        let markdownPayload = "[[TOOL:fetch|see [guide](https://example.com)]]".parsePureAgentToolCalls()
+        #expect(markdownPayload?.count == 1)
+        #expect(markdownPayload?.first?.name == "fetch")
+        #expect(markdownPayload?.first?.input == "see [guide](https://example.com)")
+    }
+
     @Test("does not treat prose examples as pure tool-only responses")
     func proseToolExamplesAreNotControlResponses() {
         #expect(!"You can write [[TOOL:calculator|2+2]] to call a tool.".hasOnlyAgentToolCalls)

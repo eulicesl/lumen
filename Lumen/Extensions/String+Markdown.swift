@@ -3,7 +3,6 @@ import SwiftUI
 
 extension String {
     private static let agentMarkupPrefixes = ["[[TOOL:", "[[RESULT:"]
-    private static let pureAgentToolCallPattern = #/^\s*(\[\[TOOL:(?<name>[^\|]+)\|(?<input>[^\]]*)\]\]\s*)+$/#
 
     var hasMarkdown: Bool {
         contains("**") || contains("*") || contains("# ") ||
@@ -36,7 +35,49 @@ extension String {
 
     /// True only when the content is control-only tool syntax, not prose that merely mentions it.
     var hasOnlyAgentToolCalls: Bool {
-        wholeMatch(of: Self.pureAgentToolCallPattern) != nil
+        parsePureAgentToolCalls() != nil
+    }
+
+    /// Parses one or more control-only tool calls, allowing bracketed payloads.
+    /// Returns nil when the string contains prose or malformed tool-call syntax.
+    func parsePureAgentToolCalls() -> [(name: String, input: String)]? {
+        var results: [(name: String, input: String)] = []
+        var cursor = startIndex
+
+        func skipWhitespace() {
+            while cursor < endIndex, self[cursor].isWhitespace {
+                cursor = index(after: cursor)
+            }
+        }
+
+        skipWhitespace()
+        while cursor < endIndex {
+            let prefix = "[[TOOL:"
+            guard self[cursor...].hasPrefix(prefix),
+                  let closingIndex = agentMarkupClosingIndex(from: cursor, prefix: prefix) else {
+                return nil
+            }
+
+            let contentStart = index(cursor, offsetBy: prefix.count)
+            let contentEnd = index(closingIndex, offsetBy: -2)
+            let inner = self[contentStart..<contentEnd]
+
+            guard let separator = inner.firstIndex(of: "|") else {
+                return nil
+            }
+
+            let name = inner[..<separator].trimmingCharacters(in: .whitespaces)
+            let input = String(inner[index(after: separator)...])
+            guard !name.isEmpty else {
+                return nil
+            }
+
+            results.append((name: name, input: input))
+            cursor = closingIndex
+            skipWhitespace()
+        }
+
+        return results.isEmpty ? nil : results
     }
 
     func stripAgentMarkup(normalizeWhitespace: Bool = true, trimEdges: Bool = true) -> String {
