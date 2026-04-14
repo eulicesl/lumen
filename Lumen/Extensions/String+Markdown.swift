@@ -51,7 +51,7 @@ extension String {
         }
 
         if normalizeWhitespace {
-            output = output.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+            output = output.collapsingExcessBlankLines()
         }
 
         if trimEdges {
@@ -89,6 +89,29 @@ extension String {
         }
 
         return nil
+    }
+
+    private func collapsingExcessBlankLines() -> String {
+        var normalizedLines: [String] = []
+        var pendingBlankLines = 0
+
+        enumerateLines { line, _ in
+            if line.isEmpty {
+                pendingBlankLines += 1
+                if pendingBlankLines <= 2 {
+                    normalizedLines.append("")
+                }
+            } else {
+                pendingBlankLines = 0
+                normalizedLines.append(line)
+            }
+        }
+
+        if hasSuffix("\n") {
+            return normalizedLines.joined(separator: "\n") + "\n"
+        }
+
+        return normalizedLines.joined(separator: "\n")
     }
 
     func extractThinkBlocks() -> [String] {
