@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Agent event (streamed to callers)
 
 enum AgentEvent: Sendable {
-    case token(String)
+    case token(String, isSnapshot: Bool)
     case toolCall(name: String, input: String)
     case toolResult(name: String, result: String)
     case complete(tokenCount: Int?)
@@ -67,14 +67,23 @@ actor AgentService {
             )
 
             do {
+                var previousDisplay = ""
                 for try await token in stream {
                     assistantContent += token.text
-                    // Yield the full accumulated content; strip markup only when
-                    // it might be present to avoid O(n²) regex on every token.
                     let display = assistantContent.mayContainAgentMarkup
                         ? assistantContent.stripAgentMarkup(normalizeWhitespace: false, trimEdges: false)
                         : assistantContent
-                    continuation.yield(.token(display))
+
+                    if display.hasPrefix(previousDisplay) {
+                        let delta = String(display.dropFirst(previousDisplay.count))
+                        if !delta.isEmpty {
+                            continuation.yield(.token(delta, isSnapshot: false))
+                        }
+                    } else {
+                        continuation.yield(.token(display, isSnapshot: true))
+                    }
+                    previousDisplay = display
+
                     if token.isComplete {
                         iterationTokenCount = token.tokenCount
                         if let count = token.tokenCount {
