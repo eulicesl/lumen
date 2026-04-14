@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Agent event (streamed to callers)
 
 enum AgentEvent: Sendable {
-    case token(String)
+    case token(String, isSnapshot: Bool)
     case toolCall(name: String, input: String)
     case toolResult(name: String, result: String)
     case complete(tokenCount: Int?)
@@ -16,7 +16,6 @@ actor AgentService {
     static let shared = AgentService()
 
     private let maxIterations = 6
-    private let toolCallPattern = #/\[\[TOOL:(?<name>[^\|]+)\|(?<input>[^\]]*)\]\]/#
 
     private init() {}
 
@@ -67,9 +66,23 @@ actor AgentService {
             )
 
             do {
+                var previousDisplay = ""
                 for try await token in stream {
                     assistantContent += token.text
-                    continuation.yield(.token(token.text))
+                    let display = assistantContent.hasOnlyAgentToolCalls
+                        ? assistantContent.stripAgentMarkup(normalizeWhitespace: false, trimEdges: false)
+                        : assistantContent
+
+                    if display.hasPrefix(previousDisplay) {
+                        let delta = String(display.dropFirst(previousDisplay.count))
+                        if !delta.isEmpty {
+                            continuation.yield(.token(delta, isSnapshot: false))
+                        }
+                    } else {
+                        continuation.yield(.token(display, isSnapshot: true))
+                    }
+                    previousDisplay = display
+
                     if token.isComplete {
                         iterationTokenCount = token.tokenCount
                         if let count = token.tokenCount {
@@ -105,6 +118,8 @@ actor AgentService {
                 toolResultText += "\n[[RESULT:\(result)]]"
             }
 
+            // Keep raw markup in agent loop context so subsequent iterations
+            // can see tool results. Display-side stripping happens in the UI layer.
             let assistantMsg = ChatMessage.assistantMessage(
                 assistantContent + toolResultText,
                 tokenCount: iterationTokenCount
@@ -124,14 +139,7 @@ actor AgentService {
     // MARK: - Tool call extraction
 
     private func extractToolCalls(from text: String) -> [(name: String, input: String)] {
-        var results: [(name: String, input: String)] = []
-        for match in text.matches(of: toolCallPattern) {
-            results.append((
-                name: String(match.output.name).trimmingCharacters(in: .whitespaces),
-                input: String(match.output.input)
-            ))
-        }
-        return results
+        text.parsePureAgentToolCalls() ?? []
     }
 
     // MARK: - Build agent-augmented options

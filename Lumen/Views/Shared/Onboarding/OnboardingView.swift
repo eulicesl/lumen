@@ -37,7 +37,7 @@ private let onboardingPages: [OnboardingPage] = [
         symbol: "sparkles",
         symbolColor: .orange,
         title: "Ready to Go",
-        subtitle: "Choose Apple Intelligence, connect Ollama Local, or sign in with an Ollama Cloud API key. Switch models anytime from the chat bar."
+        subtitle: "Start with Apple Intelligence on supported devices, or optionally connect Ollama Local or Ollama Cloud later. Switch models anytime from the chat bar."
     ),
 ]
 
@@ -46,6 +46,7 @@ private let onboardingPages: [OnboardingPage] = [
 struct OnboardingView: View {
     @Binding var hasSeenOnboarding: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var currentPage = 0
     @ScaledMetric(relativeTo: .largeTitle) private var symbolCoreSize = 64
     @ScaledMetric(relativeTo: .largeTitle) private var innerCircleSize = 140
@@ -126,33 +127,19 @@ struct OnboardingView: View {
             pageIndicator
 
             if currentPage < onboardingPages.count - 1 {
-                HStack {
-                    Button("Skip") {
-                        completeOnboarding()
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(spacing: LumenSpacing.md) {
+                        nextButton
+                        skipButton
                     }
-                    .font(LumenType.body)
-                    .foregroundStyle(.secondary)
-                    .accessibilityLabel("Skip onboarding")
-                    .accessibilityHint("Skips onboarding and opens the app")
+                } else {
+                    HStack {
+                        skipButton
 
-                    Spacer()
+                        Spacer()
 
-                    Button {
-                        LumenMotion.perform(reduceMotion: reduceMotion) {
-                            currentPage += 1
-                        }
-                        HapticEngine.impact(.light)
-                    } label: {
-                        Label("Next", systemImage: "arrow.right")
-                            .labelStyle(.titleAndIcon)
-                            .font(LumenType.headline.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(.horizontal, LumenSpacing.xl)
-                            .padding(.vertical, LumenSpacing.md)
-                            .background(Color.accentColor, in: Capsule())
+                        nextButton
                     }
-                    .accessibilityLabel("Next page")
-                    .accessibilityHint("Moves to the next onboarding page")
                 }
             } else {
                 Button {
@@ -170,6 +157,36 @@ struct OnboardingView: View {
                 .accessibilityHint("Completes onboarding and opens the app")
             }
         }
+    }
+
+    private var skipButton: some View {
+        Button("Skip") {
+            completeOnboarding()
+        }
+        .font(LumenType.body)
+        .foregroundStyle(.secondary)
+        .accessibilityLabel("Skip onboarding")
+        .accessibilityHint("Skips onboarding and opens the app")
+    }
+
+    private var nextButton: some View {
+        Button {
+            LumenMotion.perform(reduceMotion: reduceMotion) {
+                currentPage += 1
+            }
+            HapticEngine.impact(.light)
+        } label: {
+            Label("Next", systemImage: "arrow.right")
+                .labelStyle(.titleAndIcon)
+                .font(LumenType.headline.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: dynamicTypeSize.isAccessibilitySize ? .infinity : nil)
+                .padding(.horizontal, LumenSpacing.xl)
+                .padding(.vertical, LumenSpacing.md)
+                .background(Color.accentColor, in: Capsule())
+        }
+        .accessibilityLabel("Next page")
+        .accessibilityHint("Moves to the next onboarding page")
     }
 
     private var pageIndicator: some View {

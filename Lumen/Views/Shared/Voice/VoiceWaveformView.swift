@@ -79,6 +79,7 @@ struct VoiceWaveformView: View {
 struct VoicePulseView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let isActive: Bool
+    @ScaledMetric(relativeTo: .title2) private var iconSize = 24
     @State private var scale: CGFloat = 1.0
     @State private var opacity: Double = 0.6
 
@@ -99,8 +100,9 @@ struct VoicePulseView: View {
                 .frame(width: 64, height: 64)
                 .overlay {
                     Image(systemName: isActive ? LumenIcon.micActive : LumenIcon.microphone)
-                        .font(.system(size: 24, weight: .semibold))
+                        .font(.system(size: iconSize, weight: .semibold))
                         .foregroundStyle(.white)
+                        .accessibilityHidden(true)
                 }
         }
         .onAppear { updatePulseState() }

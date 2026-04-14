@@ -5,6 +5,10 @@ struct ModelComparisonView: View {
     @Environment(ModelStore.self) private var modelStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    @ScaledMetric(relativeTo: .title) private var placeholderIconSize = 52
+    @ScaledMetric(relativeTo: .body) private var promptActionIconSize = 20
 
     @State private var modelA: AIModel?
     @State private var modelB: AIModel?
@@ -166,7 +170,7 @@ struct ModelComparisonView: View {
         VStack(spacing: LumenSpacing.md) {
             Spacer()
             Image(systemName: "arrow.left.arrow.right.circle")
-                .font(.system(size: 52))
+                .font(.system(size: placeholderIconSize))
                 .foregroundStyle(.quaternary)
                 .symbolRenderingMode(.hierarchical)
             Text("Compare two models side by side")
@@ -186,7 +190,9 @@ struct ModelComparisonView: View {
         HStack(alignment: .bottom, spacing: LumenSpacing.sm) {
             TextField("Enter a prompt to compare…", text: $prompt, axis: .vertical)
                 .font(LumenType.messageBody)
-                .lineLimit(1...6)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2...10 : 1...6)
+                 .accessibilityLabel("Comparison prompt")
+                 .accessibilityHint("Enter the question you want both models to answer")
                 .focused($promptFocused)
                 .padding(.horizontal, LumenSpacing.sm)
                 .padding(.vertical, LumenSpacing.xs)
@@ -195,21 +201,26 @@ struct ModelComparisonView: View {
             if isRunning {
                 Button { stopAll() } label: {
                     Image(systemName: LumenIcon.stop)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: promptActionIconSize, weight: .semibold))
                         .foregroundStyle(.red)
                         .frame(width: 36, height: 36)
                         .background(Color.red.opacity(0.12), in: Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Stop comparison")
+                .accessibilityHint("Stops both model responses")
             } else {
                 Button { runComparison() } label: {
                     Image(systemName: LumenIcon.send)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: promptActionIconSize, weight: .semibold))
                         .foregroundStyle(canRun ? Color.accentColor : Color.secondary)
                         .frame(width: 36, height: 36)
                         .background(canRun ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.08), in: Circle())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Run comparison")
+                .accessibilityHint("Starts the side by side comparison")
+                .accessibilityValue(canRun ? "Ready" : "Unavailable until you enter a prompt and choose at least one model")
                 .disabled(!canRun)
             }
         }
@@ -323,6 +334,7 @@ struct ModelComparisonView: View {
 // MARK: - Model selector button
 
 private struct ModelSelectorButton: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let label: String
     @Binding var model: AIModel?
     let available: [AIModel]
@@ -341,15 +353,21 @@ private struct ModelSelectorButton: View {
                         .font(LumenType.body)
                         .fontWeight(.medium)
                         .foregroundStyle(model != nil ? .primary : .secondary)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(.tertiary)
+                        .accessibilityHidden(true)
                 }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, LumenSpacing.xs)
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
+        .accessibilityValue(model?.name ?? "No model selected")
+        .accessibilityHint("Opens the model picker")
         .sheet(isPresented: $showingPicker) {
             NavigationStack {
                 List {

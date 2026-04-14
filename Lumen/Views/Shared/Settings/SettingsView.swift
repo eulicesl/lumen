@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(MemoryStore.self) private var memoryStore
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @State private var ollamaLocalURLDraft = ""
     @State private var ollamaLocalTokenDraft = ""
@@ -23,14 +24,22 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 activeModelSection
-                ollamaLocalSection
-                ollamaCloudSection
-                appleIntelligenceSection
-                memorySection
-                agentSection
-                appearanceSection(bindableApp: $bindableApp)
-                aboutSection
-                dangerSection
+                if AppLaunchConfiguration.isReleaseCaptureMode {
+                    appleIntelligenceSection
+                    memorySection
+                    agentSection
+                    appearanceSection(bindableApp: $bindableApp)
+                    aboutSection
+                } else {
+                    ollamaLocalSection
+                    ollamaCloudSection
+                    appleIntelligenceSection
+                    memorySection
+                    agentSection
+                    appearanceSection(bindableApp: $bindableApp)
+                    aboutSection
+                    dangerSection
+                }
             }
             .navigationTitle("Settings")
             #if os(iOS)
@@ -92,6 +101,7 @@ struct SettingsView: View {
                         Text(subtitle)
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
 
@@ -255,7 +265,7 @@ struct SettingsView: View {
         } header: {
             providerSectionHeader("Apple Intelligence", provider: .foundationModels)
         } footer: {
-            Text("Runs entirely on-device. Requests stay on your iPhone.")
+            Text("Runs entirely on-device. On supported hardware, this is the simplest path and does not require an account, API key, or extra setup.")
         }
     }
 
@@ -277,14 +287,17 @@ struct SettingsView: View {
                             : "Disabled")
                             .font(LumenType.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
                 }
             }
             .accessibilityLabel("Memory")
@@ -315,14 +328,17 @@ struct SettingsView: View {
                             : "Disabled")
                             .font(LumenType.caption)
                             .foregroundStyle(chatStore.agentModeEnabled ? Color.accentColor : Color.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Spacer()
 
-                    Image(systemName: "chevron.right")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .accessibilityHidden(true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .accessibilityHidden(true)
+                    }
                 }
             }
             .accessibilityLabel("Agent Mode")
@@ -399,6 +415,7 @@ private extension SettingsView {
                 Text(subtitle)
                     .font(LumenType.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }
@@ -450,6 +467,7 @@ private extension SettingsView {
                     Text(detail)
                         .font(LumenType.caption)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 

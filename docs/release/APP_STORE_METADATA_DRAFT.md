@@ -19,13 +19,13 @@ Choose one based on the final positioning:
 
 ## Promotional text
 
-Private AI on your device and local network. Chat with Apple Intelligence or Ollama, search your history, import documents, and keep control of your data.
+Private AI on your device first. Start with Apple Intelligence on supported hardware, or optionally connect Ollama later, then search your history, import documents, and keep control of your data.
 
 ## Description
 
 Lumen is a privacy-first AI assistant for Apple devices.
 
-Use Apple Intelligence on supported hardware or connect to Ollama on your local network. Your conversations stay on your device or inside your local environment instead of being routed through a vendor-hosted cloud service.
+Use Apple Intelligence on supported hardware with no account or extra setup required, or optionally connect to Ollama on your local network. Your conversations stay on your device or inside your local environment instead of being routed through a vendor-hosted cloud service.
 
 Lumen is built for fast, native workflows:
 

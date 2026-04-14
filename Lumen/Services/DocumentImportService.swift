@@ -116,7 +116,7 @@ enum DocumentPromptComposer {
         let names = documentNames(in: content)
         guard !names.isEmpty else { return content }
 
-        let stripped = content
+        var stripped = content
             .replacingOccurrences(
                 of: documentBlockPattern,
                 with: "",
@@ -124,8 +124,18 @@ enum DocumentPromptComposer {
             )
             .trimmingCharacters(in: .whitespacesAndNewlines)
 
+        if AppLaunchConfiguration.isReleaseCaptureMode {
+            stripped = stripped
+                .replacingOccurrences(of: "Use the imported document context below in your response.", with: "")
+                .replacingOccurrences(of: "Please use the imported document context below in your response.", with: "")
+                .replacingOccurrences(of: "\n\n\n", with: "\n\n")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
         let attachmentSummary: String
-        if names.count == 1 {
+        if AppLaunchConfiguration.isReleaseCaptureMode {
+            attachmentSummary = names.count == 1 ? "From \(names[0])" : "From attached notes"
+        } else if names.count == 1 {
             attachmentSummary = "Attached document: \(names[0])"
         } else {
             let bullets = names.map { "- \($0)" }.joined(separator: "\n")

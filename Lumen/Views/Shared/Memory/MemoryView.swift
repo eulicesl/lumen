@@ -187,6 +187,9 @@ struct MemoryView: View {
             }
             .padding(.vertical, LumenSpacing.xl)
             .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("No memories yet")
+            .accessibilityHint("Use Add First Memory to save a fact or preference")
         }
     }
 

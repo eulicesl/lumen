@@ -321,11 +321,11 @@ final class ChatStore {
         for await event in agentStream {
             if Task.isCancelled { break }
             switch event {
-            case .token(let text):
+            case .token(let text, let isSnapshot):
                 if timeToFirstToken == nil {
                     timeToFirstToken = Date().timeIntervalSince(startTime)
                 }
-                assistantContent += text
+                assistantContent = isSnapshot ? text : assistantContent + text
                 messages[assistantIndex].content = assistantContent
             case .complete(let tokenCount):
                 messages[assistantIndex].isComplete = true

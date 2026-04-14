@@ -35,9 +35,10 @@ Current release blockers are concentrated in:
 - [ ] Verify light mode and dark mode polish on the release build.
   - Current screenshot harness output is dark-mode only; light-mode visual parity still needs explicit signoff.
 - [ ] Finalize reviewer notes for Apple.
-  - Explain that Apple Intelligence works on supported devices without extra setup.
+  - Explain that Apple Intelligence is the primary reviewer path on supported devices and does not require account creation, login, or third-party credentials.
   - Explain that Ollama Local and Ollama Cloud are optional advanced providers and not required to review the app.
   - Provide exact reviewer steps for a successful Apple Intelligence-only review path.
+  - Add fallback guidance for devices where Apple Intelligence is unavailable.
 - [ ] Validate the release binary on at least one non-ideal environment path.
   - Example: device without Apple Intelligence availability, or with Ollama disabled, to confirm graceful fallback messaging.
 

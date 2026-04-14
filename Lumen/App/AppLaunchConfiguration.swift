@@ -28,9 +28,9 @@ enum ReleaseScreenshotScene: String {
         case .chat:
             return "Weekend in Portland"
         case .documents:
-            return "Launch Brief Review"
+            return "Barcelona Neighborhood Guide"
         case .search:
-            return "Release Checklist"
+            return "Kyoto Trip Ideas"
         case .settings:
             return "Weekend in Portland"
         }
@@ -47,7 +47,7 @@ enum ReleaseScreenshotScene: String {
     var searchQuery: String {
         switch self {
         case .search:
-            return "privacy"
+            return "vegetarian"
         case .chat, .documents, .settings:
             return ""
         }

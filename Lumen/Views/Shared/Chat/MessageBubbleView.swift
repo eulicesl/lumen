@@ -173,9 +173,10 @@ struct MessageBubbleView: View {
                     .font(LumenType.messageBody)
                     .foregroundStyle(Color.primary)
                     .multilineTextAlignment(.leading)
+                    .lineSpacing(3)
                     .textSelection(.enabled)
                     .padding(.horizontal, LumenSpacing.md)
-                    .padding(.vertical, LumenSpacing.xs)
+                    .padding(.vertical, LumenSpacing.sm)
                     .fixedSize(horizontal: false, vertical: true)
             )
         }
@@ -188,13 +189,14 @@ struct MessageBubbleView: View {
                     .padding(.horizontal, LumenSpacing.md)
                     .padding(.vertical, LumenSpacing.sm)
             } else {
-                Text(AttributedString.fromMarkdown(message.content))
+                Text(AttributedString.fromMarkdown(mainContent))
                     .font(LumenType.messageBody)
                     .foregroundStyle(Color.primary)
                     .multilineTextAlignment(.leading)
+                    .lineSpacing(3)
                     .textSelection(.enabled)
                     .padding(.horizontal, LumenSpacing.md)
-                    .padding(.vertical, LumenSpacing.xs)
+                    .padding(.vertical, LumenSpacing.sm)
                     .fixedSize(horizontal: false, vertical: true)
                 StreamingPulse()
                     .padding(.trailing, LumenSpacing.sm)
@@ -217,7 +219,13 @@ struct MessageBubbleView: View {
     // MARK: - Think blocks
 
     private var thinkBlocks: [String] { message.content.extractThinkBlocks() }
-    private var mainContent: String { message.content.stripThinkBlocks() }
+
+    /// Agent markup is already sanitized during agent streaming before it
+    /// reaches normal assistant rendering. Keep display logic conservative here
+    /// so literal examples like [[TOOL:...]] are not removed from valid answers.
+    private var mainContent: String {
+        message.content.stripThinkBlocks()
+    }
 
     private var thinkingDisclosure: some View {
         DisclosureGroup(isExpanded: $thinkingExpanded) {
@@ -244,7 +252,7 @@ struct MessageBubbleView: View {
     // MARK: - Actions
 
     private func copyMessage() {
-        let copiedContent = message.isUser ? message.content.documentAwareDisplayText : message.content
+        let copiedContent = message.isUser ? message.content.documentAwareDisplayText : mainContent
         #if os(iOS)
         UIPasteboard.general.string = copiedContent
         #elseif os(macOS)
@@ -283,7 +291,7 @@ struct MessageBubbleView: View {
         if message.isUser {
             return max(180, min(usableWidth * 0.64, 360))
         } else {
-            return max(220, min(usableWidth * 0.74, 420))
+            return max(220, min(usableWidth * 0.70, 400))
         }
         #else
         let layoutWidth = availableWidth ?? 720

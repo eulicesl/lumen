@@ -1,22 +1,24 @@
 import SwiftUI
 
 struct ConversationRowView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let conversation: Conversation
     let isSelected: Bool
 
     var body: some View {
         HStack(spacing: LumenSpacing.sm) {
             VStack(alignment: .leading, spacing: LumenSpacing.xxs) {
-                HStack {
+                HStack(alignment: .firstTextBaseline) {
                     Text(conversation.title)
                         .font(LumenType.bodyBold)
                         .foregroundStyle(isSelected ? Color.accentColor : .primary)
-                        .lineLimit(1)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
                     Spacer()
                     if conversation.isPinned {
                         Image(systemName: LumenIcon.pin)
-                            .font(.system(size: 10))
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
+                            .accessibilityHidden(true)
                     }
                     Text(conversation.updatedAt.relativeTimeString)
                         .font(LumenType.caption)
@@ -26,12 +28,31 @@ struct ConversationRowView: View {
                     Text(conversation.preview)
                         .font(LumenType.footnote)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 4 : 2)
                 }
             }
         }
         .padding(.vertical, LumenSpacing.xs)
         .contentShape(Rectangle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(conversation.title)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint("Opens this conversation")
+    }
+
+    private var accessibilityValue: String {
+        var parts: [String] = []
+        if conversation.isPinned {
+            parts.append("Pinned")
+        }
+        if !conversation.preview.isEmpty {
+            parts.append(conversation.preview)
+        }
+        parts.append("Updated \(conversation.updatedAt.relativeTimeString)")
+        if isSelected {
+            parts.append("Selected")
+        }
+        return parts.joined(separator: ". ")
     }
 }
 

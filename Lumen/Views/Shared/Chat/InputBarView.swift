@@ -345,10 +345,7 @@ struct InputBarView: View {
             parts.append("\(documentCount) document\(documentCount == 1 ? "" : "s")")
         }
 
-        assert(
-            !parts.isEmpty,
-            "sendButtonAccessibilityValue should only be evaluated when there is sendable content"
-        )
+        guard !parts.isEmpty else { return "Ready to send" }
         return parts.joined(separator: ", ")
     }
 
@@ -532,7 +529,7 @@ private struct DocumentAttachmentRow: View {
                 Text(document.fileName)
                     .font(LumenType.caption.weight(.semibold))
                     .foregroundStyle(.primary)
-                    .lineLimit(1)
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
 
                 Text(document.previewText)
                     .font(LumenType.caption)
@@ -562,6 +559,9 @@ private struct DocumentAttachmentRow: View {
             RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
                 .strokeBorder(.separator, lineWidth: 0.5)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(document.fileName)
+        .accessibilityValue(document.previewText)
     }
 }
 
