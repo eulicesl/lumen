@@ -98,7 +98,7 @@ extension String {
         enumerateLines { line, _ in
             if line.isEmpty {
                 pendingBlankLines += 1
-                if pendingBlankLines <= 2 {
+                if pendingBlankLines <= 1 {
                     normalizedLines.append("")
                 }
             } else {
