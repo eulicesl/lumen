@@ -2,8 +2,7 @@ import Foundation
 import SwiftUI
 
 extension String {
-    private static let agentToolCallPattern = #/\[\[TOOL:.*?\]\]/#
-    private static let agentToolResultPattern = #/\[\[RESULT:.*?\]\]/#
+    private static let agentMarkupPrefixes = ["[[TOOL:", "[[RESULT:"]
 
     var hasMarkdown: Bool {
         contains("**") || contains("*") || contains("# ") ||
@@ -34,15 +33,62 @@ extension String {
         contains("[[TOOL:") || contains("[[RESULT:")
     }
 
-    func stripAgentMarkup() -> String {
+    func stripAgentMarkup(normalizeWhitespace: Bool = true, trimEdges: Bool = true) -> String {
         guard mayContainAgentMarkup else { return self }
 
-        let withoutToolCalls = replacing(Self.agentToolCallPattern, with: "")
-        let withoutToolResults = withoutToolCalls.replacing(Self.agentToolResultPattern, with: "")
+        var output = ""
+        var index = startIndex
 
-        return withoutToolResults
-            .replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        while index < endIndex {
+            if let prefix = Self.agentMarkupPrefixes.first(where: { self[index...].hasPrefix($0) }),
+               let closingIndex = agentMarkupClosingIndex(from: index, prefix: prefix) {
+                index = closingIndex
+                continue
+            }
+
+            output.append(self[index])
+            index = self.index(after: index)
+        }
+
+        if normalizeWhitespace {
+            output = output.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+        }
+
+        if trimEdges {
+            output = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+
+        return output
+    }
+
+    private func agentMarkupClosingIndex(from start: Index, prefix: String) -> Index? {
+        var cursor = index(start, offsetBy: prefix.count)
+        var bracketDepth = 0
+
+        while cursor < endIndex {
+            let current = self[cursor]
+
+            if current == "[" {
+                bracketDepth += 1
+                cursor = index(after: cursor)
+                continue
+            }
+
+            if current == "]" {
+                let next = index(after: cursor)
+                if bracketDepth == 0, next < endIndex, self[next] == "]" {
+                    return index(after: next)
+                }
+
+                if bracketDepth > 0 {
+                    bracketDepth -= 1
+                }
+            }
+
+            cursor = index(after: cursor)
+        }
+
+        return nil
     }
 
     func extractThinkBlocks() -> [String] {

@@ -220,13 +220,11 @@ struct MessageBubbleView: View {
 
     private var thinkBlocks: [String] { message.content.extractThinkBlocks() }
 
-    /// Cached per body evaluation: strip agent markup and think blocks once,
-    /// then reuse everywhere in the same render pass.
+    /// Agent markup is already sanitized during agent streaming before it
+    /// reaches normal assistant rendering. Keep display logic conservative here
+    /// so literal examples like [[TOOL:...]] are not removed from valid answers.
     private var mainContent: String {
-        let stripped = message.content.mayContainAgentMarkup
-            ? message.content.stripAgentMarkup()
-            : message.content
-        return stripped.stripThinkBlocks()
+        message.content.stripThinkBlocks()
     }
 
     private var thinkingDisclosure: some View {

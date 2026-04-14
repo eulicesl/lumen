@@ -10,40 +10,54 @@ struct iPadContentView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @SceneStorage("scene.ipadColumnVisibility") private var restoredColumnVisibility = "all"
-    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    @State private var columnVisibility: NavigationSplitViewVisibility = {
+        AppLaunchConfiguration.isReleaseCaptureMode ? .detailOnly : .all
+    }()
+    @State private var showSettingsAsContent = false
 
     var body: some View {
         @Bindable var bindableStore = appStore
         NavigationSplitView(columnVisibility: $columnVisibility) {
-            ConversationListView()
-                .navigationSplitViewColumnWidth(min: 260, ideal: LumenLayout.sidebarWidthMac)
+            if !showSettingsAsContent {
+                ConversationListView()
+                    .navigationSplitViewColumnWidth(min: 260, ideal: LumenLayout.sidebarWidthMac)
+            }
         } detail: {
-            ChatView()
-                .toolbar {
-                    if !AppLaunchConfiguration.isReleaseCaptureMode {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                LumenMotion.perform(.easeInOut(duration: 0.2), reduceMotion: reduceMotion) {
-                                    columnVisibility = columnVisibility == .all ? .detailOnly : .all
+            if showSettingsAsContent {
+                SettingsView()
+                    .environment(appStore)
+                    .environment(chatStore)
+                    .environment(modelStore)
+                    .environment(memoryStore)
+            } else {
+                ChatView()
+                    .toolbar {
+                        if !AppLaunchConfiguration.isReleaseCaptureMode {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button {
+                                    LumenMotion.perform(.easeInOut(duration: 0.2), reduceMotion: reduceMotion) {
+                                        columnVisibility = columnVisibility == .all ? .detailOnly : .all
+                                    }
+                                } label: {
+                                    Image(systemName: "sidebar.left")
                                 }
-                            } label: {
-                                Image(systemName: "sidebar.left")
+                                .accessibilityLabel(columnVisibility == .all ? "Hide Conversations" : "Show Conversations")
                             }
-                            .accessibilityLabel(columnVisibility == .all ? "Hide Conversations" : "Show Conversations")
                         }
                     }
-                }
-        }
-        .sheet(isPresented: $bindableStore.showingSettings) {
-            SettingsView()
-                .environment(appStore)
-                .environment(chatStore)
-                .environment(modelStore)
-                .environment(memoryStore)
+            }
         }
         .task {
-            restoreColumnVisibility()
+            if !AppLaunchConfiguration.isReleaseCaptureMode {
+                restoreColumnVisibility()
+            }
             await restoreSceneSelectionIfNeeded()
+            if AppLaunchConfiguration.isReleaseCaptureMode {
+                let isSettingsScene = AppLaunchConfiguration.screenshotScene?.opensSettings == true
+                if isSettingsScene {
+                    showSettingsAsContent = true
+                }
+            }
         }
         .onChange(of: chatStore.conversations.count) {
             Task { await restoreSceneSelectionIfNeeded() }
@@ -64,11 +78,6 @@ private extension iPadContentView {
     }
 
     func restoreColumnVisibility() {
-        if AppLaunchConfiguration.isReleaseCaptureMode {
-            columnVisibility = .detailOnly
-            return
-        }
-
         columnVisibility = NavigationSplitViewVisibility(
             sceneStorageValue: restoredColumnVisibility,
             fallback: .all

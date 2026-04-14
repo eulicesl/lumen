@@ -52,6 +52,21 @@ struct StringAgentMarkupTests {
         #expect(result.contains("end"))
     }
 
+    @Test("strips tool result when payload is an empty array")
+    func stripToolResultWithEmptyArrayPayload() {
+        let input = "Output: [[RESULT:[]]] end"
+        let result = input.stripAgentMarkup()
+        #expect(result == "Output:  end")
+        #expect(!result.contains("]]]"))
+    }
+
+    @Test("strips tool call when payload contains markdown link brackets")
+    func stripToolCallWithMarkdownLinkPayload() {
+        let input = "Check [[TOOL:fetch|see [guide](https://example.com)]] done"
+        let result = input.stripAgentMarkup()
+        #expect(result == "Check  done")
+    }
+
     // MARK: - Passthrough (no markup)
 
     @Test("returns unchanged string when no markup present")
@@ -102,5 +117,12 @@ struct StringAgentMarkupTests {
         let input = "  \n[[TOOL:test|x]] Hello  \n  "
         let result = input.stripAgentMarkup()
         #expect(result == "Hello")
+    }
+
+    @Test("streaming mode preserves surrounding whitespace")
+    func streamingModePreservesWhitespace() {
+        let input = "Hello [[TOOL:test|x]]\n"
+        let result = input.stripAgentMarkup(normalizeWhitespace: false, trimEdges: false)
+        #expect(result == "Hello \n")
     }
 }

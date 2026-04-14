@@ -72,7 +72,7 @@ actor AgentService {
                     // Yield the full accumulated content; strip markup only when
                     // it might be present to avoid O(n²) regex on every token.
                     let display = assistantContent.mayContainAgentMarkup
-                        ? assistantContent.stripAgentMarkup()
+                        ? assistantContent.stripAgentMarkup(normalizeWhitespace: false, trimEdges: false)
                         : assistantContent
                     continuation.yield(.token(display))
                     if token.isComplete {
