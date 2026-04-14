@@ -3,6 +3,7 @@ import SwiftUI
 
 extension String {
     private static let agentMarkupPrefixes = ["[[TOOL:", "[[RESULT:"]
+    private static let pureAgentToolCallPattern = #/^\s*(\[\[TOOL:(?<name>[^\|]+)\|(?<input>[^\]]*)\]\]\s*)+$/#
 
     var hasMarkdown: Bool {
         contains("**") || contains("*") || contains("# ") ||
@@ -31,6 +32,11 @@ extension String {
     /// Fast check: returns true only when the string likely contains agent markup.
     var mayContainAgentMarkup: Bool {
         contains("[[TOOL:") || contains("[[RESULT:")
+    }
+
+    /// True only when the content is control-only tool syntax, not prose that merely mentions it.
+    var hasOnlyAgentToolCalls: Bool {
+        wholeMatch(of: Self.pureAgentToolCallPattern) != nil
     }
 
     func stripAgentMarkup(normalizeWhitespace: Bool = true, trimEdges: Bool = true) -> String {

@@ -100,6 +100,18 @@ struct StringAgentMarkupTests {
         #expect("abc [[RESULT:2]] xyz".mayContainAgentMarkup)
     }
 
+    @Test("detects pure tool-only control responses")
+    func detectPureToolOnlyResponse() {
+        #expect("[[TOOL:calculator|2+2]]".hasOnlyAgentToolCalls)
+        #expect("\n[[TOOL:calculator|2+2]]\n[[TOOL:wordcount|hello world]]\n".hasOnlyAgentToolCalls)
+    }
+
+    @Test("does not treat prose examples as pure tool-only responses")
+    func proseToolExamplesAreNotControlResponses() {
+        #expect(!"You can write [[TOOL:calculator|2+2]] to call a tool.".hasOnlyAgentToolCalls)
+        #expect(!"Literal [[TOOL:calculator|2+2]] syntax should stay visible".hasOnlyAgentToolCalls)
+    }
+
     // MARK: - Whitespace normalization
 
     @Test("collapses excessive blank lines after stripping")

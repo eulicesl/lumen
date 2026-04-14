@@ -70,7 +70,7 @@ actor AgentService {
                 var previousDisplay = ""
                 for try await token in stream {
                     assistantContent += token.text
-                    let display = assistantContent.mayContainAgentMarkup
+                    let display = assistantContent.hasOnlyAgentToolCalls
                         ? assistantContent.stripAgentMarkup(normalizeWhitespace: false, trimEdges: false)
                         : assistantContent
 
@@ -140,6 +140,8 @@ actor AgentService {
     // MARK: - Tool call extraction
 
     private func extractToolCalls(from text: String) -> [(name: String, input: String)] {
+        guard text.hasOnlyAgentToolCalls else { return [] }
+
         var results: [(name: String, input: String)] = []
         for match in text.matches(of: toolCallPattern) {
             results.append((
