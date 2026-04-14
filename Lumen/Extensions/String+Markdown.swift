@@ -109,7 +109,14 @@ extension String {
     }
 
     private func agentMarkupClosingIndex(from start: Index, prefix: String) -> Index? {
-        var cursor = index(start, offsetBy: prefix.count)
+        let contentStart = index(start, offsetBy: prefix.count)
+
+        // Primary: balanced bracket-depth counting. Handles nested groups
+        // where the payload itself contains balanced brackets — e.g.
+        // [[TOOL:calc|[]]] (payload `[]`), [[TOOL:fetch|see [guide](url)]]
+        // (payload contains a markdown link), or [[TOOL:x|[a][b]]]
+        // (payload contains multiple balanced groups).
+        var cursor = contentStart
         var bracketDepth = 0
 
         while cursor < endIndex {
@@ -133,6 +140,19 @@ extension String {
             }
 
             cursor = index(after: cursor)
+        }
+
+        // Fallback: the payload contains an unbalanced `[` (for example a
+        // regex fragment like `[a-z` or a truncated JSON array), so the
+        // balanced scan above never returns to depth 0 and never recognizes
+        // the `]]` terminator. Recover by using the first `]]` in the
+        // content as the terminator. The TOOL protocol has no escape
+        // mechanism for literal `]]` inside a payload, so in that case we
+        // can't distinguish a payload-`]]` from the terminator anyway.
+        // Best-effort first-`]]` matching is strictly better than silently
+        // dropping the tool call.
+        if let range = self[contentStart...].range(of: "]]") {
+            return range.upperBound
         }
 
         return nil

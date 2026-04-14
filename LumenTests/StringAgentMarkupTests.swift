@@ -125,6 +125,19 @@ struct StringAgentMarkupTests {
         #expect(markdownPayload?.first?.input == "see [guide](https://example.com)")
     }
 
+    @Test("parses pure tool-only responses with unbalanced bracket payloads")
+    func parsePureToolOnlyResponseWithUnbalancedBracketPayloads() {
+        // Regex-like payload with an unmatched `[`. Balanced parsing fails
+        // here; the parser must fall back to first-`]]` matching so the
+        // tool call still executes instead of being silently dropped.
+        let regexPayload = "[[TOOL:search|[a-z]]".parsePureAgentToolCalls()
+        #expect(regexPayload?.count == 1)
+        #expect(regexPayload?.first?.name == "search")
+        #expect(regexPayload?.first?.input == "[a-z")
+
+        #expect("[[TOOL:search|[a-z]]".hasOnlyAgentToolCalls)
+    }
+
     @Test("does not treat prose examples as pure tool-only responses")
     func proseToolExamplesAreNotControlResponses() {
         #expect(!"You can write [[TOOL:calculator|2+2]] to call a tool.".hasOnlyAgentToolCalls)
