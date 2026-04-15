@@ -41,15 +41,12 @@ done
 
 resolve_device_id() {
   local device_name
+  local devices
+  devices="$(xcrun simctl list devices available)"
 
   for device_name in "$@"; do
     local device_id
-    device_id="$(
-      xcrun simctl list devices available |
-        grep -F "$device_name" |
-        grep -v unavailable |
-        grep -m 1 -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}'
-    )"
+    device_id="$(printf '%s\n' "$devices" | grep -F "$device_name" | grep -v unavailable | grep -m 1 -oE '[0-9A-F]{8}(-[0-9A-F]{4}){3}-[0-9A-F]{12}' || true)"
 
     if [[ -n "$device_id" ]]; then
       printf '%s\n' "$device_id"
@@ -60,7 +57,7 @@ resolve_device_id() {
   return 1
 }
 
-IPHONE_ID="${IPHONE_SIMULATOR_ID:-$(resolve_device_id "iPhone 17 Pro Max" "iPhone 16 Pro Max")}"
+IPHONE_ID="${IPHONE_SIMULATOR_ID:-$(resolve_device_id "iPhone 16 Pro Max" "iPhone 15 Pro Max" "iPhone 17 Pro Max")}"
 IPAD_ID="${IPAD_SIMULATOR_ID:-$(resolve_device_id "iPad Pro 13-inch" "iPad Pro 13-inch (M4)")}"
 
 if [[ -z "${IPHONE_ID:-}" || -z "${IPAD_ID:-}" ]]; then
@@ -233,10 +230,9 @@ capture_app_store_scenes_iphone() {
 
   log "=== Capturing App Store Scenes (iPhone) ==="
 
-  # Build and install if not already done
-  if [[ ! -d "$DERIVED_DATA/iphone/Build" ]]; then
-    build_and_install "$device_id" "$DERIVED_DATA/iphone"
-  fi
+  # Always install to ensure the bundle exists on the current simulator,
+  # even if derived data was built for a previous/reset device state.
+  build_and_install "$device_id" "$DERIVED_DATA/iphone"
 
   # Ensure app is in a known state (not showing onboarding)
   xcrun simctl terminate "$device_id" "$BUNDLE_ID" >/dev/null 2>&1 || true
@@ -257,10 +253,9 @@ capture_app_store_scenes_ipad() {
 
   log "=== Capturing App Store Scenes (iPad) ==="
 
-  # Build and install if not already done
-  if [[ ! -d "$DERIVED_DATA/ipad/Build" ]]; then
-    build_and_install "$device_id" "$DERIVED_DATA/ipad"
-  fi
+  # Always install to ensure the bundle exists on the current simulator,
+  # even if derived data was built for a previous/reset device state.
+  build_and_install "$device_id" "$DERIVED_DATA/ipad"
 
   # Ensure app is in a known state
   xcrun simctl terminate "$device_id" "$BUNDLE_ID" >/dev/null 2>&1 || true
