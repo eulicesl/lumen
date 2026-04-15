@@ -71,7 +71,7 @@ xcodebuild test \
   -scheme Lumen \
   -destination "id=<simulator-udid>"
 
-# Build only, skipping UI tests
+# Run tests, skipping UI tests
 xcodebuild test \
   -project Lumen.xcodeproj \
   -scheme Lumen \
