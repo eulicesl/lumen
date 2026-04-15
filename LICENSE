@@ -1,0 +1,43 @@
+Lumen — Proprietary License
+
+Copyright (c) 2026 Eulices Lopez. All rights reserved.
+
+This repository contains the source code for Lumen, a commercial
+application distributed through Apple's App Store and TestFlight. The
+source is published publicly for portfolio, reference, evaluation, and
+academic review purposes only.
+
+No license, express or implied, is granted to use, copy, modify, merge,
+publish, distribute, sublicense, or sell copies of this software, any
+derivative work based on this software, or any substantial portion of
+it. This includes but is not limited to:
+
+  * building and distributing the compiled application, in source or
+    binary form, to any end user;
+  * incorporating any portion of this source into another software
+    product, whether open source, proprietary, or commercial;
+  * using this source to train, fine-tune, evaluate, or benchmark any
+    machine learning model, foundation model, or data pipeline intended
+    for commercial use;
+  * publishing this source, in whole or in part, to any other public
+    or private distribution channel including but not limited to other
+    code hosts, container registries, package managers, mirrors, or
+    archive services.
+
+The publisher retains the right to grant written, case-by-case
+permission for specific uses. For any question not explicitly answered
+above, the conservative interpretation applies: the act is not
+permitted without written authorization.
+
+"Lumen" and the Lumen wordmark are trademarks of Eulices Lopez.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES,
+OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR
+OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR
+THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+For licensing inquiries or questions about permitted use, contact:
+leulices@gmail.com
