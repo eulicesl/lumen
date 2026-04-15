@@ -236,9 +236,13 @@ extension AttributedString {
     }
 
     /// Rewrite line-level block markdown (`# Headings`, `- bullets`,
-    /// `1. numbered lists`, `> blockquotes`, horizontal rules) into forms
-    /// that `AttributedString(markdown:)`'s inline-only parser can render.
+    /// `> blockquotes`, horizontal rules) into forms that
+    /// `AttributedString(markdown:)`'s inline-only parser can render.
     /// Inline syntax (`**`, `*`, `[...](...)`) is passed through unchanged.
+    ///
+    /// Numbered lists (`1. item`) are intentionally left alone — Foundation's
+    /// inline parser does not reformat them but the raw `1. item` text reads
+    /// fine as plain prose, so there is no preprocessing pass for them.
     private static func preprocessBlockMarkdownForInlineRenderer(_ text: String) -> String {
         // `split(separator:omittingEmptySubsequences:)` drops blank lines and
         // wrecks spacing; use `components(separatedBy:)` to preserve every
@@ -258,9 +262,10 @@ extension AttributedString {
             let leadingWhitespace = rawLine.prefix(while: { $0 == " " || $0 == "\t" })
             let stripped = rawLine[leadingWhitespace.endIndex...]
 
-            // Horizontal rule: `---`, `***`, or `___` on a line by itself.
-            let trimmed = String(stripped).trimmingCharacters(in: .whitespaces)
-            if trimmed == "---" || trimmed == "***" || trimmed == "___" {
+            // Horizontal rule: CommonMark allows three or more of `-`, `*`,
+            // or `_` on a line by themselves, optionally with spaces between.
+            // Match `---`, `----`, `***`, `* * *`, `_ _ _`, etc.
+            if stripped.range(of: "^([-*_])(\\s*\\1){2,}\\s*$", options: .regularExpression) != nil {
                 lines[i] = "\(leadingWhitespace)——————————"
                 continue
             }
@@ -268,7 +273,11 @@ extension AttributedString {
             // ATX headings: `# ` through `###### `. Render as a bold,
             // slightly larger header by using `**...**` (there is no inline
             // font-size syntax in Foundation markdown, but bold reads well).
-            if let hashRange = stripped.range(of: "^#{1,6}\\s+", options: .regularExpression, range: stripped.startIndex..<stripped.endIndex) {
+            //
+            // The trailing `(\s+|$)` permits an empty heading (just `###`)
+            // per CommonMark; we emit an empty line in that case so the
+            // blank visual still shows up where the heading was.
+            if let hashRange = stripped.range(of: "^#{1,6}(\\s+|$)", options: .regularExpression, range: stripped.startIndex..<stripped.endIndex) {
                 let content = stripped[hashRange.upperBound...]
                     .trimmingCharacters(in: .whitespaces)
                     // Strip the trailing `#` characters some generators emit.

@@ -100,6 +100,30 @@ struct StringMarkdownHeaderTests {
         #expect(!out.contains("###"))
     }
 
+    @Test("accepts bare empty heading with no trailing space")
+    func acceptsBareEmptyHeading() {
+        // CommonMark treats `###` (just hashes, end of line) as a valid empty
+        // heading. Our previous regex `^#{1,6}\s+` required at least one
+        // whitespace after the hashes, so `###` alone leaked through as
+        // literal `###` in the rendered text.
+        let out = rendered("Before.\n###\nAfter.")
+        #expect(!out.contains("###"))
+        #expect(out.contains("Before."))
+        #expect(out.contains("After."))
+    }
+
+    @Test("recognizes horizontal rules with more than three chars or spaces")
+    func recognizesExtendedHorizontalRules() {
+        // CommonMark allows 3 or more of `-`, `*`, or `_`, and spaces between.
+        for rule in ["---", "----", "-----", "***", "____", "- - -", "* * *"] {
+            let out = rendered("above\n\(rule)\nbelow")
+            #expect(out.contains("above"))
+            #expect(out.contains("below"))
+            // The raw marker characters should not survive.
+            #expect(!out.contains(rule), "Expected \(rule) to be rewritten")
+        }
+    }
+
     @Test("preserves leading whitespace on indented lists")
     func preservesLeadingIndentation() {
         let out = rendered("    - indented item")
