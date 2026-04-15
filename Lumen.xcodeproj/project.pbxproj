@@ -97,6 +97,8 @@
 		FC60865578374CE87C3023E8 /* AIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 028FFBF54DCCC40C5320CCF4 /* AIService.swift */; };
 		FCF2F9DA4B974253B8360F90 /* AgentTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = A36D80F171892916D5E1C60C /* AgentTool.swift */; };
 		FE9A9B764FEE1C4A79C11034 /* ReleaseCaptureHarness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31F677437D0428BF43DBA525 /* ReleaseCaptureHarness.swift */; };
+		107D79EE06DFBC1AE5531BE0 /* StringAgentMarkupTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 085A9780262CD6C53C606058 /* StringAgentMarkupTests.swift */; };
+		28412B0DCB6F41AECB94EDA0 /* StringMarkdownHeaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9426DCD768293BD6441AECF0 /* StringMarkdownHeaderTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -220,6 +222,8 @@
 		EF5942AB91E9F59EF8F3F079 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
 		F5AEF61E845EE326D201C135 /* InputBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBarView.swift; sourceTree = "<group>"; };
 		FD274D21EB94F22C69F7A66A /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
+		085A9780262CD6C53C606058 /* StringAgentMarkupTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringAgentMarkupTests.swift; sourceTree = "<group>"; };
+		9426DCD768293BD6441AECF0 /* StringMarkdownHeaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringMarkdownHeaderTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -415,7 +419,9 @@
 				45F1D6B9C7245A7AE093A1FC /* AIProviderMock.swift */,
 				E2B2438632C98BE5CC9FE7D9 /* DataServiceTests.swift */,
 				BB089EE854CCB7F26944349A /* MemoryStoreTests.swift */,
-			);
+							085A9780262CD6C53C606058 /* StringAgentMarkupTests.swift */,
+				9426DCD768293BD6441AECF0 /* StringMarkdownHeaderTests.swift */,
+);
 			path = LumenTests;
 			sourceTree = "<group>";
 		};
@@ -845,7 +851,9 @@
 				E270844F9A2D7FB949AEC134 /* AgentToolTests.swift in Sources */,
 				CF1BAD1A3DB3572CA7EC8455 /* DataServiceTests.swift in Sources */,
 				C8123F136BD946CA482A7EB6 /* MemoryStoreTests.swift in Sources */,
-			);
+							107D79EE06DFBC1AE5531BE0 /* StringAgentMarkupTests.swift in Sources */,
+				28412B0DCB6F41AECB94EDA0 /* StringMarkdownHeaderTests.swift in Sources */,
+);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		D435232100DAD35816C226A8 /* Sources */ = {
