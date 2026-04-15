@@ -213,12 +213,99 @@ extension String {
 
 extension AttributedString {
     static func fromMarkdown(_ text: String) -> AttributedString {
+        // Foundation's inline-only markdown parser (the one this app uses for
+        // speed and zero dependencies) supports `**bold**`, `*italic*`,
+        // `[link](url)`, `` `code` `` and `~~strike~~`, but deliberately
+        // ignores block-level syntax: `# headers`, `- bullets`, numbered
+        // lists, blockquotes, horizontal rules, and fenced code blocks.
+        //
+        // LLM replies routinely emit `### Heading` and `- item` at the line
+        // level, so without a preprocessing pass users see literal `###` and
+        // `-` characters in the rendered output. Rather than pulling in a
+        // full block-level parser, rewrite those line-level constructs into
+        // inline equivalents that Foundation's parser does understand before
+        // handing the string off.
+        let preprocessed = preprocessBlockMarkdownForInlineRenderer(text)
         do {
             var options = AttributedString.MarkdownParsingOptions()
             options.interpretedSyntax = .inlineOnlyPreservingWhitespace
-            return try AttributedString(markdown: text, options: options)
+            return try AttributedString(markdown: preprocessed, options: options)
         } catch {
-            return AttributedString(text)
+            return AttributedString(preprocessed)
         }
+    }
+
+    /// Rewrite line-level block markdown (`# Headings`, `- bullets`,
+    /// `> blockquotes`, horizontal rules) into forms that
+    /// `AttributedString(markdown:)`'s inline-only parser can render.
+    /// Inline syntax (`**`, `*`, `[...](...)`) is passed through unchanged.
+    ///
+    /// Numbered lists (`1. item`) are intentionally left alone — Foundation's
+    /// inline parser does not reformat them but the raw `1. item` text reads
+    /// fine as plain prose, so there is no preprocessing pass for them.
+    private static func preprocessBlockMarkdownForInlineRenderer(_ text: String) -> String {
+        // `split(separator:omittingEmptySubsequences:)` drops blank lines and
+        // wrecks spacing; use `components(separatedBy:)` to preserve every
+        // line (including empty ones) and keep the paragraph rhythm intact.
+        var lines = text.components(separatedBy: "\n")
+        var insideFencedCode = false
+
+        for (i, rawLine) in lines.enumerated() {
+            // Track triple-backtick fences so we never rewrite code contents.
+            if rawLine.trimmingCharacters(in: .whitespaces).hasPrefix("```") {
+                insideFencedCode.toggle()
+                continue
+            }
+            if insideFencedCode { continue }
+
+            // Count leading spaces so indented lists still look indented.
+            let leadingWhitespace = rawLine.prefix(while: { $0 == " " || $0 == "\t" })
+            let stripped = rawLine[leadingWhitespace.endIndex...]
+
+            // Horizontal rule: CommonMark allows three or more of `-`, `*`,
+            // or `_` on a line by themselves, optionally with spaces between.
+            // Match `---`, `----`, `***`, `* * *`, `_ _ _`, etc.
+            if stripped.range(of: "^([-*_])(\\s*\\1){2,}\\s*$", options: .regularExpression) != nil {
+                lines[i] = "\(leadingWhitespace)——————————"
+                continue
+            }
+
+            // ATX headings: `# ` through `###### `. Render as a bold,
+            // slightly larger header by using `**...**` (there is no inline
+            // font-size syntax in Foundation markdown, but bold reads well).
+            //
+            // The trailing `(\s+|$)` permits an empty heading (just `###`)
+            // per CommonMark; we emit an empty line in that case so the
+            // blank visual still shows up where the heading was.
+            if let hashRange = stripped.range(of: "^#{1,6}(\\s+|$)", options: .regularExpression, range: stripped.startIndex..<stripped.endIndex) {
+                let content = stripped[hashRange.upperBound...]
+                    .trimmingCharacters(in: .whitespaces)
+                    // Strip the trailing `#` characters some generators emit.
+                    .trimmingCharacters(in: CharacterSet(charactersIn: "# "))
+                guard !content.isEmpty else {
+                    lines[i] = ""
+                    continue
+                }
+                lines[i] = "\(leadingWhitespace)**\(content)**"
+                continue
+            }
+
+            // Unordered list markers: `- `, `* `, `+ ` become a bullet glyph
+            // plus a non-breaking space so the renderer cannot collapse it.
+            if let markerRange = stripped.range(of: "^[-*+]\\s+", options: .regularExpression, range: stripped.startIndex..<stripped.endIndex) {
+                let content = stripped[markerRange.upperBound...]
+                lines[i] = "\(leadingWhitespace)•\u{00A0}\(content)"
+                continue
+            }
+
+            // Blockquote: `> prose` becomes an em-dash prefixed italic line.
+            if let quoteRange = stripped.range(of: "^>\\s+", options: .regularExpression, range: stripped.startIndex..<stripped.endIndex) {
+                let content = stripped[quoteRange.upperBound...]
+                lines[i] = "\(leadingWhitespace)—\u{00A0}_\(content)_"
+                continue
+            }
+        }
+
+        return lines.joined(separator: "\n")
     }
 }

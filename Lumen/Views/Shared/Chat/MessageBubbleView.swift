@@ -289,16 +289,19 @@ struct MessageBubbleView: View {
         let usableWidth = max(layoutWidth, 280)
 
         if message.isUser {
-            return max(180, min(usableWidth * 0.64, 360))
+            // User messages: up to 75% of screen width, max 340pt
+            return max(180, min(usableWidth * 0.75, 340))
         } else {
-            return max(220, min(usableWidth * 0.70, 400))
+            // Assistant messages: up to 92% of screen width, no artificial max
+            // This allows text to use almost full width for better readability
+            return max(240, usableWidth * 0.92)
         }
         #else
         let layoutWidth = availableWidth ?? 720
         if message.isUser {
-            return max(260, min(layoutWidth * 0.72, 520))
+            return max(260, min(layoutWidth * 0.75, 400))
         } else {
-            return max(320, min(layoutWidth * 0.82, 760))
+            return max(320, layoutWidth * 0.92)
         }
         #endif
     }
