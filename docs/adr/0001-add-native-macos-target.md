@@ -7,13 +7,13 @@
 
 ## Context
 
-Lumen ships today as an iOS 26 app. Product intent spans Apple platforms, and the Mac is a natural surface for an assistant workflow — a user reading code, docs, or research on a Mac benefits materially from a persistent window they can talk to. [`docs/ENGINEERING_STANDARD.md`](../ENGINEERING_STANDARD.md) already names platform-native behavior as a quality bar, and [`README.md`](../../README.md) and [`docs/PORTFOLIO_AUTHORSHIP.md`](../PORTFOLIO_AUTHORSHIP.md) both describe Lumen as a native Apple-platform product.
+Lumen ships today with an iOS deployment target of 18.0 (see [`project.yml`](../../project.yml) and [`Lumen.xcodeproj`](../../Lumen.xcodeproj)). Product intent spans Apple platforms, and the Mac is a natural surface for an assistant workflow — a user reading code, docs, or research on a Mac benefits materially from a persistent window they can talk to. [`docs/ENGINEERING_STANDARD.md`](../ENGINEERING_STANDARD.md) already names platform-native behavior as a quality bar, and [`README.md`](../../README.md) and [`docs/PORTFOLIO_AUTHORSHIP.md`](../PORTFOLIO_AUTHORSHIP.md) both describe Lumen as a native Apple-platform product.
 
 The question is not whether to ship Lumen on the Mac; it is how. Three architectural paths exist, and they have materially different consequences for Mac HIG fit, platform-native behavior, maintenance burden, and future-proofing. Choosing among them is a load-bearing architectural decision that shapes every subsequent macOS PR.
 
 ## Decision
 
-Add a second Xcode target, `Lumen-macOS`, to [`project.yml`](../../project.yml). Share Swift sources where they are cross-platform; gate UIKit-only and iOS-only APIs behind `#if os(iOS)` and a `PlatformAliases` utility layer (`PlatformImage`, `PlatformColor`, `PlatformFont`, `PlatformPasteboard`). Diverge at the application shell: `Window(id: "main")`, `NavigationSplitView`, a first-class `Settings {}` scene, `.commands { LumenCommands() }`, and `MenuBarExtra` on macOS; keep the existing iOS `WindowGroup` + tab shell untouched.
+**Accepted now; implementation is deferred to a follow-on PR.** When the macOS work lands, add a second Xcode target named `Lumen-macOS` to the committed [`Lumen.xcodeproj`](../../Lumen.xcodeproj) (targets and schemes live there; see [`docs/ENGINEERING_STANDARD.md`](../ENGINEERING_STANDARD.md) for the project-format policy). Share Swift sources where they are cross-platform; gate UIKit-only and iOS-only APIs behind `#if os(iOS)` and a `PlatformAliases` utility layer (`PlatformImage`, `PlatformColor`, `PlatformFont`, `PlatformPasteboard`). Diverge at the application shell: `Window(id: "main")`, `NavigationSplitView`, a first-class `Settings {}` scene, `.commands { LumenCommands() }`, and `MenuBarExtra` on macOS; keep the existing iOS `WindowGroup` + tab shell untouched.
 
 ## Alternatives considered
 
@@ -61,4 +61,4 @@ Absent either trigger, the decision stands.
 - [`0000-record-architecture-decisions.md`](0000-record-architecture-decisions.md) — the meta-ADR establishing this practice.
 - [`docs/product/feature-parity-checklist.md`](../product/feature-parity-checklist.md) — the operational definition of "native platform feel" Lumen is held to; the Mac target will extend this checklist with macOS HIG items.
 - Repo-grounding pass (2026-04-16): verified [`Lumen/Intents/`](../../Lumen/Intents/) contains only `import AppIntents` (cross-platform, macOS 13+) and therefore stays in the Mac target; [`Lumen/Extensions/SyntaxHighlighter.swift`](../../Lumen/Extensions/SyntaxHighlighter.swift) already uses `#if canImport(UIKit) / #elseif canImport(AppKit)` guards and needs no audit entry; the twelve-file `topBar*` / `navigationBarTitleDisplayMode` audit includes [`Lumen/Stores/SettingsStoreView.swift`](../../Lumen/Stores/SettingsStoreView.swift) despite its non-`Views/Shared/**` path.
-- Follow-on ADR-0002 will document the macOS 15 deployment-target choice and will be co-located with the `project.yml` PR that creates the `Lumen-macOS` target, so the deployment decision's evidence lives next to the code change it governs.
+- Follow-on ADR-0002 will document the macOS deployment-target choice and will be co-located with the PR that adds the `Lumen-macOS` target in [`Lumen.xcodeproj`](../../Lumen.xcodeproj), so the deployment decision's evidence lives next to the code change it governs.

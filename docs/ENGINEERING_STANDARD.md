@@ -35,6 +35,10 @@ Every PR must include:
 - Visual verification artifacts are captured for UI-affecting PRs and called out in the PR evidence.
 - Launch/orientation/privacy config is treated as product quality, not "later" work.
 
+## Xcode project format
+
+The committed [`Lumen.xcodeproj`](../Lumen.xcodeproj) is the **source of truth** for targets, schemes, and build settings. The repo still carries a legacy [`project.yml`](../project.yml) XcodeGen specification for historical regeneration workflows; that path adds a second maintenance surface and drift risk between generated output and what ships. **Direction:** retire XcodeGen for this project—remove `project.yml` (and the optional `xcodegen` step) once CI and contributor docs no longer depend on it, and treat direct edits in Xcode as the normal workflow. A formal ADR may record the removal; this paragraph locks the decision before macOS target work lands.
+
 ## Documentation quality
 
 - Docs are concise, current, and actionable.

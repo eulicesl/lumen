@@ -102,8 +102,8 @@ Lumen's privacy posture is the product. See [`https://eulicesl.github.io/lumen-l
 │   ├── product/                ← PRD, feature parity, sprint docs
 │   └── release/                ← submission checklists and runbooks
 ├── exportOptions-appstore.plist
-├── Lumen.xcodeproj
-└── project.yml                 ← xcodegen spec
+├── Lumen.xcodeproj             ← canonical; open this in Xcode
+└── project.yml                 ← legacy XcodeGen spec (removal planned; see docs/ENGINEERING_STANDARD.md)
 ```
 
 ---
@@ -115,7 +115,7 @@ Lumen's privacy posture is the product. See [`https://eulicesl.github.io/lumen-l
 - macOS on Apple silicon
 - Xcode 26 or later
 - An iPhone or iPad simulator running iOS 26 (Xcode will install one on first launch)
-- `xcodegen` (optional, for regenerating the Xcode project from `project.yml`): `brew install xcodegen`
+- `xcodegen` (optional, only if you maintain the legacy `project.yml`—see `docs/ENGINEERING_STANDARD.md`): `brew install xcodegen`
 
 ### Open the project
 
