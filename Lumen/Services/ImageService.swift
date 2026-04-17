@@ -82,5 +82,5 @@ actor ImageService {
 // MARK: - Data → UIImage helper
 
 extension Data {
-    var asUIImage: UIImage? { UIImage(data: self) }
+    var asPlatformImage: PlatformImage? { PlatformImage(data: self) }
 }

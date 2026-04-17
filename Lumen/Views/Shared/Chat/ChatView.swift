@@ -31,7 +31,7 @@ struct ChatView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(.systemBackground))
+        .background(LumenColor.primaryBackground)
         .animation(
             LumenMotion.animation(LumenAnimation.standard, reduceMotion: reduceMotion),
             value: showsScrollToBottomButton
@@ -255,7 +255,7 @@ struct ChatView: View {
                 .background(.regularMaterial, in: Capsule())
                 .overlay(
                     Capsule()
-                        .strokeBorder(Color(.separator).opacity(0.35), lineWidth: 0.5)
+                        .strokeBorder(LumenColor.separator.opacity(0.35), lineWidth: 0.5)
                 )
                 .shadow(color: .black.opacity(0.10), radius: 10, y: 3)
         }

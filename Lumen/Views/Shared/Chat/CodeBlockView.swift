@@ -68,12 +68,7 @@ struct CodeBlockView: View {
     // MARK: - Actions
 
     private func copyCode() {
-        #if os(iOS)
-        UIPasteboard.general.string = code
-        #elseif os(macOS)
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(code, forType: .string)
-        #endif
+        PlatformPasteboard.copy(code)
         HapticEngine.impact(.light)
         showCopyConfirmation()
     }

@@ -38,8 +38,8 @@ struct MessageImageGrid: View {
 
     @ViewBuilder
     private func imageCell(data: Data) -> some View {
-        if let uiImage = UIImage(data: data) {
-            Image(uiImage: uiImage)
+        if let image = data.asPlatformImage {
+            Image(platformImage: image)
                 .resizable()
                 .scaledToFill()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -86,8 +86,8 @@ struct FullscreenImageViewer: View {
             Color.black.ignoresSafeArea()
             TabView(selection: $currentIndex) {
                 ForEach(imageData.indices, id: \.self) { i in
-                    if let uiImage = UIImage(data: imageData[i]) {
-                        Image(uiImage: uiImage)
+                    if let image = imageData[i].asPlatformImage {
+                        Image(platformImage: image)
                             .resizable()
                             .scaledToFit()
                             .tag(i)

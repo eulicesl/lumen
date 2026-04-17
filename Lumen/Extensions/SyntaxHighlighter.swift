@@ -1,26 +1,16 @@
 import Foundation
 import SwiftUI
 
-#if canImport(UIKit)
-import UIKit
-private typealias PlatColor = UIColor
-private typealias PlatFont  = UIFont
-#elseif canImport(AppKit)
-import AppKit
-private typealias PlatColor = NSColor
-private typealias PlatFont  = NSFont
-#endif
-
 enum SyntaxHighlighter {
 
     // MARK: - Theme colors (designed for dark code-block background)
 
-    private static let plainColor   = PlatColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1)
-    private static let keywordColor = PlatColor(red: 0.82, green: 0.50, blue: 0.92, alpha: 1)
-    private static let stringColor  = PlatColor(red: 0.95, green: 0.65, blue: 0.35, alpha: 1)
-    private static let commentColor = PlatColor(red: 0.48, green: 0.72, blue: 0.48, alpha: 1)
-    private static let numberColor  = PlatColor(red: 0.50, green: 0.80, blue: 0.95, alpha: 1)
-    private static let typeColor    = PlatColor(red: 0.50, green: 0.90, blue: 0.90, alpha: 1)
+    private static let plainColor   = PlatformColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1)
+    private static let keywordColor = PlatformColor(red: 0.82, green: 0.50, blue: 0.92, alpha: 1)
+    private static let stringColor  = PlatformColor(red: 0.95, green: 0.65, blue: 0.35, alpha: 1)
+    private static let commentColor = PlatformColor(red: 0.48, green: 0.72, blue: 0.48, alpha: 1)
+    private static let numberColor  = PlatformColor(red: 0.50, green: 0.80, blue: 0.95, alpha: 1)
+    private static let typeColor    = PlatformColor(red: 0.50, green: 0.90, blue: 0.90, alpha: 1)
 
     // MARK: - Keyword sets per language
 
@@ -134,7 +124,7 @@ enum SyntaxHighlighter {
     static func highlight(code: String, language: String) -> AttributedString {
         let lang = normalize(language)
 
-        let codeFont = PlatFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+        let codeFont = PlatformFont.monospacedSystemFont(ofSize: 13, weight: .regular)
         let ns = NSMutableAttributedString(string: code)
         let fullRange = NSRange(code.startIndex..., in: code)
 
@@ -145,7 +135,7 @@ enum SyntaxHighlighter {
 
         if blockCommentLanguages.contains(lang) {
             apply(pattern: "/\\*[\\s\\S]*?\\*/", to: ns, code: code,
-                  color: commentColor, options: [.dotMatchesLineSeparators],
+                  color: commentColor, options: NSRegularExpression.Options.dotMatchesLineSeparators,
                   protected: &protected)
         }
 
@@ -190,7 +180,7 @@ enum SyntaxHighlighter {
         pattern: String,
         to ns: NSMutableAttributedString,
         code: String,
-        color: PlatColor,
+        color: PlatformColor,
         options: NSRegularExpression.Options = [],
         skipProtected: Bool = false,
         protected protectedRanges: inout [NSRange]
