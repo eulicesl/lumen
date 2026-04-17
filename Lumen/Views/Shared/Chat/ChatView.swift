@@ -82,6 +82,11 @@ struct ChatView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if chatStore.selectedConversation != nil {
+                InputBarView()
+            }
+        }
         .sheet(isPresented: $showingComparison) {
             ModelComparisonView()
                 .environment(chatStore)
