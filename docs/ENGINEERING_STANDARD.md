@@ -9,7 +9,7 @@ The quality bar is intentionally set to senior engineer/company standards.
 - Reviewable: PR scope is tight, rationale is explicit, risk is documented.
 - Test-gated: changes are validated with deterministic checks + human verification.
 - Secure: no secret leakage, least-privilege mindset, privacy-aware implementation.
-- Auditable: decisions, validation evidence, and rollback paths are written down.
+- Auditable: decisions, validation evidence, and rollback paths are written down. Architectural decisions live in [`docs/adr/`](adr/).
 
 ## Branch and PR discipline
 
