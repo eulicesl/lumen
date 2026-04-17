@@ -43,21 +43,37 @@ struct ChatView: View {
         .toolbar {
             if showsConversationTools {
                 if let conv = chatStore.selectedConversation {
+                    #if os(iOS)
                     ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showingSystemPrompt = true
-                    } label: {
-                        Image(systemName: "brain.head.profile")
-                            .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
-                            .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                        Button {
+                            showingSystemPrompt = true
+                        } label: {
+                            Image(systemName: "brain.head.profile")
+                                .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
+                                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                        }
+                        .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
+                        .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                        .accessibilityHint("Opens system prompt settings for this conversation")
                     }
-                    .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
-                    .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
-                    .accessibilityHint("Opens system prompt settings for this conversation")
+                    #else
+                    ToolbarItem(placement: .automatic) {
+                        Button {
+                            showingSystemPrompt = true
+                        } label: {
+                            Image(systemName: "brain.head.profile")
+                                .foregroundStyle(conv.hasSystemPrompt ? Color.accentColor : Color.secondary)
+                                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                        }
+                        .help(conv.hasSystemPrompt ? "Edit System Prompt" : "Set System Prompt")
+                        .accessibilityLabel(conv.hasSystemPrompt ? "Edit system prompt" : "Set system prompt")
+                        .accessibilityHint("Opens system prompt settings for this conversation")
                     }
+                    #endif
                 }
 
                 if !chatStore.exportText.isEmpty {
+                    #if os(iOS)
                     ToolbarItem(placement: .topBarTrailing) {
                         ShareLink(item: chatStore.exportText) {
                             Image(systemName: LumenIcon.share)
@@ -67,8 +83,20 @@ struct ChatView: View {
                         .accessibilityLabel("Share conversation")
                         .accessibilityHint("Opens the share sheet for this conversation")
                     }
+                    #else
+                    ToolbarItem(placement: .automatic) {
+                        ShareLink(item: chatStore.exportText) {
+                            Image(systemName: LumenIcon.share)
+                                .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                        }
+                        .help("Share conversation")
+                        .accessibilityLabel("Share conversation")
+                        .accessibilityHint("Opens the share sheet for this conversation")
+                    }
+                    #endif
                 }
 
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingComparison = true
@@ -80,6 +108,19 @@ struct ChatView: View {
                     .accessibilityLabel("Compare Models")
                     .accessibilityHint("Opens model comparison for the current conversation")
                 }
+                #else
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        showingComparison = true
+                    } label: {
+                        Image(systemName: "arrow.left.arrow.right.circle")
+                            .frame(minWidth: LumenLayout.minTouchTarget, minHeight: LumenLayout.minTouchTarget)
+                    }
+                    .help("Compare Models")
+                    .accessibilityLabel("Compare Models")
+                    .accessibilityHint("Opens model comparison for the current conversation")
+                }
+                #endif
             }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {

@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if os(iOS)
 struct MainTabView: View {
 
     @Environment(AppStore.self) private var appStore
@@ -242,32 +243,6 @@ private extension MainTabView {
     }
 }
 
-extension NavigationSplitViewVisibility {
-    init(sceneStorageValue: String, fallback: NavigationSplitViewVisibility) {
-        switch sceneStorageValue {
-        case "all":
-            self = .all
-        case "detailOnly":
-            self = .detailOnly
-        case "automatic":
-            self = .automatic
-        default:
-            self = fallback
-        }
-    }
-
-    var sceneStorageValue: String {
-        switch self {
-        case .all:
-            return "all"
-        case .detailOnly:
-            return "detailOnly"
-        default:
-            return "automatic"
-        }
-    }
-}
-
 private struct ModelPickerChip: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
@@ -396,3 +371,4 @@ struct PlaceholderView: View {
         icon: LumenIcon.library
     )
 }
+#endif

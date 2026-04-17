@@ -357,6 +357,7 @@ struct InputBarView: View {
         return parts.joined(separator: ", ")
     }
 
+    #if os(iOS)
     @ViewBuilder
     private var voiceButtonIcon: some View {
         let icon = Image(systemName: isRecording ? LumenIcon.micActive : LumenIcon.microphone)
@@ -374,6 +375,7 @@ struct InputBarView: View {
             icon.symbolEffect(.pulse, isActive: isRecording)
         }
     }
+    #endif
 
     private func sendMessage() {
         guard canSend else { return }

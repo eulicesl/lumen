@@ -15,20 +15,25 @@ struct AgentConfigView: View {
                 toolsSection
                 aboutSection
             }
-            .listStyle(.insetGrouped)
+            .insetGroupedListStyle()
             .navigationTitle("Agent Mode")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(LumenColor.primaryBackground, for: .navigationBar)
+            .navigationBarInline()
+            .navigationBarBackground()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                         .accessibilityHint("Closes agent mode settings")
                 }
+                #else
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                        .accessibilityHint("Closes agent mode settings")
+                }
+                #endif
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .agentPresentationStyle()
     }
 
     // MARK: - Sections
@@ -247,6 +252,48 @@ struct AgentToolEventView: View {
                     .strokeBorder(Color.green.opacity(0.25), lineWidth: 0.5)
             )
             .frame(maxWidth: 320, alignment: .leading)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func navigationBarInline() -> some View {
+        #if os(iOS)
+        self.navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func insetGroupedListStyle() -> some View {
+        #if os(iOS)
+        self.listStyle(.insetGrouped)
+        #else
+        self.listStyle(.inset)
+        #endif
+    }
+
+    @ViewBuilder
+    func navigationBarBackground() -> some View {
+        #if os(iOS)
+        self
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(LumenColor.primaryBackground, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func agentPresentationStyle() -> some View {
+        #if os(iOS)
+        self
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        #else
+        self
+        #endif
     }
 }
 

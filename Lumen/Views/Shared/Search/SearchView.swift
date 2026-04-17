@@ -29,10 +29,10 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .searchable(
                 text: $query,
-                placement: .navigationBarDrawer(displayMode: .always),
+                placement: .automatic,
                 prompt: "Search conversations and messages…"
             )
             .searchPresentationToolbarBehavior(.avoidHidingContent)
@@ -66,7 +66,7 @@ struct SearchView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .insetGroupedListStyle()
     }
 
     // MARK: - Results list
@@ -84,7 +84,7 @@ struct SearchView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .insetGroupedListStyle()
     }
 
     // MARK: - States
@@ -263,6 +263,24 @@ private extension View {
     func searchToolbarBehaviorIfAvailable() -> some View {
         // Disabled for now: CI runs Xcode 16 SDK where searchToolbarBehavior is unavailable.
         self
+    }
+
+    @ViewBuilder
+    func navigationBarInline() -> some View {
+        #if os(iOS)
+        self.navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func insetGroupedListStyle() -> some View {
+        #if os(iOS)
+        self.listStyle(.insetGrouped)
+        #else
+        self.listStyle(.inset)
+        #endif
     }
 }
 

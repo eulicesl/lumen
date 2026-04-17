@@ -13,13 +13,19 @@ struct PrivacyView: View {
                 permissionsSection
                 openSourceSection
             }
-            .listStyle(.insetGrouped)
+            .insetGroupedListStyle()
             .navigationTitle("Privacy")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+                #else
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+                #endif
             }
         }
     }
@@ -180,6 +186,26 @@ struct PrivacyView: View {
                 .font(LumenType.body)
                 .foregroundStyle(.secondary)
         }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func navigationBarInline() -> some View {
+        #if os(iOS)
+        self.navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
+    }
+
+    @ViewBuilder
+    func insetGroupedListStyle() -> some View {
+        #if os(iOS)
+        self.listStyle(.insetGrouped)
+        #else
+        self.listStyle(.inset)
+        #endif
     }
 }
 

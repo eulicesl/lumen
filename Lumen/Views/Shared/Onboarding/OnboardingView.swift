@@ -77,7 +77,7 @@ struct OnboardingView: View {
                     .tag(page.id)
             }
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
+        .pageTabViewStyle()
         .animation(
             LumenMotion.animation(.easeInOut(duration: 0.35), reduceMotion: reduceMotion),
             value: currentPage
@@ -241,6 +241,17 @@ struct OnboardingView: View {
         } else {
             symbol.symbolEffect(.pulse.byLayer)
         }
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func pageTabViewStyle() -> some View {
+        #if os(iOS)
+        self.tabViewStyle(.page(indexDisplayMode: .never))
+        #else
+        self
+        #endif
     }
 }
 

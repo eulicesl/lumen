@@ -8,8 +8,7 @@ struct MessageImageGrid: View {
     var body: some View {
         let visible = Array(imageData.prefix(maxVisible))
         let extra = imageData.count - maxVisible
-
-        LazyVGrid(columns: gridColumns(for: visible.count), spacing: LumenSpacing.xxs) {
+        let grid = LazyVGrid(columns: gridColumns(for: visible.count), spacing: LumenSpacing.xxs) {
             ForEach(visible.indices, id: \.self) { i in
                 ZStack(alignment: .bottomTrailing) {
                     imageCell(data: visible[i])
@@ -28,12 +27,17 @@ struct MessageImageGrid: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: LumenRadius.md))
         .frame(maxWidth: 280)
-        .fullScreenCover(item: Binding(
+
+        #if os(iOS)
+        grid.fullScreenCover(item: Binding(
             get: { fullscreenIndex.map { FullscreenID(index: $0) } },
             set: { fullscreenIndex = $0?.index }
         )) { item in
             FullscreenImageViewer(imageData: imageData, startIndex: item.index)
         }
+        #else
+        grid
+        #endif
     }
 
     @ViewBuilder
@@ -62,8 +66,9 @@ struct MessageImageGrid: View {
     }
 }
 
-// MARK: - Fullscreen viewer
+// MARK: - Fullscreen viewer (iOS only)
 
+#if os(iOS)
 private struct FullscreenID: Identifiable {
     let index: Int
     var id: Int { index }
@@ -116,6 +121,8 @@ struct FullscreenImageViewer: View {
         }
     }
 }
+
+#endif
 
 #Preview {
     MessageImageGrid(imageData: [])
