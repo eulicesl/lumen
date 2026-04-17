@@ -37,9 +37,6 @@ struct MainTabView: View {
                         toolsMenu
                     }
                 }
-                .safeAreaInset(edge: .bottom) {
-                    ChatComposerChrome()
-                }
         }
         .sheet(isPresented: $showingConversationList) {
             ConversationPickerView()
@@ -332,12 +329,6 @@ private extension View {
         } else {
             self
         }
-    }
-}
-
-private struct ChatComposerChrome: View {
-    var body: some View {
-        InputBarView()
     }
 }
 
