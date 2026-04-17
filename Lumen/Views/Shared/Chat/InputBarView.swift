@@ -96,12 +96,20 @@ struct InputBarView: View {
         }
         .padding(.top, 4)
         .background(.bar)
+        #if os(iOS)
         .onChange(of: selectedImages) { syncPendingImages() }
+        #endif
         .onChange(of: chatStore.editingMessageID) {
+            #if os(iOS)
             if chatStore.isEditingMessage {
                 inputFocused = true
                 selectedImages = []
             }
+            #else
+            if chatStore.isEditingMessage {
+                inputFocused = true
+            }
+            #endif
         }
         .fileImporter(
             isPresented: $showingDocumentImporter,

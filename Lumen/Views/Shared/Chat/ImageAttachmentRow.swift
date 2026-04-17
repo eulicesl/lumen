@@ -173,6 +173,7 @@ struct CameraPickerView: UIViewControllerRepresentable {
 }
 #endif
 
+#if os(iOS)
 private struct ImageAttachmentRowPreviewHost: View {
     @State private var images: [PlatformImage] = [
         .preview(color: .systemBlue),
@@ -193,6 +194,7 @@ private struct ImageAttachmentRowPreviewHost: View {
         .background(LumenColor.primaryBackground)
     }
 }
+#endif
 
 #if os(iOS)
 private extension PlatformImage {
