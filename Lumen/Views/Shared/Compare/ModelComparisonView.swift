@@ -451,15 +451,6 @@ private struct ModelSelectorButtonPreviewHost: View {
 
 private extension View {
     @ViewBuilder
-    func navigationBarInline() -> some View {
-        #if os(iOS)
-        self.navigationBarTitleDisplayMode(.inline)
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
     func presentationSheetStyle() -> some View {
         #if os(iOS)
         self

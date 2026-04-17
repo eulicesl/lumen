@@ -38,6 +38,7 @@
 		53583BC3C529D77283BEB936 /* LumenButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59021B7C2F897173492E370F /* LumenButton.swift */; };
 		5415228156EE6ED7AA8DC85B /* HapticEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 428730102636B8C949209219 /* HapticEngine.swift */; };
 		542D9201F98E8F49ADE166B6 /* Date+Grouping.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECD64F747F5EB3D48653CAD2 /* Date+Grouping.swift */; };
+		A1B2C3D4E5F6A1B2C3D4E5F6 /* View+PlatformModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A1B2C3D4E5F6A1 /* View+PlatformModifiers.swift */; };
 		5434FFD297151F71E7BC83A0 /* DataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBD55683BD50DC80A13F2A24 /* DataService.swift */; };
 		58BF0248E606A5BEE2C06452 /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57E9AE65DD9DF93514A3F7CC /* AIProvider.swift */; };
 		645D2FF4E94654C9E01EF3FC /* ReviewRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFF3FAA9D38B8ABA9E702E01 /* ReviewRequestManager.swift */; };
@@ -219,6 +220,7 @@
 		EB1574B6D1BBADF1D3568893 /* AIModelSD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModelSD.swift; sourceTree = "<group>"; };
 		EB4DA12D267A5484FB333271 /* SettingsStoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreView.swift; sourceTree = "<group>"; };
 		ECD64F747F5EB3D48653CAD2 /* Date+Grouping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Grouping.swift"; sourceTree = "<group>"; };
+		B2C3D4E5F6A1B2C3D4E5F6A1 /* View+PlatformModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+PlatformModifiers.swift"; sourceTree = "<group>"; };
 		EF5942AB91E9F59EF8F3F079 /* AIModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModel.swift; sourceTree = "<group>"; };
 		F5AEF61E845EE326D201C135 /* InputBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputBarView.swift; sourceTree = "<group>"; };
 		FD274D21EB94F22C69F7A66A /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
@@ -400,6 +402,7 @@
 				ECD64F747F5EB3D48653CAD2 /* Date+Grouping.swift */,
 				897C62EEF417ACB8EBED4BEB /* String+Markdown.swift */,
 				FD274D21EB94F22C69F7A66A /* SyntaxHighlighter.swift */,
+				B2C3D4E5F6A1B2C3D4E5F6A1 /* View+PlatformModifiers.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -788,6 +791,7 @@
 				DA10BE5709208B4B7269C7B0 /* ConversationState.swift in Sources */,
 				5434FFD297151F71E7BC83A0 /* DataService.swift in Sources */,
 				542D9201F98E8F49ADE166B6 /* Date+Grouping.swift in Sources */,
+				A1B2C3D4E5F6A1B2C3D4E5F6 /* View+PlatformModifiers.swift in Sources */,
 				C44F44D5D6D935204C0D5BD9 /* DeepLinkHandler.swift in Sources */,
 				169A2960F1B9F9F211F93792 /* DocumentImportService.swift in Sources */,
 				49A83DD3A866A68B9F77C14F /* EmptyStateView.swift in Sources */,

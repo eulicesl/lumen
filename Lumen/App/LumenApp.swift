@@ -38,7 +38,7 @@ struct LumenApp: App {
             Divider()
             Button("New Conversation") {
                 Task { @MainActor in
-                    await ChatStore.shared.createNewConversation()
+                    await chatStore.createNewConversation()
                 }
             }
             .keyboardShortcut("n", modifiers: .command)
@@ -48,22 +48,17 @@ struct LumenApp: App {
 
     // MARK: - Window Scene
 
-    #if os(macOS)
     private var mainWindow: some Scene {
-        WindowGroup(content: windowContent)
+        let group = WindowGroup(content: windowContent)
             .modelContainer(DataService.shared.modelContainer)
             .commands { conversationCommands }
             .defaultSize(width: 900, height: 600)
-            .windowResizability(.contentMinSize)
+        #if os(macOS)
+        return group.windowResizability(.contentMinSize)
+        #else
+        return group
+        #endif
     }
-    #else
-    private var mainWindow: some Scene {
-        WindowGroup(content: windowContent)
-            .modelContainer(DataService.shared.modelContainer)
-            .commands { conversationCommands }
-            .defaultSize(width: 900, height: 600)
-    }
-    #endif
 
     @ViewBuilder
     private func windowContent() -> some View {
@@ -123,7 +118,7 @@ struct LumenApp: App {
         CommandMenu("Conversation") {
             Button("New Conversation") {
                 Task { @MainActor in
-                    await ChatStore.shared.createNewConversation()
+                    await chatStore.createNewConversation()
                 }
             }
         }

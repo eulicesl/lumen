@@ -265,23 +265,6 @@ private extension View {
         self
     }
 
-    @ViewBuilder
-    func navigationBarInline() -> some View {
-        #if os(iOS)
-        self.navigationBarTitleDisplayMode(.inline)
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
-    func insetGroupedListStyle() -> some View {
-        #if os(iOS)
-        self.listStyle(.insetGrouped)
-        #else
-        self.listStyle(.inset)
-        #endif
-    }
 }
 
 // MARK: - Date helper

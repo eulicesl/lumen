@@ -400,24 +400,6 @@ struct EditMemoryView: View {
 
 private extension View {
     @ViewBuilder
-    func navigationBarInline() -> some View {
-        #if os(iOS)
-        self.navigationBarTitleDisplayMode(.inline)
-        #else
-        self
-        #endif
-    }
-
-    @ViewBuilder
-    func insetGroupedListStyle() -> some View {
-        #if os(iOS)
-        self.listStyle(.insetGrouped)
-        #else
-        self.listStyle(.inset)
-        #endif
-    }
-
-    @ViewBuilder
     func memorySheetStyle() -> some View {
         #if os(iOS)
         self
