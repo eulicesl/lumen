@@ -68,8 +68,34 @@ struct LumenApp: App {
             }
         }
         .modelContainer(DataService.shared.modelContainer)
+        .defaultSize(width: 900, height: 600)
+        .commands {
+            CommandMenu("Conversation") {
+                Button("New Conversation") {
+                    Task { @MainActor in
+                        await ChatStore.shared.createNewConversation()
+                    }
+                }
+            }
+            #if targetEnvironment(macCatalyst)
+            CommandGroup(after: .appSettings) {
+                Button("Preferences...") { }
+                    .keyboardShortcut(",", modifiers: .command)
+            }
+            #endif
+        }
 
         #if os(macOS)
+        Settings {
+            SettingsView()
+                .environment(appStore)
+                .environment(chatStore)
+                .environment(modelStore)
+                .environment(libraryStore)
+                .environment(memoryStore)
+                .frame(minWidth: 450, minHeight: 300)
+        }
+
         MenuBarExtra("Lumen", systemImage: "sparkle") {
             Button("Open Lumen") {
                 NSApp.activate(ignoringOtherApps: true)
