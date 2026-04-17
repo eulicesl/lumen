@@ -56,7 +56,7 @@ Before opening a PR, verify locally:
 ### Commands
 
 ```bash
-# Regenerate the Xcode project if project.yml changed
+# Legacy only: if you edit project.yml (scheduled removal — see docs/ENGINEERING_STANDARD.md)
 xcodegen generate
 
 # Build for a simulator (substitute a simulator UDID from `xcrun simctl list`)
