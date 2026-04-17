@@ -372,3 +372,29 @@ struct PlaceholderView: View {
     )
 }
 #endif
+
+extension NavigationSplitViewVisibility {
+    init(sceneStorageValue: String, fallback: NavigationSplitViewVisibility) {
+        switch sceneStorageValue {
+        case "all":
+            self = .all
+        case "detailOnly":
+            self = .detailOnly
+        case "automatic":
+            self = .automatic
+        default:
+            self = fallback
+        }
+    }
+
+    var sceneStorageValue: String {
+        switch self {
+        case .all:
+            return "all"
+        case .detailOnly:
+            return "detailOnly"
+        default:
+            return "automatic"
+        }
+    }
+}
