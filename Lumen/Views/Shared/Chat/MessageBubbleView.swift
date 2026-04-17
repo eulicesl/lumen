@@ -286,22 +286,17 @@ struct MessageBubbleView: View {
     private var maxBubbleWidth: CGFloat {
         #if os(iOS)
         let layoutWidth = availableWidth ?? UIScreen.main.bounds.width
-        let usableWidth = max(layoutWidth, 280)
-
-        if message.isUser {
-            // User messages: up to 75% of screen width, max 340pt
-            return max(180, min(usableWidth * 0.75, 340))
-        } else {
-            return max(240, min(usableWidth * 0.92, 800))
-        }
+        let containerWidth = max(layoutWidth, 280)
         #else
-        let layoutWidth = availableWidth ?? 720
-        if message.isUser {
-            return max(260, min(layoutWidth * 0.75, 400))
-        } else {
-            return max(320, min(layoutWidth * 0.92, 1000))
-        }
+        let containerWidth = availableWidth ?? 720
         #endif
+
+        let floor = message.isUser ? LumenLayout.Bubble.userMinWidth : LumenLayout.Bubble.assistantMinWidth
+        let cap   = message.isUser ? LumenLayout.Bubble.userMaxWidth : LumenLayout.Bubble.assistantMaxWidth
+        let ratio = message.isUser ? LumenLayout.Bubble.userWidthRatio : LumenLayout.Bubble.assistantWidthRatio
+
+        let target = min(containerWidth * ratio, cap)
+        return min(max(floor, target), containerWidth)
     }
 
     private var copyFeedbackBadge: some View {

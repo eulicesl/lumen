@@ -81,10 +81,24 @@ enum LumenLayout {
     static let sidebarWidthMac: CGFloat      = 280
     static let maxContentWidthiPad: CGFloat  = 720
     static let maxContentWidthMac: CGFloat   = 800
-    static let messageBubbleMaxWidthPhone: CGFloat = 0.85
-    static let messageBubbleMaxWidthPad: CGFloat   = 0.65
     static let minTouchTarget: CGFloat       = 44
     static let messageBubbleCornerRadius     = LumenRadius.lg
     static let messageBubblePaddingH: CGFloat = 12
     static let messageBubblePaddingV: CGFloat = 10
+
+    enum Bubble {
+        #if os(iOS)
+        static let userMinWidth: CGFloat      = 180
+        static let userMaxWidth: CGFloat      = 340
+        static let assistantMinWidth: CGFloat = 240
+        static let assistantMaxWidth: CGFloat = 800
+        #else
+        static let userMinWidth: CGFloat      = 260
+        static let userMaxWidth: CGFloat      = 400
+        static let assistantMinWidth: CGFloat = 320
+        static let assistantMaxWidth: CGFloat = 1000
+        #endif
+        static let userWidthRatio: CGFloat      = 0.75
+        static let assistantWidthRatio: CGFloat = 0.92
+    }
 }
