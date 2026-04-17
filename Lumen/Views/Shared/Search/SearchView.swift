@@ -29,10 +29,10 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Search")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .searchable(
                 text: $query,
-                placement: .navigationBarDrawer(displayMode: .always),
+                placement: .automatic,
                 prompt: "Search conversations and messages…"
             )
             .searchPresentationToolbarBehavior(.avoidHidingContent)
@@ -66,7 +66,7 @@ struct SearchView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .insetGroupedListStyle()
     }
 
     // MARK: - Results list
@@ -84,7 +84,7 @@ struct SearchView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .insetGroupedListStyle()
     }
 
     // MARK: - States
@@ -264,6 +264,7 @@ private extension View {
         // Disabled for now: CI runs Xcode 16 SDK where searchToolbarBehavior is unavailable.
         self
     }
+
 }
 
 // MARK: - Date helper

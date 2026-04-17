@@ -13,13 +13,19 @@ struct PrivacyView: View {
                 permissionsSection
                 openSourceSection
             }
-            .listStyle(.insetGrouped)
+            .insetGroupedListStyle()
             .navigationTitle("Privacy")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+                #else
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+                #endif
             }
         }
     }
