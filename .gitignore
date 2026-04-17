@@ -91,3 +91,7 @@ iOSInjectionProject/
 # Local machine noise
 .DS_Store
 .local/
+
+# Editor / agent local state (not product source; avoids accidental commits)
+.cursor/
+.claude/
