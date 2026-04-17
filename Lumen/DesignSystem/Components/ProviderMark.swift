@@ -15,7 +15,7 @@ struct ProviderMark: View {
                     .font(.system(size: max(7, size * 0.34), weight: .semibold))
                     .foregroundStyle(.secondary)
                     .padding(3)
-                    .background(Color(.systemBackground), in: Circle())
+                    .background(LumenColor.primaryBackground, in: Circle())
                     .overlay(
                         Circle()
                             .strokeBorder(.quaternary, lineWidth: 0.5)

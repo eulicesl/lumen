@@ -253,12 +253,7 @@ struct MessageBubbleView: View {
 
     private func copyMessage() {
         let copiedContent = message.isUser ? message.content.documentAwareDisplayText : mainContent
-        #if os(iOS)
-        UIPasteboard.general.string = copiedContent
-        #elseif os(macOS)
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(copiedContent, forType: .string)
-        #endif
+        PlatformPasteboard.copy(copiedContent)
         HapticEngine.impact(.light)
         showCopyConfirmation()
     }
@@ -307,7 +302,7 @@ struct MessageBubbleView: View {
             .padding(.vertical, LumenSpacing.xxs)
             .background(
                 Capsule()
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(LumenColor.secondaryBackground)
             )
             .overlay(
                 Capsule()
@@ -438,10 +433,10 @@ private struct BubbleBackground: ViewModifier {
                 )
         } else {
             content
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
+                .background(LumenColor.secondaryBackground, in: RoundedRectangle(cornerRadius: LumenRadius.bubble))
                 .overlay(
                     RoundedRectangle(cornerRadius: LumenRadius.bubble)
-                        .strokeBorder(Color(.separator).opacity(0.38), lineWidth: 0.5)
+                        .strokeBorder(LumenColor.separator.opacity(0.38), lineWidth: 0.5)
                 )
         }
     }

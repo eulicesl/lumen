@@ -17,7 +17,7 @@ private extension View {
     func neutralComposerButtonChrome() -> some View {
         self
             .foregroundStyle(.primary)
-            .background(Color(.tertiarySystemFill), in: Circle())
+            .background(LumenColor.tertiaryFill, in: Circle())
     }
 
     func destructiveComposerButtonChrome() -> some View {
@@ -45,7 +45,7 @@ struct InputBarView: View {
     @ScaledMetric(relativeTo: .body) private var actionButtonIconSize = 16
 
     #if os(iOS)
-    @State private var selectedImages: [UIImage] = []
+    @State private var selectedImages: [PlatformImage] = []
     @State private var pickerItems: [PhotosPickerItem] = []
     @State private var isRecording = false
     @State private var voiceTask: Task<Void, Never>?
@@ -96,12 +96,20 @@ struct InputBarView: View {
         }
         .padding(.top, 4)
         .background(.bar)
+        #if os(iOS)
         .onChange(of: selectedImages) { syncPendingImages() }
+        #endif
         .onChange(of: chatStore.editingMessageID) {
+            #if os(iOS)
             if chatStore.isEditingMessage {
                 inputFocused = true
                 selectedImages = []
             }
+            #else
+            if chatStore.isEditingMessage {
+                inputFocused = true
+            }
+            #endif
         }
         .fileImporter(
             isPresented: $showingDocumentImporter,
@@ -356,7 +364,7 @@ struct InputBarView: View {
             .frame(width: primaryActionButtonSize, height: primaryActionButtonSize)
             .foregroundStyle(isRecording ? Color.red : .primary)
             .background(
-                isRecording ? Color.red.opacity(0.14) : Color(.tertiarySystemFill),
+                isRecording ? Color.red.opacity(0.14) : LumenColor.tertiaryFill,
                 in: Circle()
             )
 
@@ -442,10 +450,10 @@ struct InputBarView: View {
 
     #if os(iOS)
     private func loadPickerImages() async {
-        var loaded: [UIImage] = []
+        var loaded: [PlatformImage] = []
         for item in pickerItems {
             if let data = try? await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
+               let image = PlatformImage(data: data) {
                 loaded.append(image)
             }
         }
@@ -485,7 +493,7 @@ struct InputBarView: View {
         isRecording = false
     }
 
-    private func performOCR(on image: UIImage) async {
+    private func performOCR(on image: PlatformImage) async {
         guard let text = try? await ImageService.shared.extractText(from: image),
               !text.isEmpty else { return }
         let prefix = chatStore.inputText.isEmpty ? "" : "\n"
@@ -552,7 +560,7 @@ private struct DocumentAttachmentRow: View {
         .padding(.horizontal, LumenSpacing.md)
         .padding(.vertical, LumenSpacing.sm)
         .background(
-            Color(.secondarySystemBackground),
+            LumenColor.secondaryBackground,
             in: RoundedRectangle(cornerRadius: LumenRadius.md, style: .continuous)
         )
         .overlay(

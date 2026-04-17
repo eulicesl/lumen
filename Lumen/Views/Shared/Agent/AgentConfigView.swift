@@ -19,7 +19,7 @@ struct AgentConfigView: View {
             .navigationTitle("Agent Mode")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(Color(.systemBackground), for: .navigationBar)
+            .toolbarBackground(LumenColor.primaryBackground, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

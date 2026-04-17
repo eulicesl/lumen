@@ -3,8 +3,8 @@ import PhotosUI
 
 struct ImageAttachmentRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Binding var images: [UIImage]
-    var onOCR: ((UIImage) -> Void)? = nil
+    @Binding var images: [PlatformImage]
+    var onOCR: ((PlatformImage) -> Void)? = nil
     @ScaledMetric(relativeTo: .body) private var removeIconSize = 18
 
 
@@ -25,9 +25,9 @@ struct ImageAttachmentRow: View {
         }
     }
 
-    private func attachmentThumbnail(image: UIImage, index: Int) -> some View {
+    private func attachmentThumbnail(image: PlatformImage, index: Int) -> some View {
         ZStack(alignment: .topTrailing) {
-            Image(uiImage: image)
+            Image(platformImage: image)
                 .resizable()
                 .scaledToFill()
                 .frame(width: 76, height: 76)
@@ -72,7 +72,7 @@ struct ImageAttachmentRow: View {
 // MARK: - Photo picker button
 
 struct PhotoPickerButton: View {
-    @Binding var selectedImages: [UIImage]
+    @Binding var selectedImages: [PlatformImage]
     @State private var pickerItems: [PhotosPickerItem] = []
     var maxSelection: Int = 4
     @ScaledMetric(relativeTo: .body) private var actionIconSize = 20
@@ -98,10 +98,10 @@ struct PhotoPickerButton: View {
     }
 
     private func loadImages() async {
-        var loaded: [UIImage] = []
+        var loaded: [PlatformImage] = []
         for item in pickerItems {
             if let data = try? await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
+               let image = PlatformImage(data: data) {
                 loaded.append(image)
             }
         }
@@ -114,8 +114,9 @@ struct PhotoPickerButton: View {
 
 // MARK: - Camera capture button (iOS only)
 
+#if os(iOS)
 struct CameraButton: View {
-    @Binding var capturedImage: UIImage?
+    @Binding var capturedImage: PlatformImage?
     @State private var showingCamera = false
     @ScaledMetric(relativeTo: .body) private var actionIconSize = 20
 
@@ -142,7 +143,7 @@ struct CameraButton: View {
 // MARK: - UIImagePickerController wrapper
 
 struct CameraPickerView: UIViewControllerRepresentable {
-    @Binding var image: UIImage?
+    @Binding var image: PlatformImage?
     @Environment(\.dismiss) private var dismiss
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
@@ -170,13 +171,15 @@ struct CameraPickerView: UIViewControllerRepresentable {
         }
     }
 }
+#endif
 
+#if os(iOS)
 private struct ImageAttachmentRowPreviewHost: View {
-    @State private var images: [UIImage] = [
+    @State private var images: [PlatformImage] = [
         .preview(color: .systemBlue),
         .preview(color: .systemTeal)
     ]
-    @State private var capturedImage: UIImage? = .preview(color: .systemOrange)
+    @State private var capturedImage: PlatformImage? = .preview(color: .systemOrange)
 
     var body: some View {
         VStack(alignment: .leading, spacing: LumenSpacing.md) {
@@ -188,19 +191,24 @@ private struct ImageAttachmentRowPreviewHost: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LumenColor.primaryBackground)
     }
 }
+#endif
 
-private extension UIImage {
-    static func preview(color: UIColor) -> UIImage {
+#if os(iOS)
+private extension PlatformImage {
+    static func preview(color: PlatformColor) -> PlatformImage {
         UIGraphicsImageRenderer(size: CGSize(width: 120, height: 120)).image { context in
             color.setFill()
             context.fill(CGRect(x: 0, y: 0, width: 120, height: 120))
         }
     }
 }
+#endif
 
+#if os(iOS)
 #Preview("Attachments") {
     ImageAttachmentRowPreviewHost()
 }
+#endif
