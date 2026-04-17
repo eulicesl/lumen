@@ -3,9 +3,11 @@
 This file is the intended long-term in-repo home for the design system documentation.
 
 Today, the baseline source content is still maintained in:
+
 - `attached_assets/design_1774337956218.md`
 
 ## 2026-03-31 Updates
+
 - Reserve this path (`docs/design/design.md`) as the future canonical reference once the source content is migrated.
 - Track future accessibility/motion policy updates here (Reduce Motion, Dynamic Type scaling, semantic controls).
 
