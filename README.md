@@ -58,7 +58,7 @@ Lumen is a privacy-first AI assistant built from the ground up for Apple platfor
 The repository is maintained to a deliberate "portfolio-grade" bar captured in [`docs/ENGINEERING_STANDARD.md`](docs/ENGINEERING_STANDARD.md). In practice that means:
 
 - **Branch protection on `main`** — direct pushes blocked, linear history enforced, all required status checks must pass, review conversations must be resolved.
-- **Every change ships through a PR** — properly-named branches (`feature/`, `fix/`, `chore/`, `release/`), conventional-commit-style messages, scoped test plans.
+- **Every change ships through a PR** — properly-named branches (`feature/`, `fix/`, `chore/`, `release/`), Conventional Commits (adopted from v1.0.0 onward), scoped test plans.
 - **CI on every PR** — build, lint, tests, workflow sanity. Failure blocks merge.
 - **Automated code review bots** — CodeRabbit and Gemini read every diff. Codex posts suggestions. Findings are triaged, addressed, and resolved before merge.
 - **Test coverage tracked per PR** — the test target is wired into the Xcode project explicitly; adding a test file that isn't registered is treated as a real bug, not a silent miss.
