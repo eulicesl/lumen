@@ -1,6 +1,6 @@
 # 0002: On-device-first AI with Apple FoundationModels
 
-- **Status:** Accepted 2025-10-01
+- **Status:** Accepted 2025-10-01 (retrospective — decision predates the ADR practice; recorded 2026-04-18)
 - **Date:** 2025-10-01
 - **Deciders:** Eulices Lopez
 - **Related:** [`0004-no-backend-serverless-architecture.md`](0004-no-backend-serverless-architecture.md), [`0005-keychain-for-credential-storage.md`](0005-keychain-for-credential-storage.md)
@@ -33,4 +33,4 @@ If Apple deprecates or materially restricts the `FoundationModels` API, or if mo
 
 - [`0004-no-backend-serverless-architecture.md`](0004-no-backend-serverless-architecture.md) — explains why there is no developer-operated fallback server.
 - [`0005-keychain-for-credential-storage.md`](0005-keychain-for-credential-storage.md) — covers credential storage for optional providers.
-- Apple `FoundationModels` framework documentation (WWDC 2025).
+- Apple `FoundationModels` framework — WWDC 2025 "Meet Foundation Models" session and API reference at `https://developer.apple.com/documentation/FoundationModels`.

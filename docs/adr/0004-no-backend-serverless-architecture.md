@@ -1,6 +1,6 @@
 # 0004: No backend / serverless architecture
 
-- **Status:** Accepted 2025-10-01
+- **Status:** Accepted 2025-10-01 (retrospective — decision predates the ADR practice; recorded 2026-04-18)
 - **Date:** 2025-10-01
 - **Deciders:** Eulices Lopez
 - **Related:** [`0002-on-device-first-ai-with-apple-foundation-models.md`](0002-on-device-first-ai-with-apple-foundation-models.md), [`0005-keychain-for-credential-storage.md`](0005-keychain-for-credential-storage.md)

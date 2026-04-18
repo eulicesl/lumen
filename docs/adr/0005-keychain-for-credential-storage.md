@@ -1,6 +1,6 @@
 # 0005: Keychain for credential storage
 
-- **Status:** Accepted 2025-10-01
+- **Status:** Accepted 2025-10-01 (retrospective — decision predates the ADR practice; recorded 2026-04-18)
 - **Date:** 2025-10-01
 - **Deciders:** Eulices Lopez
 - **Related:** [`0002-on-device-first-ai-with-apple-foundation-models.md`](0002-on-device-first-ai-with-apple-foundation-models.md), [`0004-no-backend-serverless-architecture.md`](0004-no-backend-serverless-architecture.md)
@@ -23,7 +23,7 @@ We will store all credentials exclusively in the iOS Keychain via a `SecretStore
 
 - **Positive:** Credentials are hardware-encrypted on Secure Enclave devices. They are excluded from unencrypted backups by default Keychain accessibility settings. The `SecretStore` protocol allows `InMemorySecretStore` in tests without touching the real Keychain.
 - **Negative:** Keychain access can fail at runtime (e.g., device locked, Keychain corrupted). Callers must handle errors; the `SecretStore` protocol uses `throws` throughout.
-- **Neutral:** Keychain items survive app uninstall on iOS by default; the app deletes its Keychain items on first launch after re-install if it detects a fresh install state.
+- **Neutral:** Keychain items survive app uninstall on iOS by default. The current implementation does not purge stale Keychain entries on reinstall; if that guarantee becomes necessary, add an explicit purge path gated on `isFirstLaunch` with accompanying test coverage.
 
 ## Revisit trigger
 
