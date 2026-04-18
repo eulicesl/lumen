@@ -58,6 +58,10 @@ Every ADR carries a single Status line near the top:
 |----|-------|--------|
 | [0000](0000-record-architecture-decisions.md) | Record architecture decisions | Accepted 2026-04-16 |
 | [0001](0001-add-native-macos-target.md) | Add a native macOS app target | Accepted 2026-04-16 |
+| [0002](0002-on-device-first-ai-with-apple-foundation-models.md) | On-device-first AI with Apple FoundationModels | Accepted 2025-10-01 (retrospective) |
+| [0003](0003-swiftdata-over-core-data.md) | SwiftData over Core Data | Accepted 2025-10-01 (retrospective) |
+| [0004](0004-no-backend-serverless-architecture.md) | No backend / serverless architecture | Accepted 2025-10-01 (retrospective) |
+| [0005](0005-keychain-for-credential-storage.md) | Keychain for credential storage | Accepted 2025-10-01 (retrospective) |
 
 ## Further reading
 

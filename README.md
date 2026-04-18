@@ -58,7 +58,7 @@ Lumen is a privacy-first AI assistant built from the ground up for Apple platfor
 The repository is maintained to a deliberate "portfolio-grade" bar captured in [`docs/ENGINEERING_STANDARD.md`](docs/ENGINEERING_STANDARD.md). In practice that means:
 
 - **Branch protection on `main`** — direct pushes blocked, linear history enforced, all required status checks must pass, review conversations must be resolved.
-- **Every change ships through a PR** — properly-named branches (`feature/`, `fix/`, `chore/`, `release/`), conventional-commit-style messages, scoped test plans.
+- **Every change ships through a PR** — properly-named branches (`feature/`, `fix/`, `chore/`, `release/`), Conventional Commits (adopted from v1.0.0 onward), scoped test plans.
 - **CI on every PR** — build, lint, tests, workflow sanity. Failure blocks merge.
 - **Automated code review bots** — CodeRabbit and Gemini read every diff. Codex posts suggestions. Findings are triaged, addressed, and resolved before merge.
 - **Test coverage tracked per PR** — the test target is wired into the Xcode project explicitly; adding a test file that isn't registered is treated as a real bug, not a silent miss.
@@ -101,6 +101,7 @@ Lumen's privacy posture is the product. See [`https://eulicesl.github.io/lumen-l
 │   ├── PORTFOLIO_AUTHORSHIP.md ← authorship and AI-tool disclosure
 │   ├── product/                ← PRD, feature parity, sprint docs
 │   └── release/                ← submission checklists and runbooks
+├── CHANGELOG.md                ← release history (Keep a Changelog format)
 ├── exportOptions-appstore.plist
 ├── Lumen.xcodeproj             ← canonical; open this in Xcode
 └── project.yml                 ← legacy XcodeGen spec (removal planned; see docs/ENGINEERING_STANDARD.md)
@@ -172,6 +173,7 @@ See [`TESTFLIGHT_RELEASE_PROCESS.md`](TESTFLIGHT_RELEASE_PROCESS.md) and [`docs/
 - **Public beta link:** https://testflight.apple.com/join/v8mYExkK (build 1.0.0, currently in Apple beta review for external testing)
 - **Internal testers:** added by email through App Store Connect, install immediately
 - **Privacy policy:** https://eulicesl.github.io/lumen-legal/
+- **Release notes:** [`CHANGELOG.md`](CHANGELOG.md)
 
 ---
 
