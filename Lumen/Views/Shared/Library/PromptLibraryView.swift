@@ -52,13 +52,14 @@ struct PromptLibraryView: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
+            .insetGroupedListStyle()
             .navigationTitle("Prompt Library")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .searchable(text: $searchQuery, prompt: "Search prompts…")
             .searchPresentationToolbarBehavior(.avoidHidingContent)
             .promptLibrarySearchBehavior()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingAddPrompt = true
@@ -71,6 +72,20 @@ struct PromptLibraryView: View {
                 ToolbarItem(placement: .topBarLeading) {
                     categoryPicker
                 }
+                #else
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingAddPrompt = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add prompt")
+                    .accessibilityHint("Creates a new reusable prompt")
+                }
+                ToolbarItem(placement: .automatic) {
+                    categoryPicker
+                }
+                #endif
             }
             .sheet(isPresented: $showingAddPrompt) {
                 AddPromptView { title, content, category in
@@ -244,6 +259,17 @@ private extension View {
         // Disabled for now: CI runs Xcode 16 SDK where searchToolbarBehavior is unavailable.
         self
     }
+
+    @ViewBuilder
+    func promptSheetStyle() -> some View {
+        #if os(iOS)
+        self
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        #else
+        self
+        #endif
+    }
 }
 
 // MARK: - Prompt detail sheet
@@ -303,8 +329,9 @@ struct PromptDetailView: View {
                 .padding(LumenSpacing.lg)
             }
             .navigationTitle(prompt.title)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         libraryStore.toggleFavorite(prompt)
@@ -316,10 +343,22 @@ struct PromptDetailView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+                #else
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        libraryStore.toggleFavorite(prompt)
+                    } label: {
+                        Image(systemName: prompt.isFavorite ? "star.fill" : "star")
+                            .foregroundStyle(prompt.isFavorite ? .yellow : .secondary)
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+                #endif
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .promptSheetStyle()
     }
 }
 
@@ -350,8 +389,9 @@ struct AddPromptView: View {
                 }
             }
             .navigationTitle("New Prompt")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
@@ -363,10 +403,22 @@ struct AddPromptView: View {
                     .disabled(title.isEmpty || content.isEmpty)
                     .fontWeight(.semibold)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onSave(title, content, category)
+                        dismiss()
+                    }
+                    .disabled(title.isEmpty || content.isEmpty)
+                    .fontWeight(.semibold)
+                }
+                #endif
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .promptSheetStyle()
     }
 }
 

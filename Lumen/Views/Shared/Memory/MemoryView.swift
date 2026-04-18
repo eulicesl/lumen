@@ -33,13 +33,12 @@ struct MemoryView: View {
                     emptyState
                 }
             }
-            .listStyle(.insetGrouped)
+            .insetGroupedListStyle()
             .navigationTitle("Memory")
-            #if os(iOS)
-            .navigationBarTitleDisplayMode(.inline)
-            #endif
+            .navigationBarInline()
             .searchable(text: $searchQuery, prompt: "Search memories…")
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showingAddSheet = true
@@ -69,6 +68,37 @@ struct MemoryView: View {
                         .accessibilityHint("Filters visible memories by category")
                     }
                 }
+                #else
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingAddSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add memory")
+                    .accessibilityHint("Opens the form to save a new memory")
+                }
+                ToolbarItem(placement: .automatic) {
+                    if !memoryStore.memories.isEmpty {
+                        Menu {
+                            Button("All Categories") { selectedCategory = nil }
+                            Divider()
+                            ForEach(MemoryCategory.allCases, id: \.self) { cat in
+                                Button {
+                                    selectedCategory = cat
+                                } label: {
+                                    Label(cat.rawValue, systemImage: cat.icon)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                        }
+                        .accessibilityLabel("Filter by category")
+                        .accessibilityValue(selectedCategory?.rawValue ?? "All categories")
+                        .accessibilityHint("Filters visible memories by category")
+                    }
+                }
+                #endif
             }
             .sheet(isPresented: $showingAddSheet) {
                 AddMemoryView { content, category in
@@ -257,8 +287,9 @@ struct AddMemoryView: View {
                 }
             }
             .navigationTitle("New Memory")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
@@ -270,10 +301,22 @@ struct AddMemoryView: View {
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .fontWeight(.semibold)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onSave(content.trimmingCharacters(in: .whitespacesAndNewlines), category)
+                        dismiss()
+                    }
+                    .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .fontWeight(.semibold)
+                }
+                #endif
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .memorySheetStyle()
     }
 }
 
@@ -322,8 +365,9 @@ struct EditMemoryView: View {
                 }
             }
             .navigationTitle("Edit Memory")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") { dismiss() }
                 }
@@ -335,10 +379,35 @@ struct EditMemoryView: View {
                     .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     .fontWeight(.semibold)
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        onSave(content.trimmingCharacters(in: .whitespacesAndNewlines), category)
+                        dismiss()
+                    }
+                    .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .fontWeight(.semibold)
+                }
+                #endif
             }
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.visible)
+        .memorySheetStyle()
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func memorySheetStyle() -> some View {
+        #if os(iOS)
+        self
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        #else
+        self
+        #endif
     }
 }
 

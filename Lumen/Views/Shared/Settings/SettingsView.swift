@@ -151,7 +151,7 @@ struct SettingsView: View {
                     .accessibilityHidden(true)
 
                 SecureField("Optional bearer token", text: $ollamaLocalTokenDraft)
-                    .textInputAutocapitalization(.never)
+                    .disableInputAutocapitalization()
                     .autocorrectionDisabled()
                     .accessibilityLabel("Ollama local bearer token")
                     .accessibilityHint("Optional authentication for a protected local Ollama endpoint")
@@ -204,7 +204,7 @@ struct SettingsView: View {
                     .accessibilityHidden(true)
 
                 SecureField("Ollama Cloud API key", text: $ollamaCloudTokenDraft)
-                    .textInputAutocapitalization(.never)
+                    .disableInputAutocapitalization()
                     .autocorrectionDisabled()
                     .accessibilityLabel("Ollama Cloud API key")
                     .accessibilityHint("Required to load and use hosted models from Ollama Cloud")
@@ -629,6 +629,17 @@ private extension SettingsView {
 private extension Bundle {
     var appVersion: String { infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0" }
     var buildNumber: String { infoDictionary?["CFBundleVersion"] as? String ?? "1" }
+}
+
+private extension View {
+    @ViewBuilder
+    func disableInputAutocapitalization() -> some View {
+        #if os(iOS)
+        self.textInputAutocapitalization(.never)
+        #else
+        self
+        #endif
+    }
 }
 
 #Preview {
