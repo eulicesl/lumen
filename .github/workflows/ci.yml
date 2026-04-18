@@ -88,7 +88,21 @@ jobs:
             -scheme Lumen \
             -destination "id=${{ steps.simulator.outputs.id }}" \
             -skip-testing:LumenUITests \
+            -enableCodeCoverage YES \
+            -resultBundlePath build/TestResults.xcresult \
             test
+
+      - name: Report code coverage
+        if: always()
+        run: |
+          # Hard threshold is tracked in a future PR; this step makes coverage visible in logs.
+          xcrun xccov view --report --json build/TestResults.xcresult \
+            | python3 -c "
+          import sys, json
+          d = json.load(sys.stdin)
+          pct = d['lineCoverage'] * 100
+          print(f'Code Coverage: {pct:.1f}%')
+          " || echo "Coverage report unavailable (xccov requires a completed .xcresult)"
 
   lint-workflows:
     name: Workflow Sanity Dependency
