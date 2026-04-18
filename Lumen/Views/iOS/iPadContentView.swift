@@ -7,8 +7,7 @@ struct iPadContentView: View {
     @Environment(ChatStore.self) private var chatStore
     @Environment(ModelStore.self) private var modelStore
     @Environment(MemoryStore.self) private var memoryStore
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
+@SceneStorage("scene.selectedConversationID") private var restoredConversationID: String?
     @SceneStorage("scene.ipadColumnVisibility") private var restoredColumnVisibility = "all"
     @State private var columnVisibility: NavigationSplitViewVisibility = {
         AppLaunchConfiguration.isReleaseCaptureMode ? .detailOnly : .all
@@ -31,20 +30,6 @@ struct iPadContentView: View {
                     .environment(memoryStore)
             } else {
                 ChatView()
-                    .toolbar {
-                        if !AppLaunchConfiguration.isReleaseCaptureMode {
-                            ToolbarItem(placement: .topBarLeading) {
-                                Button {
-                                    LumenMotion.perform(.easeInOut(duration: 0.2), reduceMotion: reduceMotion) {
-                                        columnVisibility = columnVisibility == .all ? .detailOnly : .all
-                                    }
-                                } label: {
-                                    Image(systemName: "sidebar.left")
-                                }
-                                .accessibilityLabel(columnVisibility == .all ? "Hide Conversations" : "Show Conversations")
-                            }
-                        }
-                    }
             }
         }
         .task {
