@@ -101,6 +101,7 @@ Lumen's privacy posture is the product. See [`https://eulicesl.github.io/lumen-l
 │   ├── PORTFOLIO_AUTHORSHIP.md ← authorship and AI-tool disclosure
 │   ├── product/                ← PRD, feature parity, sprint docs
 │   └── release/                ← submission checklists and runbooks
+├── CHANGELOG.md                ← release history (Keep a Changelog format)
 ├── exportOptions-appstore.plist
 ├── Lumen.xcodeproj             ← canonical; open this in Xcode
 └── project.yml                 ← legacy XcodeGen spec (removal planned; see docs/ENGINEERING_STANDARD.md)
@@ -172,6 +173,7 @@ See [`TESTFLIGHT_RELEASE_PROCESS.md`](TESTFLIGHT_RELEASE_PROCESS.md) and [`docs/
 - **Public beta link:** https://testflight.apple.com/join/v8mYExkK (build 1.0.0, currently in Apple beta review for external testing)
 - **Internal testers:** added by email through App Store Connect, install immediately
 - **Privacy policy:** https://eulicesl.github.io/lumen-legal/
+- **Release notes:** [`CHANGELOG.md`](CHANGELOG.md)
 
 ---
 
