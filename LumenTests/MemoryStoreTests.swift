@@ -185,10 +185,14 @@ struct MemoryStoreTests {
 @MainActor
 struct AppStoreSecurityTests {
 
+    private func makeTestDefaults(suiteName: String) throws -> UserDefaults {
+        try #require(UserDefaults(suiteName: suiteName))
+    }
+
     @Test("Migrates legacy Ollama local bearer token from UserDefaults to secure storage")
-    func migratesLegacyToken() {
+    func migratesLegacyToken() throws {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        let defaults = try makeTestDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         defaults.set("legacy-token", forKey: "ollamaBearerToken")
 
@@ -203,9 +207,9 @@ struct AppStoreSecurityTests {
     }
 
     @Test("Saving Ollama local bearer token stores only the secure copy")
-    func savesTokenSecurely() {
+    func savesTokenSecurely() throws {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        let defaults = try makeTestDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
 
         let secretStore = InMemorySecretStore()
@@ -220,9 +224,9 @@ struct AppStoreSecurityTests {
     }
 
     @Test("Clearing Ollama local bearer token removes the secure copy")
-    func clearsTokenSecurely() {
+    func clearsTokenSecurely() throws {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        let defaults = try makeTestDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
 
         let secretStore = InMemorySecretStore()
@@ -238,9 +242,9 @@ struct AppStoreSecurityTests {
     }
 
     @Test("Saving Ollama Cloud API key stores only the secure copy")
-    func savesCloudKeySecurely() {
+    func savesCloudKeySecurely() throws {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        let defaults = try makeTestDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
 
         let secretStore = InMemorySecretStore()
@@ -255,9 +259,9 @@ struct AppStoreSecurityTests {
     }
 
     @Test("Migrates legacy local model IDs to the stable Ollama prefix")
-    func migratesLegacyLocalModelIDs() {
+    func migratesLegacyLocalModelIDs() throws {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        let defaults = try makeTestDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
         defaults.set("ollamaLocal.llama3.2", forKey: "defaultModelID")
 
@@ -270,9 +274,9 @@ struct AppStoreSecurityTests {
     }
 
     @Test("Saving a local model stores the stable Ollama prefix")
-    func savesLocalModelWithStableIDPrefix() {
+    func savesLocalModelWithStableIDPrefix() throws {
         let suiteName = "AppStoreSecurityTests-\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
+        let defaults = try makeTestDefaults(suiteName: suiteName)
         defaults.removePersistentDomain(forName: suiteName)
 
         let store = AppStore(userDefaults: defaults, secretStore: InMemorySecretStore())
