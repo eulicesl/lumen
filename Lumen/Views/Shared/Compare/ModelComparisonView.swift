@@ -36,8 +36,9 @@ struct ModelComparisonView: View {
                 promptBar
             }
             .navigationTitle("Compare Models")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarInline()
             .toolbar {
+                #if os(iOS)
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Done") { dismiss() }
                 }
@@ -47,6 +48,17 @@ struct ModelComparisonView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                #else
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                }
+                if hasResponses {
+                    ToolbarItem(placement: .automatic) {
+                        Button("Clear") { clearAll() }
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                #endif
             }
             .task {
                 if modelStore.availableModels.count >= 2 {
@@ -390,15 +402,20 @@ private struct ModelSelectorButton: View {
                     }
                 }
                 .navigationTitle("Select \(label)")
-                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarInline()
                 .toolbar {
+                    #if os(iOS)
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Cancel") { showingPicker = false }
                     }
+                    #else
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showingPicker = false }
+                    }
+                    #endif
                 }
             }
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+            .presentationSheetStyle()
         }
     }
 }
@@ -430,6 +447,19 @@ private struct ModelSelectorButtonPreviewHost: View {
     ModelComparisonView()
         .environment(ChatStore.shared)
         .environment(ModelStore.shared)
+}
+
+private extension View {
+    @ViewBuilder
+    func presentationSheetStyle() -> some View {
+        #if os(iOS)
+        self
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        #else
+        self
+        #endif
+    }
 }
 
 #Preview("Model Selector") {

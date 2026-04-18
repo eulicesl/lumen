@@ -56,11 +56,15 @@ struct SettingsStoreView: View {
             .navigationTitle("Settings")
             .toolbar {
                 if showsDoneButton {
+                    #if os(iOS)
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button("Done") {
-                            dismiss()
-                        }
+                        Button("Done") { dismiss() }
                     }
+                    #else
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { dismiss() }
+                    }
+                    #endif
                 }
             }
         }
